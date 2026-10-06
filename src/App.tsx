@@ -1,58 +1,48 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { AdaptiveCraftHint } from "./components/AdaptiveCraftHint";
 import { CafeAtmosphere, CafeSceneChrome } from "./components/CafeAtmosphere";
 import { ChibiCustomer } from "./components/ChibiCustomer";
-import { CraftGauge } from "./components/CraftGauge";
-import { CraftHotkeys } from "./components/CraftHotkeys";
+import { CraftWorkbench } from "./components/CraftWorkbench";
 import { CustomerQueueStatus } from "./components/CustomerQueueStatus";
-import { DrinkCup } from "./components/DrinkCup";
 import { OrderExperience } from "./components/OrderExperience";
 import { GameSettings } from "./components/GameSettings";
-import { HoldDispenser } from "./components/HoldDispenser";
 import { PerformancePulse } from "./components/PerformancePulse";
 import { PlayCoach } from "./components/PlayCoach";
-import { RecipeChecklist } from "./components/RecipeChecklist";
 import { ServeCelebration } from "./components/ServeCelebration";
-import { ToppingTray } from "./components/ToppingTray";
 import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
 import { WorldChrome } from "./components/world/WorldChrome";
-import {
-  DECORATIONS,
-  DRINKS,
-  TOPPINGS,
-} from "./game/content";
+import { DECORATIONS } from "./game/content";
 import {
   createInitialState,
   formatMoney,
   getCustomer,
   nextDay,
   serveCurrentDrink,
-  updateDraft,
 } from "./game/engine";
 import { feedbackForScore } from "./game/feedback";
 import { recordCraftPerformance } from "./game/performance";
 import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
-import type {
-  BaseId,
-  GameState,
-  Screen,
-  ToppingId,
-} from "./game/types";
+import type { GameState, Screen } from "./game/types";
 
 function App() {
   const [game, setGame] = useState<GameState>(() => loadGame());
   const [screen, setScreen] = useState<Screen>("shop");
+  const [station, setStation] = useState(0);
   const season = getSeasonForDay(game.day);
 
   useEffect(() => {
     saveGame(game);
   }, [game]);
+
+  useEffect(() => { window.scrollTo(0, 0); }, [screen]);
+  useEffect(() => {
+    setStation(0);
+    window.scrollTo(0, 0);
+  }, [game.currentOrder?.id]);
 
   const order = game.currentOrder;
   const customer = useMemo(
@@ -92,9 +82,14 @@ function App() {
         onNavigate={setScreen}
       />
 
-      <section className={`content v6-world-content v6-screen-${screen}`}>
+      <section id="game-content" tabIndex={-1} className={`content v6-world-content v6-screen-${screen}`}>
+        {game.phase === "open" && screen !== "shop" && (
+          <button className="return-to-counter" onClick={() => setScreen("shop")}>
+            ← Về quầy · {customer.name} đang chờ ly thứ {game.served + 1}
+          </button>
+        )}
         {screen === "shop" && (
-          <ShopScreen game={game} onGame={setGame} customer={customer} onNavigate={setScreen} />
+          <ShopScreen game={game} onGame={setGame} customer={customer} onNavigate={setScreen} station={station} onStation={setStation} />
         )}
         {screen === "stock" && <StockScreen game={game} onGame={setGame} />}
         {screen === "upgrades" && <UpgradesScreen game={game} onGame={setGame} />}
@@ -111,9 +106,11 @@ interface ShopProps {
   onGame: (state: GameState) => void;
   customer: ReturnType<typeof getCustomer>;
   onNavigate: (screen: Screen) => void;
+  station: number;
+  onStation: (station: number) => void;
 }
 
-function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
+function ShopScreen({ game, onGame, customer, onNavigate, station, onStation }: ShopProps) {
   if (game.phase === "prep") {
     return <PrepWorld game={game} onGame={onGame} onNavigate={onNavigate} />;
   }
@@ -197,7 +194,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
 
-        <PerformancePulse />
+        <details className="craft-performance"><summary>Phong độ pha chế</summary><PerformancePulse /></details>
 
         <OrderExperience
           key={order.id}
@@ -209,142 +206,8 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
         />
       </div>
 
-      <div className="panel workstation v6-brew-bench">
-        <div className="workstation-head">
-          <div>
-            <span className="eyebrow">QUẦY PHA CHẾ · COMBO x{game.combo}</span>
-            <h2>Đọc order, pha bằng tay</h2>
-          </div>
-          <span className="workstation-badge">🔥 best x{game.bestCombo}</span>
-        </div>
-
-        <div className="craft-grid v6-craft-grid">
-          <DrinkCup draft={game.draft} />
-
-          <div className="craft-controls v6-craft-controls">
-            <ControlGroup title="1. Chọn nền trà" icon="🫖">
-              <div className="choice-grid drink-choices v2-drink-choices">
-                {game.unlockedBaseIds.map((id) => {
-                  const drink = DRINKS[id];
-                  const selected = game.draft.base === id;
-                  const freshness = game.freshness[drink.ingredient] ?? 100;
-                  return (
-                    <button
-                      key={id}
-                      className={`choice-card ${selected ? "selected" : ""}`}
-                      onClick={() => onGame(updateDraft(game, { base: id as BaseId, sealed: false }))}
-                    >
-                      <span>{drink.emoji}</span>
-                      <b>{drink.shortName}</b>
-                      <small>Còn {game.inventory[drink.ingredient]} · {freshness}% tươi</small>
-                    </button>
-                  );
-                })}
-              </div>
-            </ControlGroup>
-
-            <div className="two-col-controls">
-              <ControlGroup title="2. Size ly" icon="🥤">
-                <div className="segmented">
-                  {(["M", "L"] as const).map((size) => (
-                    <button
-                      key={size}
-                      className={game.draft.size === size ? "selected" : ""}
-                      onClick={() => onGame(updateDraft(game, { size, sealed: false }))}
-                    >
-                      {size}<small>còn {game.inventory[size === "M" ? "cupsM" : "cupsL"]}</small>
-                    </button>
-                  ))}
-                </div>
-              </ControlGroup>
-
-              <ControlGroup title="3. Topping · kéo thả" icon="🍮">
-                <ToppingTray
-                  unlockedIds={game.unlockedToppingIds}
-                  selected={game.draft.topping}
-                  onSelect={(id) => onGame(updateDraft(game, { topping: id as ToppingId, sealed: false }))}
-                />
-              </ControlGroup>
-            </div>
-
-            <ControlGroup title="4. Định lượng · giữ để rót" icon="🎚️">
-              <div className="dosing-grid">
-                <HoldDispenser
-                  label="Đường"
-                  icon="🍬"
-                  value={game.draft.sugar}
-                  target={order.sugar}
-                  onChange={(value) => onGame(updateDraft(game, { sugar: value, sealed: false }))}
-                />
-                <HoldDispenser
-                  label="Đá"
-                  icon="🧊"
-                  value={game.draft.ice}
-                  target={order.ice}
-                  onChange={(value) => onGame(updateDraft(game, { ice: value, sealed: false }))}
-                />
-              </div>
-            </ControlGroup>
-
-            <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
-              <div className="timing-grid">
-                <CraftGauge
-                  label="Rót"
-                  icon="🫗"
-                  value={game.draft.fill}
-                  target={order.targetFill}
-                  tolerance={5 + game.upgrades.brewer}
-                  speed={62 - Math.min(15, game.upgrades.brewer * 3)}
-                  helper="Bấm bắt đầu, canh kim vào vùng hồng rồi CHỐT."
-                  onCommit={(value) => onGame(updateDraft(game, { fill: value, sealed: false }))}
-                />
-                <CraftGauge
-                  label="Lắc"
-                  icon="🌀"
-                  value={game.draft.shake}
-                  target={order.targetShake}
-                  tolerance={5 + game.upgrades.shaker * 2}
-                  speed={72 - Math.min(20, game.upgrades.shaker * 4)}
-                  helper="Máy lắc cấp cao làm kim chậm hơn và vùng chuẩn rộng hơn."
-                  onCommit={(value) => onGame(updateDraft(game, { shake: value, sealed: false }))}
-                />
-              </div>
-            </ControlGroup>
-
-            <AdaptiveCraftHint order={order} draft={game.draft} />
-            <RecipeChecklist order={order} draft={game.draft} />
-            <CraftHotkeys
-              enabled
-              sealed={game.draft.sealed}
-              onSeal={() => onGame(updateDraft(game, { sealed: true }))}
-              onServe={serveDrink}
-            />
-
-            <div className="finish-actions">
-              <button
-                className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
-                onClick={() => onGame(updateDraft(game, { sealed: !game.draft.sealed }))}
-              >
-                <span>{game.draft.sealed ? "🎀" : "🔘"}</span>
-                {game.draft.sealed ? "Nắp đã chuẩn" : "Dập nắp ly"}
-              </button>
-              <button className="primary-button serve-button" onClick={serveDrink}>
-                <span>💗</span> Giao cho {customer.name}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CraftWorkbench key={order.id} game={game} customerName={customer.name} onGame={onGame} onServe={serveDrink} station={station} onStation={onStation} />
     </section>
-  );
-}
-
-function ControlGroup({ title, icon, children }: { title: string; icon: string; children: ReactNode }) {
-  return (
-    <div className="control-group v6-control-drawer">
-      <h4><span>{icon}</span>{title}</h4>
-      {children}
-    </div>
   );
 }
 

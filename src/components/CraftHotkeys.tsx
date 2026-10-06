@@ -19,7 +19,7 @@ export function CraftHotkeys({ enabled, sealed, onSeal, onServe }: Props) {
     if (!enabled) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.repeat || isTypingTarget(event.target)) return;
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
 
       if (event.key.toLowerCase() === "d") {
         event.preventDefault();

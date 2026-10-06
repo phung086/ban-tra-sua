@@ -142,7 +142,7 @@ export function OrderExperience({
 
   return (
     <div className="order-experience">
-      <section className={`order-ticket v2-ticket order-ticket-v4 ${memoryMode ? "is-memory-mode" : ""}`}>
+      <section id="current-order" className={`order-ticket v2-ticket order-ticket-v4 ${memoryMode ? "is-memory-mode" : ""}`}>
         <div className="ticket-pin">📌</div>
         <div className="ticket-head">
           <div>
@@ -179,7 +179,9 @@ export function OrderExperience({
         )}
       </section>
 
-      <aside className={`order-service-panel ${ready ? "ready" : ""}`} aria-label="Kiểm tra order trước khi giao">
+      <p className="order-return-links"><a href="#craft-workbench">Về trạm pha ↓</a></p>
+
+      <aside className={`order-service-panel ${ready ? "ready" : ""} ${coachMode ? "coach-expanded" : ""}`} aria-label="Kiểm tra order trước khi giao">
         <div className="service-panel-head">
           <div>
             <span className="eyebrow">ORDER CHECK · KHÔNG TRỪ ĐIỂM</span>

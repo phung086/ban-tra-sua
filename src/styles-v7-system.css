@@ -1,0 +1,248 @@
+/* Shared ergonomics for the integrated storybook rooms and tea counter. */
+:root {
+  --ui-ink: #513744;
+  --ui-muted: #745560;
+  --ui-paper: #fffdf7;
+  --ui-rose: #a83260;
+  --ui-blush: #ffe3ed;
+  --ui-mint: #327457;
+  --ui-radius: 16px;
+  --ui-elevation: 0 8px 24px #51374418;
+}
+html { scroll-padding-top: 100px; }
+body { color: var(--ui-ink); }
+::selection { color: var(--ui-paper); background: var(--ui-rose); }
+* { scrollbar-color: #b98c9d #fff3eb; scrollbar-width: thin; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--ui-rose); outline-offset: 4px; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+[hidden] { display: none !important; }
+.skip-to-game { position: fixed; z-index: 1000; top: -80px; left: 20px; padding: 14px; background: var(--ui-paper); color: var(--ui-rose); }
+.skip-to-game:focus { top: 12px; }
+.v6-hud { width: auto; min-height: 0; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.v6-brand small { font-size: 10px; color: var(--ui-muted); }
+.v6-brand b { font-size: 20px; }
+.v6-hud-cluster > span { font-size: 14px; font-variant-numeric: tabular-nums; }
+.v6-world-nav { width: 86px; left: 8px; }
+.v6-world-nav button { min-height: 76px; color: var(--ui-muted); }
+.v6-world-nav button b { font-size: 12px; }
+.v6-world-nav button small { font-size: 10px; opacity: 1; letter-spacing: 0; }
+.v6-world-nav-sign { font-size: 10px; }
+.v6-nav-badge { width: 23px; height: 23px; font-size: 11px; }
+.v6-toast { max-width: min(640px, calc(100vw - 160px)); padding: 10px 16px; background: var(--ui-paper); }
+.v6-toast p, .v6-toast b { font-size: 13px; line-height: 1.45; }
+.game-settings { z-index: 220; }
+.settings-trigger { width: 48px; height: 48px; }
+.settings-popover { width: min(330px, calc(100vw - 32px)); }
+.settings-popover button { min-height: 44px; font-size: 14px; }
+.settings-popover small { font-size: 12px; color: var(--ui-muted); }
+.return-to-counter { position: relative; z-index: 10; display: block; margin: 84px 24px -68px; padding: 12px 18px; border: 0; border-radius: 12px; background: var(--ui-blush); color: var(--ui-rose); font-size: 14px; font-weight: 800; }
+
+/* Keep the customer and recipe beside the currently active station. */
+.v6-craft-theater.v6-game-layout { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 1.4fr); align-items: start; gap: 24px; padding: 94px 24px 92px; }
+.v6-craft-theater .v6-customer-stage { display: flex; flex-direction: column; gap: 16px; position: static; min-width: 0; }
+.v6-customer-stage > * { width: 100%; min-width: 0; }
+.v6-craft-theater .live-scene { min-height: 280px; border-radius: 20px; }
+.v6-live-scene .customer-zone { min-height: 230px; bottom: 40px; }
+.v6-live-scene .speech-bubble { top: 58px; left: 12px; width: 48%; padding: 12px; border-width: 1px; box-shadow: var(--ui-elevation); }
+.v6-live-scene .speech-bubble small { font-size: 12px; letter-spacing: 0; }
+.v6-live-scene .speech-bubble p { font-size: 13px; line-height: 1.5; }
+.v6-live-scene .chibi { scale: .65; transform-origin: bottom center; position: absolute; bottom: 0; right: -6px; }
+.v6-live-scene .counter-edge { min-height: 38px; }
+.v6-live-scene::before, .v6-live-scene::after { display: none; }
+.v6-customer-stage .order-experience { position: static; padding: 12px; border-width: 1px; border-radius: 16px; box-shadow: var(--ui-elevation); }
+.v6-customer-stage .order-ticket { transform: none; padding: 16px; box-shadow: none; }
+.v6-customer-stage .ticket-head h3 { font-size: 20px; line-height: 1.3; }
+.v6-customer-stage .order-chips span { font-size: 13px; padding: 7px 9px; }
+.v6-customer-stage .ticket-head > b { font-size: 13px; }
+.v6-customer-stage .order-service-panel { padding: 14px; border: 0; box-shadow: none; }
+.order-service-panel:not(.coach-expanded) .service-radar, .order-service-panel:not(.coach-expanded) .order-check-grid { display: none; }
+.service-panel-head { flex-wrap: wrap; gap: 10px; }
+.service-panel-head h3 { font-size: 16px; }
+.service-mode-actions button { min-height: 44px; font-size: 12px; }
+.recipe-readiness { font-size: 13px; }
+.service-hint { font-size: 12px; line-height: 1.5; }
+.craft-performance { color: var(--ui-muted); font-size: 13px; }
+.craft-performance summary { cursor: pointer; min-height: 44px; padding: 12px; background: var(--ui-paper); border-radius: 12px; }
+.progress-row { font-size: 13px; }
+.customer-queue { padding: 16px; border-radius: var(--ui-radius); background: var(--ui-paper); box-shadow: var(--ui-elevation); }
+.queue-current { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 14px; }
+.queue-current > span { font-size: 12px; color: var(--ui-muted); font-variant-numeric: tabular-nums; }
+.patience-track { height: 8px; overflow: hidden; margin: 12px 0 8px; border-radius: 8px; background: #e5eee7; }
+.patience-track i { display: block; height: 100%; width: 100%; transform-origin: left; background: var(--ui-mint); transition: transform .3s ease; }
+.mood-restless .patience-track i, .mood-upset .patience-track i { background: var(--ui-rose); }
+.customer-queue p { margin: 0 0 12px; color: var(--ui-muted); font-size: 12px; }
+.queue-next { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+.queue-next > span:not(:first-child) { background: #f7eee8; border-radius: 8px; padding: 4px 8px; }
+.queue-next > span:first-child { padding: 4px 0; color: var(--ui-muted); }
+.v7-workbench { min-width: 0; padding: 24px; border: 0; background: var(--ui-paper); }
+.v7-workbench::before, .v7-workbench::after, .v7-workbench .finish-actions::before { display: none; }
+.v7-workbench .workstation-head { margin: 0 0 20px; padding: 0; }
+.v7-workbench .workstation-head h2 { font-size: clamp(22px, 2vw, 28px); line-height: 1.3; }
+.workstation-head p { margin: 6px 0 0; color: var(--ui-muted); font-size: 14px; }
+.order-return-links a, .workstation-head a { display: inline-block; min-height: 44px; padding-block: 10px; color: var(--ui-rose); font-size: 13px; font-weight: 800; text-underline-offset: 4px; }
+.order-return-links { margin: 10px 0 0; }
+.v7-workbench .workstation-badge { font-size: 12px; }
+.craft-stations { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 24px; }
+.craft-stations button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 56px; padding: 8px; border: 0; border-radius: 12px; background: #f7eee8; color: var(--ui-muted); font-size: 13px; }
+.craft-stations button span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ui-paper); font-weight: 800; flex-shrink: 0; }
+.craft-stations button[aria-current] { background: var(--ui-rose); color: white; }
+.craft-stations button[aria-current] span { color: var(--ui-rose); }
+.v7-workbench .craft-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; }
+.v7-workbench .cup-wrap { position: relative; top: auto; min-height: 370px; padding: 16px 8px; border: 0; background: #f8efe6; box-shadow: none; align-self: start; }
+.v7-workbench .cup-wrap::before, .v7-workbench .cup-wrap::after { display: none; }
+.v7-workbench .cup-caption span { font-size: 12px; }
+.v7-workbench .craft-controls { display: flex; flex-direction: column; min-width: 0; gap: 16px; }
+.v7-workbench .craft-controls > section { display: grid; gap: 16px; }
+.v7-workbench .control-group { padding: 0; border: 0; background: none; box-shadow: none; }
+.v7-workbench .control-group::before, .v7-workbench .control-group::after { display: none; }
+.v7-workbench .control-group h4 { font-size: 15px; margin: 0 0 12px; }
+.v7-workbench .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.v7-workbench .choice-card { min-height: 104px; padding: 12px; border: 1px solid #e2cfd6; border-radius: 12px; box-shadow: none; background: var(--ui-paper); }
+.v7-workbench .choice-card.selected { border: 2px solid var(--ui-rose); background: var(--ui-blush); }
+.v7-workbench .choice-card b { font-size: 14px; }
+.v7-workbench .choice-card small { font-size: 12px; color: var(--ui-muted); }
+.v7-workbench .two-col-controls { grid-template-columns: 1fr; gap: 20px; }
+.v7-workbench .segmented button { min-height: 48px; font-size: 16px; }
+.v7-workbench .segmented small { font-size: 12px; }
+.v7-workbench .topping-token { min-height: 48px; font-size: 13px; }
+.v7-workbench .timing-grid, .v7-workbench .dosing-grid { grid-template-columns: 1fr; gap: 16px; }
+.v7-workbench .craft-gauge, .v7-workbench .hold-dispenser { padding: 16px; border: 1px solid #e2cfd6; background: var(--ui-paper); box-shadow: none; border-radius: 12px; }
+.v7-workbench .gauge-helper, .v7-workbench .hold-dispenser small, .v7-workbench .gauge-scale { font-size: 12px; line-height: 1.5; color: var(--ui-muted); }
+.v7-workbench .hold-head, .v7-workbench .craft-gauge-head { font-size: 15px; }
+.v7-workbench .hold-dispenser { grid-template-columns: minmax(0, 1fr); }
+.v7-workbench .hold-tank { grid-row: auto; min-height: 96px; }
+.v7-workbench .hold-tank > span { font-size: 12px; }
+.v7-workbench .hold-actions { grid-template-columns: minmax(0, 1fr) 48px; }
+.v7-workbench .hold-main { white-space: nowrap; }
+.v7-workbench .timing-button, .v7-workbench .hold-main, .v7-workbench .hold-reset { min-height: 48px; font-size: 14px; }
+.v7-workbench .finish-actions { padding: 0; background: none; border: 0; box-shadow: none; grid-template-columns: 1fr; }
+.v7-workbench .seal-button, .v7-workbench .serve-button { min-height: 52px; font-size: 16px; }
+.v7-workbench .recipe-checklist, .v7-workbench .adaptive-hint { font-size: 13px; }
+.station-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 20px; margin-top: 8px; border-top: 1px solid #e2cfd6; }
+.station-pagination > span { color: var(--ui-muted); font-size: 12px; margin-right: auto; }
+.station-pagination button { min-height: 44px; padding: 10px 14px; border: 0; border-radius: 10px; background: #f7eee8; color: var(--ui-ink); font-weight: 800; font-size: 13px; }
+.station-pagination .station-next { color: white; background: var(--ui-rose); }
+
+/* Flowing room content grows with the player's unlocked catalog. */
+.v6-room:not(.v6-prep-room) .room-backdrop { display: flex; flex-direction: column; gap: 24px; padding: 94px 36px 108px; min-height: 100vh; }
+.v6-room:not(.v6-prep-room) .room-backdrop > :not(svg) { position: relative; inset: auto; transform: none; width: auto; max-width: none; flex-shrink: 0; }
+.v6-room .v6-room-title small { display: none; }
+.v6-room-title h2 { font-size: 28px; line-height: 1.3; }
+.v6-room-title p { font-size: 14px; line-height: 1.5; color: var(--ui-muted); }
+.v6-room:not(.v6-prep-room) .v6-room-title { align-self: flex-start; padding: 16px 20px; }
+.v6-room button { font-size: 14px; min-height: 44px; }
+.v6-room small, .v6-room p, .v6-room em { font-size: 13px; line-height: 1.5; }
+.v6-room h3 { font-size: 20px; line-height: 1.3; }
+.v6-room b { font-size: 16px; }
+.v6-pantry-shelf-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); grid-auto-rows: 140px; padding: 16px; }
+.v6-pantry-item b { font-size: 13px; white-space: normal; color: var(--ui-ink); }
+.v6-pantry-item small { font-size: 14px; color: var(--ui-muted); }
+.v6-room .v6-pantry-drawer { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 24px; background: var(--ui-paper); }
+.v6-pantry-drawer > div:nth-child(3) { flex: 1; min-width: 160px; }
+.v6-pantry-drawer > button { min-width: 190px; }
+.v6-pantry-drawer > button b, .v6-pantry-drawer > button strong { font-size: 14px; }
+.v6-pantry-drawer .v6-drawer-tip { flex-basis: 100%; color: var(--ui-muted); }
+.v6-drawer-tab { display: none; }
+.v6-pantry-magnets { display: flex; flex-wrap: wrap; gap: 8px; }
+.v6-pantry-magnets span { font-size: 13px; }
+.v6-room .v6-pantry-cash { display: none; }
+.v6-room .v6-workbench { max-height: none; overflow: visible; padding: 24px; }
+.v6-equipment-bench, .v6-staff-floor, .v6-decor-shelf, .v6-blueprint-wall { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.v6-machine { padding: 20px; min-height: 300px; }
+.v6-machine-label p, .v6-staff-stand p, .v6-blueprint p { font-size: 14px; color: var(--ui-muted); }
+.v6-machine-label b, .v6-decor-object b { font-size: 18px; }
+.v6-staff-stand { min-height: 340px; }
+.v6-room .v6-phone { align-self: center; width: min(100%, 560px) !important; height: 700px; }
+.v6-phone-appbar b { font-size: 18px; }
+.v6-social-post p { font-size: 14px; }
+.v6-phone-empty p { font-size: 14px; color: var(--ui-muted); }
+.v6-room .v6-social-sticky { display: none; }
+.v6-room .v6-social-note, .v6-room .v6-social-ledger { display: block; max-width: 560px; align-self: center; padding: 20px; background: var(--ui-paper); }
+.v6-social-note > span { display: none; }
+.v6-social-note button { font-size: 14px; }
+.v6-social-post header b { font-size: 15px; }
+.v6-post-stars, .v6-phone-rating span { font-size: 14px; color: #95600f; }
+.v6-room .v6-corkboard { height: auto; min-height: 420px; max-height: none; overflow: visible; padding: 28px; }
+.v6-corkboard-quests, .v6-corkboard-achievements { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.v6-pinned-note, .v6-polaroid { transform: none; }
+.v6-pinned-note p { min-height: 0; font-size: 14px; }
+.v6-pinned-note > span, .v6-polaroid p, .v6-bottle-row b, .v6-customer-photo p { font-size: 13px; }
+.v6-pinned-note > small { display: none; }
+.v6-story-envelope { max-width: 520px !important; }
+.v6-prep-clipboard { width: 350px; padding: 24px; }
+.v6-prep-clipboard small, .v6-prep-meta p { font-size: 13px; color: var(--ui-muted); }
+.v6-prep-stats small { font-size: 12px; }
+.v6-prep-stats b { font-size: 22px; }
+.v6-open-sign { min-width: 230px; padding: 20px 24px; }
+.v6-open-sign b { font-size: 28px; }
+.v6-open-sign small, .v6-open-sign em { font-size: 12px; color: #fff8e9; opacity: 1; }
+.v6-stock-crate-alert small { font-size: 13px; }
+.v6-prep-room .v6-room-title { max-width: 380px; }
+.summary-card { margin: 94px auto 100px; }
+
+@media (max-width: 1100px) {
+  .v6-craft-theater.v6-game-layout { grid-template-columns: minmax(250px, .8fr) minmax(0, 1.2fr); gap: 16px; padding-inline: 16px; }
+  .v7-workbench .craft-grid { grid-template-columns: 1fr; }
+  .v7-workbench .cup-wrap { display: none; }
+  .craft-stations button { flex-direction: column; font-size: 12px; }
+}
+@media (max-width: 980px) {
+  .v6-hud { left: 12px; right: 12px; }
+  .v6-world-nav { width: auto; left: 9px; padding-bottom: max(7px, env(safe-area-inset-bottom)); }
+  .v6-world-nav button { min-height: 56px; }
+  .v6-craft-theater.v6-game-layout { grid-template-columns: minmax(0, 1fr); padding: 90px 16px 110px; }
+  .v6-craft-theater .v6-customer-stage { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .v6-customer-stage > .live-scene { grid-column: 1; grid-row: 1 / 3; }
+  .v6-customer-stage > .order-experience { grid-column: 2; grid-row: 1 / 4; }
+  .v6-customer-stage > .customer-queue, .v6-customer-stage > .progress-card { grid-column: 1; }
+  .v6-toast { bottom: 86px; max-width: calc(100vw - 90px); }
+  .v6-room:not(.v6-prep-room) .room-backdrop { padding-inline: 20px; }
+  .return-to-counter { margin: 84px 16px -68px; }
+}
+@media (max-width: 699px) {
+  .v6-brand b { font-size: 17px; }
+  .v6-brand small { font-size: 9px; }
+  .v6-hud-cluster > span { font-size: 12px; padding: 0 6px; }
+  .v6-world-content { padding-bottom: 0 !important; }
+  .v6-room .room-backdrop > svg { width: 1000px; height: 100%; }
+  .v6-room:not(.v6-prep-room) .room-backdrop { padding: 90px 16px 180px; }
+  .v6-room-title h2 { font-size: 24px; }
+  .v6-room .v6-room-title { padding: 16px; }
+  .v6-room .v6-pantry-drawer { flex-direction: column; align-items: stretch; padding: 20px; }
+  .v6-pantry-shelf-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 124px; padding: 8px; gap: 8px; }
+  .v6-pantry-item b { font-size: 12px; }
+  .v6-room .v6-workbench, .v6-room .v6-corkboard { padding: 16px; }
+  .v6-workshop-tabs, .v6-board-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+  .v6-prep-room .room-backdrop { display: flex; flex-direction: column; align-items: stretch; min-height: 100vh; padding: 90px 16px 180px; gap: 24px; }
+  .v6-prep-room .v6-room-title, .v6-prep-clipboard, .v6-stock-crate-alert { position: relative; inset: auto; width: auto; max-width: none; transform: none; }
+  .v6-prep-room .v6-open-sign { position: relative; inset: auto; align-self: center; transform: rotate(-2deg); order: 1; margin: 32px 0 16px; }
+  .v6-prep-clipboard { order: 2; }
+  .v6-stock-crate-alert { order: 3; }
+  .v6-prep-cat { display: none; }
+  .v6-craft-theater .v6-customer-stage { display: flex; gap: 12px; }
+  .v6-customer-stage > .live-scene { display: none; }
+  .v6-customer-stage > .order-experience { order: 1; }
+  .v6-customer-stage > .customer-queue { order: 0; }
+  .v6-customer-stage > .progress-card { display: none; }
+  .v6-customer-stage .order-experience { padding: 10px; }
+  .v6-customer-stage .order-service-panel { padding: 12px; }
+  .v6-customer-stage .order-service-panel h3 { font-size: 14px; }
+  .v6-customer-stage .order-experience::before, .v6-customer-stage .service-hint { display: none; }
+  .v6-customer-stage .order-chips span { font-size: 12px; }
+  .v7-workbench { padding: 18px; }
+  .v7-workbench .workstation-head { align-items: flex-start; }
+  .v7-workbench .workstation-badge { display: none; }
+  .craft-stations { gap: 4px; margin-bottom: 20px; }
+  .craft-stations button { padding: 8px 3px; font-size: 11px; }
+  .v7-workbench .choice-card small { font-size: 11px; }
+  .station-pagination { gap: 8px; }
+  .station-pagination > span { display: none; }
+  .station-pagination .station-next { margin-left: auto; }
+  .v6-toast { bottom: 86px; left: 12px; max-width: calc(100vw - 76px); border-radius: 12px; transform: none; }
+  .v6-toast p { font-size: 12px; }
+  .summary-wrap { padding: 0 16px; }
+  .summary-card { margin-top: 90px; }
+}
+@media (prefers-reduced-motion: reduce) { .patience-track i { transition: none; } }
