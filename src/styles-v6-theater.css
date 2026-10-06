@@ -584,7 +584,7 @@ body {
   gap: 12px;
 }
 
-.v6-craft-controls > .v6-control-drawer:nth-of-type(1) {
+.v6-craft-controls > .v6-control-drawer:nth-child(1) {
   grid-column: span 7;
 }
 
@@ -592,11 +592,11 @@ body {
   grid-column: span 5;
 }
 
-.v6-craft-controls > .v6-control-drawer:nth-of-type(2) {
+.v6-craft-controls > .v6-control-drawer:nth-child(3) {
   grid-column: span 6;
 }
 
-.v6-craft-controls > .v6-control-drawer:nth-of-type(3) {
+.v6-craft-controls > .v6-control-drawer:nth-child(4) {
   grid-column: span 6;
 }
 
@@ -859,10 +859,10 @@ body {
     grid-template-columns: minmax(220px, .42fr) minmax(0, 1.58fr);
   }
 
-  .v6-craft-controls > .v6-control-drawer:nth-of-type(1),
+  .v6-craft-controls > .v6-control-drawer:nth-child(1),
   .v6-craft-controls > .two-col-controls,
-  .v6-craft-controls > .v6-control-drawer:nth-of-type(2),
-  .v6-craft-controls > .v6-control-drawer:nth-of-type(3) {
+  .v6-craft-controls > .v6-control-drawer:nth-child(3),
+  .v6-craft-controls > .v6-control-drawer:nth-child(4) {
     grid-column: 1 / -1;
   }
 }
