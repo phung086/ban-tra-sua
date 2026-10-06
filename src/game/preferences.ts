@@ -4,6 +4,7 @@ export interface UiPreferences {
   motion: boolean;
   oneHand: boolean;
   highContrast: boolean;
+  focusMode: boolean;
   coachCompleted: boolean;
 }
 
@@ -15,6 +16,7 @@ const defaults: UiPreferences = {
   motion: true,
   oneHand: false,
   highContrast: false,
+  focusMode: false,
   coachCompleted: false,
 };
 
@@ -39,6 +41,7 @@ export function updateUiPreferences(patch: Partial<UiPreferences>): UiPreference
   document.documentElement.dataset.motion = next.motion ? "on" : "off";
   document.documentElement.dataset.oneHand = next.oneHand ? "on" : "off";
   document.documentElement.dataset.contrast = next.highContrast ? "high" : "normal";
+  document.documentElement.dataset.focus = next.focusMode ? "on" : "off";
   return next;
 }
 
@@ -47,4 +50,5 @@ export function syncMotionPreference() {
   document.documentElement.dataset.motion = prefs.motion ? "on" : "off";
   document.documentElement.dataset.oneHand = prefs.oneHand ? "on" : "off";
   document.documentElement.dataset.contrast = prefs.highContrast ? "high" : "normal";
+  document.documentElement.dataset.focus = prefs.focusMode ? "on" : "off";
 }
