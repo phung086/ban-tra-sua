@@ -271,3 +271,254 @@
 @media (prefers-reduced-motion: reduce) {
   .readiness-track i { transition: none; }
 }
+
+
+/* Memory recall mini-game */
+.recall-drill {
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid #ded0ef;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #faf6ff, #fff9fc);
+}
+
+.recall-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recall-head h4 {
+  margin: 4px 0 2px;
+  color: #735a91;
+  font-size: 11px;
+}
+
+.recall-head p {
+  margin: 0;
+  color: #9b86b2;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.recall-progress {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 52px;
+  border: 1px solid #dacbed;
+  border-radius: 16px;
+  background: #fff;
+  color: #795d9c;
+}
+
+.recall-progress b { font-size: 12px; }
+
+.recall-progress small {
+  color: #a38bbd;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+.recall-question-list {
+  display: grid;
+  gap: 7px;
+}
+
+.recall-question {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 9px;
+  border: 1px solid #e9deef;
+  border-radius: 12px;
+  background: rgba(255,255,255,.76);
+}
+
+.recall-question legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 4px;
+  color: #745c87;
+}
+
+.recall-question legend span { font-size: 13px; }
+.recall-question legend b { font-size: 8px; }
+
+.recall-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.recall-choices button,
+.recall-retry {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid #e8ddeb;
+  border-radius: 10px;
+  background: #fff;
+  color: #846f91;
+  font-size: 7px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.recall-choices button.selected {
+  border-color: #bca5d9;
+  background: #efe7fb;
+  color: #6c4d92;
+  box-shadow: inset 0 0 0 1px rgba(126,89,167,.08);
+}
+
+.recall-submit {
+  min-height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #b994df, #9470c4);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.recall-submit:disabled {
+  background: #dfd6e7;
+  color: #aa9bb6;
+  cursor: not-allowed;
+}
+
+.recall-result {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  align-items: start;
+  gap: 10px;
+}
+
+.recall-score-ring {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  aspect-ratio: 1;
+  border: 7px solid #e2d6ef;
+  border-top-color: #9b79c5;
+  border-radius: 999px;
+  background: #fff;
+  color: #70528f;
+}
+
+.recall-score-ring strong { font-size: 15px; }
+
+.recall-score-ring small {
+  color: #a28eb6;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+}
+
+.recall-result-copy {
+  min-width: 0;
+}
+
+.recall-result-copy > h4 {
+  margin: 0 0 7px;
+  color: #73598f;
+  font-size: 10px;
+}
+
+.recall-review {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.recall-review > div {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.recall-review > div > span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.recall-review .correct > span { background: #69ba90; }
+.recall-review .wrong > span { background: #e29383; }
+
+.recall-review p {
+  min-width: 0;
+  margin: 0;
+}
+
+.recall-review b,
+.recall-review small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recall-review b {
+  color: #715d7b;
+  font-size: 7px;
+}
+
+.recall-review small {
+  color: #9c879f;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+.recall-retry {
+  width: 100%;
+  margin-top: 7px;
+  border-color: #d8c9e5;
+  background: #f6f0fb;
+  color: #775c94;
+}
+
+@media (min-width: 780px) {
+  .recall-question-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .recall-head {
+    align-items: stretch;
+  }
+
+  .recall-progress {
+    min-width: 46px;
+    min-height: 46px;
+  }
+
+  .recall-result {
+    grid-template-columns: 1fr;
+  }
+
+  .recall-score-ring {
+    width: 76px;
+  }
+
+  .recall-review {
+    grid-template-columns: 1fr;
+  }
+}
