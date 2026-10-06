@@ -522,3 +522,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Split recipe / technique readiness */
+.service-radar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.service-radar > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 5px 8px;
+  padding: 8px 9px;
+  border: 1px solid #eee1e7;
+  border-radius: 12px;
+  background: rgba(255,255,255,.72);
+}
+
+.service-radar span {
+  color: #866979;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.service-radar b {
+  color: #bd5c87;
+  font-size: 9px;
+}
+
+.service-radar > div > div {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: #f0e3e9;
+}
+
+.service-radar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f5a1c3, #e9669f);
+  transition: width .2s ease;
+}
+
+.service-radar > div:nth-child(2) i {
+  background: linear-gradient(90deg, #c2a8e9, #8d72c5);
+}
+
+@media (max-width: 420px) {
+  .service-radar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-radar i {
+    transition: none;
+  }
+}
