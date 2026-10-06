@@ -5,7 +5,7 @@ export function GameSettings() {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState(() => getUiPreferences());
 
-  const toggle = (key: "sound" | "haptics" | "motion" | "oneHand" | "highContrast") => {
+  const toggle = (key: "sound" | "haptics" | "motion" | "oneHand" | "highContrast" | "focusMode") => {
     setPrefs(updateUiPreferences({ [key]: !prefs[key] }));
   };
 
@@ -23,6 +23,7 @@ export function GameSettings() {
           <button type="button" onClick={() => toggle("motion")}><span>✨ Chuyển động</span><b>{prefs.motion ? "ON" : "OFF"}</b></button>
           <button type="button" onClick={() => toggle("oneHand")}><span>👍 Chế độ một tay</span><b>{prefs.oneHand ? "ON" : "OFF"}</b></button>
           <button type="button" onClick={() => toggle("highContrast")}><span>◐ Tương phản cao</span><b>{prefs.highContrast ? "ON" : "OFF"}</b></button>
+          <button type="button" onClick={() => toggle("focusMode")}><span>🎯 Focus quầy</span><b>{prefs.focusMode ? "ON" : "OFF"}</b></button>
           <small>Các lựa chọn này được lưu riêng, không ảnh hưởng save gameplay.</small>
         </div>
       )}
