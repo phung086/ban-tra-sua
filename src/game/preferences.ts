@@ -2,6 +2,8 @@ export interface UiPreferences {
   sound: boolean;
   haptics: boolean;
   motion: boolean;
+  oneHand: boolean;
+  highContrast: boolean;
   coachCompleted: boolean;
 }
 
@@ -11,6 +13,8 @@ const defaults: UiPreferences = {
   sound: true,
   haptics: true,
   motion: true,
+  oneHand: false,
+  highContrast: false,
   coachCompleted: false,
 };
 
@@ -33,10 +37,14 @@ export function updateUiPreferences(patch: Partial<UiPreferences>): UiPreference
     // Preferences are optional; gameplay must remain available.
   }
   document.documentElement.dataset.motion = next.motion ? "on" : "off";
+  document.documentElement.dataset.oneHand = next.oneHand ? "on" : "off";
+  document.documentElement.dataset.contrast = next.highContrast ? "high" : "normal";
   return next;
 }
 
 export function syncMotionPreference() {
   const prefs = getUiPreferences();
   document.documentElement.dataset.motion = prefs.motion ? "on" : "off";
+  document.documentElement.dataset.oneHand = prefs.oneHand ? "on" : "off";
+  document.documentElement.dataset.contrast = prefs.highContrast ? "high" : "normal";
 }
