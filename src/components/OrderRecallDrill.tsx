@@ -38,7 +38,7 @@ function numericChoices(values: readonly number[], answer: number) {
     .map((value) => ({ value, label: `${value}%` }));
 }
 
-export function OrderRecallDrill({ order }: { order: Order }) {
+export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount: number }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [focusQuestionIds, setFocusQuestionIds] = useState<string[] | null>(null);
@@ -243,6 +243,9 @@ export function OrderRecallDrill({ order }: { order: Order }) {
           </div>
 
           <div className="recall-result-copy">
+            <div className={`recall-integrity ${peekCount === 0 ? "pure" : ""}`}>
+              {peekCount === 0 ? "🏅 No-peek memory" : `👀 ${peekCount} quick peek${peekCount > 1 ? "s" : ""}`}
+            </div>
             <h4>{result.emoji} {result.label}</h4>
             <div className="recall-review">
               {activeQuestions.map((question) => {
