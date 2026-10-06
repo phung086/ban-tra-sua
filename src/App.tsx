@@ -5,6 +5,7 @@ import { CafeAtmosphere, CafeSceneChrome } from "./components/CafeAtmosphere";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
 import { CraftHotkeys } from "./components/CraftHotkeys";
+import { CustomerQueueStatus } from "./components/CustomerQueueStatus";
 import { DrinkCup } from "./components/DrinkCup";
 import { OrderExperience } from "./components/OrderExperience";
 import { GameSettings } from "./components/GameSettings";
@@ -185,6 +186,8 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <span>🌷</span><b>{game.combo > 1 ? `COMBO x${game.combo}` : "made with love"}</b><span>🌷</span>
           </div>
         </div>
+
+        <CustomerQueueStatus game={game} />
 
         <div className="progress-card">
           <div className="progress-row">
