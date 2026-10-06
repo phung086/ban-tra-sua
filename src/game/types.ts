@@ -1,8 +1,28 @@
 export type Phase = "prep" | "open" | "summary";
-export type Screen = "shop" | "stock" | "reviews";
+export type Screen = "shop" | "stock" | "upgrades" | "reviews" | "goals";
 export type Size = "M" | "L";
-export type BaseId = "classic-milk-tea" | "peach-tea" | "matcha-latte";
-export type ToppingId = "none" | "black-pearl" | "pudding" | "rainbow-jelly";
+export type BaseId =
+  | "classic-milk-tea"
+  | "peach-tea"
+  | "matcha-latte"
+  | "oolong-milk-tea"
+  | "taro-milk-tea"
+  | "strawberry-milk"
+  | "cocoa-milk"
+  | "lemon-tea";
+export type ToppingId =
+  | "none"
+  | "black-pearl"
+  | "pudding"
+  | "rainbow-jelly"
+  | "cheese-foam"
+  | "aloe-vera"
+  | "mochi";
+export type UpgradeId = "brewer" | "shaker" | "sealer" | "fridge" | "decor";
+export type StaffId = "momo" | "kiki" | "lili";
+export type ReplyStyle = "sweet" | "witty" | "spicy";
+export type QuestMetric = "serve" | "perfect" | "revenue" | "reply" | "combo";
+export type AchievementMetric = "served" | "perfect" | "revenue" | "replies" | "days" | "fans";
 
 export type InventoryKey =
   | "cupsM"
@@ -10,9 +30,17 @@ export type InventoryKey =
   | "classicMilkTea"
   | "peachTea"
   | "matchaLatte"
+  | "oolongMilkTea"
+  | "taroMix"
+  | "strawberryMilk"
+  | "cocoaMilk"
+  | "lemonTea"
   | "blackPearl"
   | "pudding"
   | "rainbowJelly"
+  | "cheeseFoam"
+  | "aloeVera"
+  | "mochi"
   | "sugar"
   | "ice";
 
@@ -23,6 +51,9 @@ export interface Customer {
   shirt: string;
   skin: string;
   greeting: string;
+  archetype: string;
+  patience: "chill" | "normal" | "impatient";
+  favorite?: BaseId;
   good: string[];
   okay: string[];
   bad: string[];
@@ -31,10 +62,12 @@ export interface Customer {
 export interface DrinkDefinition {
   id: BaseId;
   name: string;
+  shortName: string;
   emoji: string;
   ingredient: InventoryKey;
   priceM: number;
   priceL: number;
+  unlockLevel: number;
 }
 
 export interface ToppingDefinition {
@@ -42,6 +75,8 @@ export interface ToppingDefinition {
   name: string;
   emoji: string;
   ingredient?: InventoryKey;
+  price: number;
+  unlockLevel: number;
 }
 
 export interface Order {
@@ -52,6 +87,8 @@ export interface Order {
   sugar: number;
   ice: number;
   topping: ToppingId;
+  targetFill: number;
+  targetShake: number;
   price: number;
 }
 
@@ -61,45 +98,137 @@ export interface DrinkDraft {
   sugar: number;
   ice: number;
   topping: ToppingId;
+  fill: number;
+  shake: number;
   sealed: boolean;
 }
 
 export type Inventory = Record<InventoryKey, number>;
+export type Freshness = Record<InventoryKey, number>;
+export type UpgradeLevels = Record<UpgradeId, number>;
 
 export interface Review {
   id: string;
+  customerId: string;
   customerName: string;
   stars: number;
   score: number;
   text: string;
   day: number;
+  replyStyle?: ReplyStyle;
+  replyText?: string;
+}
+
+export interface DayEvent {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  demandBonus: number;
+  revenueMultiplier: number;
+  tipMultiplier: number;
+}
+
+export interface UpgradeDefinition {
+  id: UpgradeId;
+  name: string;
+  emoji: string;
+  description: string;
+  baseCost: number;
+  maxLevel: number;
+}
+
+export interface StaffDefinition {
+  id: StaffId;
+  name: string;
+  emoji: string;
+  role: string;
+  description: string;
+  hireCost: number;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  metric: QuestMetric;
+  target: number;
+  progress: number;
+  rewardCash: number;
+  rewardXp: number;
+  rewardFans: number;
+  claimed: boolean;
+}
+
+export interface AchievementDefinition {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  metric: AchievementMetric;
+  threshold: number;
+  rewardCash: number;
+  rewardFans: number;
+}
+
+export interface LifetimeStats {
+  served: number;
+  perfect: number;
+  revenue: number;
+  replies: number;
+  days: number;
+  waste: number;
+  bestCombo: number;
 }
 
 export interface DaySummary {
   day: number;
+  eventName: string;
   orders: number;
+  perfectOrders: number;
+  bestCombo: number;
   revenue: number;
   ingredientCost: number;
+  wasteCost: number;
   profit: number;
   averageScore: number;
+  fansGained: number;
 }
 
 export interface GameState {
-  saveVersion: 1;
+  saveVersion: 2;
   day: number;
   phase: Phase;
   cash: number;
   reputation: number;
+  fans: number;
+  viral: number;
   xp: number;
+  level: number;
   served: number;
   targetOrders: number;
+  combo: number;
+  bestCombo: number;
+  perfectToday: number;
   currentOrder: Order | null;
   draft: DrinkDraft;
   inventory: Inventory;
+  freshness: Freshness;
   reviews: Review[];
+  event: DayEvent;
+  upgrades: UpgradeLevels;
+  hiredStaff: StaffId[];
+  activeStaff: StaffId | null;
+  quests: Quest[];
+  achievementIds: string[];
+  stats: LifetimeStats;
+  unlockedBaseIds: BaseId[];
+  unlockedToppingIds: ToppingId[];
   dailyRevenue: number;
   dailyCost: number;
+  dailyWaste: number;
   dailyScoreTotal: number;
+  dailyFansGained: number;
   lastScore: number | null;
   notice: string;
   summary: DaySummary | null;
