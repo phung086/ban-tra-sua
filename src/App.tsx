@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { AdaptiveCraftHint } from "./components/AdaptiveCraftHint";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
 import { DecorPlanner } from "./components/DecorPlanner";
@@ -8,6 +9,7 @@ import { GameSettings } from "./components/GameSettings";
 import { HoldDispenser } from "./components/HoldDispenser";
 import { PlayCoach } from "./components/PlayCoach";
 import { RecipeChecklist } from "./components/RecipeChecklist";
+import { ServeCelebration } from "./components/ServeCelebration";
 import { ToppingTray } from "./components/ToppingTray";
 import {
   ACHIEVEMENTS,
@@ -89,6 +91,7 @@ function App() {
       <div className="ambient ambient-two" />
       <PlayCoach />
       <GameSettings />
+      <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} />
 
       <header className="topbar v2-topbar">
         <div className="brand">
@@ -439,6 +442,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               </div>
             </ControlGroup>
 
+            <AdaptiveCraftHint order={order} draft={game.draft} />
             <RecipeChecklist order={order} draft={game.draft} />
 
             <div className="finish-actions">
