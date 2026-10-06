@@ -17,6 +17,14 @@ type RecallQuestion = {
   choices: Array<{ value: string; label: string }>;
 };
 
+type Confidence = "low" | "medium" | "high";
+
+const CONFIDENCE_OPTIONS: Array<{ id: Confidence; emoji: string; label: string }> = [
+  { id: "low", emoji: "🌫️", label: "Đoán" },
+  { id: "medium", emoji: "🙂", label: "Khá chắc" },
+  { id: "high", emoji: "✨", label: "Rất chắc" },
+];
+
 function rotateChoices<T extends string>(items: T[], answer: T, count = 3): T[] {
   const index = Math.max(0, items.indexOf(answer));
   const picked = [answer];
@@ -40,6 +48,7 @@ function numericChoices(values: readonly number[], answer: number) {
 
 export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount: number }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [confidence, setConfidence] = useState<Record<string, Confidence>>({});
   const [submitted, setSubmitted] = useState(false);
   const [focusQuestionIds, setFocusQuestionIds] = useState<string[] | null>(null);
   const [attempt, setAttempt] = useState(1);
@@ -145,6 +154,35 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
   const techniqueCorrect = submitted
     ? techniqueQuestions.filter((question) => answers[question.id] === question.answer).length
     : 0;
+  const highConfidenceQuestions = activeQuestions.filter((question) => confidence[question.id] === "high");
+  const highConfidenceCorrect = submitted
+    ? highConfidenceQuestions.filter((question) => answers[question.id] === question.answer).length
+    : 0;
+  const highConfidenceWrong = submitted ? highConfidenceQuestions.length - highConfidenceCorrect : 0;
+  const confidenceCalibration = submitted && activeQuestions.length
+    ? Math.round(
+        activeQuestions.reduce((total, question) => {
+          const correct = answers[question.id] === question.answer;
+          const level = confidence[question.id] ?? "medium";
+          const points =
+            level === "high"
+              ? (correct ? 100 : 0)
+              : level === "medium"
+                ? (correct ? 85 : 35)
+                : (correct ? 70 : 70);
+          return total + points;
+        }, 0) / activeQuestions.length,
+      )
+    : 0;
+
+  const calibrationLabel =
+    confidenceCalibration >= 90 && highConfidenceWrong === 0
+      ? "Tự tin rất chuẩn"
+      : highConfidenceWrong >= 2
+        ? "Đang hơi quá tự tin"
+        : confidenceCalibration >= 75
+          ? "Cảm giác nhớ khá khớp"
+          : "Nên kiểm tra độ chắc trước khi chốt";
 
   const result =
     score === 100
@@ -156,6 +194,16 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
   const answer = (questionId: string, value: string) => {
     if (submitted) return;
     setAnswers((current) => ({ ...current, [questionId]: value }));
+    setConfidence((current) => (
+      current[questionId]
+        ? current
+        : { ...current, [questionId]: "medium" }
+    ));
+  };
+
+  const setQuestionConfidence = (questionId: string, level: Confidence) => {
+    if (submitted || answers[questionId] === undefined) return;
+    setConfidence((current) => ({ ...current, [questionId]: level }));
   };
 
   const submitAttempt = () => {
@@ -177,6 +225,7 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
 
   const resetAttempt = (ids: string[] | null) => {
     setAnswers({});
+    setConfidence({});
     setSubmitted(false);
     setFocusQuestionIds(ids);
     setAttemptPeekStart(peekCount);
@@ -244,6 +293,27 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
                     );
                   })}
                 </div>
+                {answers[question.id] !== undefined && (
+                  <div className="recall-confidence" aria-label={`Mức độ chắc chắn cho ${question.label}`}>
+                    <small>Bạn chắc tới đâu?</small>
+                    <div>
+                      {CONFIDENCE_OPTIONS.map((option) => {
+                        const selected = confidence[question.id] === option.id;
+                        return (
+                          <button
+                            type="button"
+                            className={selected ? "selected" : ""}
+                            aria-pressed={selected}
+                            key={option.id}
+                            onClick={() => setQuestionConfidence(question.id, option.id)}
+                          >
+                            <span>{option.emoji}</span>{option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </fieldset>
             ))}
           </div>
@@ -281,17 +351,30 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
                 : `👀 ${submittedPeekCount} quick peek${submittedPeekCount > 1 ? "s" : ""} trong attempt này`}
             </div>
             <h4>{result.emoji} {result.label}</h4>
+            <div className={`recall-calibration ${highConfidenceWrong === 0 ? "stable" : ""}`}>
+              <div>
+                <span>🎯 Confidence calibration</span>
+                <b>{confidenceCalibration}%</b>
+              </div>
+              <p>{calibrationLabel}</p>
+              <small>
+                ✨ Rất chắc: {highConfidenceCorrect} đúng
+                {highConfidenceWrong > 0 ? ` · ${highConfidenceWrong} sai` : " · không có câu sai"}
+              </small>
+            </div>
             <div className="recall-review">
               {activeQuestions.map((question) => {
                 const correct = answers[question.id] === question.answer;
                 const selected = question.choices.find((choice) => choice.value === answers[question.id]);
                 const expected = question.choices.find((choice) => choice.value === question.answer);
+                const confidenceOption = CONFIDENCE_OPTIONS.find((option) => option.id === (confidence[question.id] ?? "medium"));
                 return (
                   <div className={correct ? "correct" : "wrong"} key={question.id}>
                     <span>{correct ? "✓" : "!"}</span>
                     <p>
                       <b>{question.label}</b>
                       <small>{correct ? selected?.label : `${selected?.label ?? "—"} → ${expected?.label ?? question.answer}`}</small>
+                      <em>{confidenceOption?.emoji} {confidenceOption?.label}</em>
                     </p>
                   </div>
                 );
