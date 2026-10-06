@@ -1,0 +1,1069 @@
+/*
+ * Tea Counter Theater v6
+ * Experimental, isolated visual direction.
+ * Goal: make the game feel like a physical tea counter, not a dashboard.
+ */
+
+:root {
+  --v6-ink: #4d3041;
+  --v6-plum: #6b3c59;
+  --v6-plum-deep: #3f2636;
+  --v6-pink: #ff7fb1;
+  --v6-pink-hot: #ef4f93;
+  --v6-blush: #ffe5ef;
+  --v6-cream: #fff7ea;
+  --v6-paper: #fffdf8;
+  --v6-mint: #aee8cf;
+  --v6-gold: #ffd67c;
+  --v6-wood: #d5966f;
+  --v6-line: #8b5570;
+  --v6-shadow: 0 18px 0 rgba(77,48,65,.07), 0 28px 60px rgba(77,48,65,.16);
+  --v6-soft: 0 12px 28px rgba(77,48,65,.12);
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 4%, rgba(255, 174, 207, .4), transparent 22rem),
+    radial-gradient(circle at 88% 8%, rgba(177, 233, 210, .28), transparent 23rem),
+    linear-gradient(180deg, #fff4f8 0, #fff8f1 48%, #f8ecf3 100%);
+}
+
+.v6-theater-shell {
+  isolation: isolate;
+}
+
+.v6-theater-shell::before {
+  position: fixed;
+  z-index: -4;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(106, 59, 87, .09) 1.1px, transparent 1.2px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.7), transparent 72%);
+}
+
+.v6-hud {
+  top: 10px;
+  width: min(1460px, calc(100% - 28px));
+  min-height: 68px;
+  margin: 10px auto 0;
+  padding: 9px 14px;
+  border: 2px solid rgba(107, 60, 89, .18);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,247,251,.94));
+  box-shadow: 0 12px 0 rgba(107,60,89,.06), 0 20px 50px rgba(107,60,89,.13);
+}
+
+.v6-hud .brand-mark {
+  position: relative;
+  overflow: visible;
+  border: 2px solid #fff;
+  box-shadow: 0 7px 0 rgba(107,60,89,.1), 0 14px 26px rgba(239,79,147,.18);
+}
+
+.v6-hud .brand-mark::after {
+  position: absolute;
+  right: -8px;
+  bottom: -5px;
+  content: "OPEN";
+  padding: 2px 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--v6-mint);
+  color: #315c4b;
+  font-size: 6px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  transform: rotate(-8deg);
+}
+
+.v6-hud .brand h1 {
+  font-size: 22px;
+  letter-spacing: -.02em;
+}
+
+.v6-hud .brand p {
+  color: #a76f88;
+  font-size: 9px;
+}
+
+.v6-hud .top-stats {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.v6-hud .stat-pill {
+  border: 1.5px solid rgba(107,60,89,.14);
+  box-shadow: inset 0 -3px 0 rgba(107,60,89,.035);
+}
+
+.v6-content {
+  width: min(1460px, calc(100% - 32px));
+  margin-top: 18px;
+}
+
+.v6-marquee {
+  position: relative;
+  overflow: hidden;
+  min-height: 54px;
+  margin-inline: auto;
+  border: 2px solid rgba(107,60,89,.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.98), rgba(255,242,248,.95));
+  box-shadow: 0 9px 0 rgba(107,60,89,.05), 0 16px 30px rgba(107,60,89,.1);
+}
+
+.v6-marquee::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  content: "";
+  background: linear-gradient(var(--v6-pink), var(--v6-pink-hot));
+}
+
+.v6-marquee .notice-icon {
+  border: 1px solid rgba(107,60,89,.12);
+  background: var(--v6-cream);
+}
+
+.v6-game-layout {
+  display: block;
+}
+
+.v6-customer-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, .65fr);
+  grid-template-areas:
+    "scene order"
+    "progress order"
+    "pulse order";
+  gap: 14px 18px;
+  align-items: start;
+}
+
+.v6-customer-stage > .v6-live-scene {
+  grid-area: scene;
+}
+
+.v6-customer-stage > .progress-card {
+  grid-area: progress;
+}
+
+.v6-customer-stage > .performance-pulse {
+  grid-area: pulse;
+}
+
+.v6-customer-stage > .order-experience {
+  grid-area: order;
+  position: sticky;
+  top: 96px;
+  align-self: start;
+}
+
+.v6-live-scene {
+  position: relative;
+  min-height: 500px;
+  border: 5px solid #fff;
+  border-radius: 34px 34px 26px 26px;
+  box-shadow: var(--v6-shadow);
+}
+
+.v6-live-scene::before {
+  position: absolute;
+  z-index: 31;
+  top: 15px;
+  left: 18px;
+  content: "NOW SERVING";
+  padding: 6px 9px 5px;
+  border: 2px solid rgba(76, 42, 60, .24);
+  border-radius: 10px;
+  background: rgba(63,38,54,.9);
+  color: #fff8ee;
+  box-shadow: 0 5px 0 rgba(63,38,54,.16);
+  font-size: 8px;
+  font-weight: 1000;
+  letter-spacing: .14em;
+  transform: rotate(-2deg);
+}
+
+.v6-live-scene::after {
+  position: absolute;
+  z-index: 30;
+  right: 16px;
+  bottom: 18px;
+  content: "♡ brewed with care";
+  padding: 6px 9px;
+  border: 2px solid rgba(107,60,89,.13);
+  border-radius: 999px;
+  background: rgba(255,253,248,.9);
+  color: #8b5871;
+  font-size: 8px;
+  font-weight: 900;
+  backdrop-filter: blur(8px);
+}
+
+.v6-live-scene .scene-sky {
+  background:
+    radial-gradient(circle at 76% 18%, #fff5ae 0 31px, rgba(255,245,174,.22) 32px 62px, transparent 63px),
+    linear-gradient(180deg, #cceef2 0, #e8f3ee 45%, #ffe9f1 100%);
+}
+
+.v6-live-scene .customer-zone {
+  bottom: 72px;
+  min-height: 330px;
+}
+
+.v6-live-scene .speech-bubble {
+  top: 78px;
+  left: 5%;
+  width: min(250px, 48%);
+  padding: 15px 17px;
+  border: 3px solid var(--v6-plum);
+  border-radius: 22px 22px 6px 22px;
+  background: var(--v6-paper);
+  box-shadow: 8px 9px 0 rgba(107,60,89,.11);
+}
+
+.v6-live-scene .speech-bubble::after {
+  border-color: transparent transparent transparent var(--v6-plum);
+}
+
+.v6-live-scene .speech-bubble small {
+  color: #b85b83;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: .05em;
+}
+
+.v6-live-scene .speech-bubble p {
+  margin-top: 5px;
+  color: var(--v6-ink);
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.v6-live-scene .counter-edge {
+  min-height: 64px;
+  border-top: 5px solid #fff0e5;
+  background:
+    linear-gradient(180deg, #de9f78, #c88763);
+  box-shadow: inset 0 7px 0 rgba(255,255,255,.22);
+}
+
+.v6-customer-stage .progress-card {
+  border: 2px solid rgba(107,60,89,.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, #fffdf9, #fff8f2);
+  box-shadow: 0 7px 0 rgba(107,60,89,.05);
+}
+
+.v6-customer-stage .performance-pulse {
+  border: 2px solid rgba(107,60,89,.12);
+  border-radius: 18px;
+  background: rgba(255,253,248,.92);
+  box-shadow: 0 7px 0 rgba(107,60,89,.045);
+}
+
+/* Receipt board */
+.v6-customer-stage .order-experience {
+  gap: 12px;
+  padding: 14px;
+  border: 3px solid rgba(107,60,89,.2);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, #f6d6c1 0 20px, #e1aa84 20px 24px, #cf9570 24px 100%);
+  box-shadow: 0 13px 0 rgba(107,60,89,.08), 0 24px 45px rgba(107,60,89,.14);
+}
+
+.v6-customer-stage .order-experience::before {
+  display: block;
+  width: 68%;
+  height: 17px;
+  margin: -5px auto 0;
+  content: "";
+  border-radius: 999px;
+  background: linear-gradient(180deg, #74435f, #573247);
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.12);
+}
+
+.v6-customer-stage .order-ticket {
+  position: relative;
+  overflow: visible;
+  padding: 22px 18px 18px;
+  border: 1px solid #ead6c5;
+  border-radius: 8px 8px 16px 16px;
+  background:
+    repeating-linear-gradient(180deg, #fffefa 0 29px, #f8eadf 30px 31px);
+  box-shadow: 0 9px 0 rgba(92,53,71,.08), 0 15px 28px rgba(92,53,71,.12);
+  transform: rotate(-.7deg);
+}
+
+.v6-customer-stage .order-ticket::before,
+.v6-customer-stage .order-ticket::after {
+  position: absolute;
+  top: -11px;
+  width: 52px;
+  height: 18px;
+  content: "";
+  background: rgba(255,225,160,.78);
+  box-shadow: 0 2px 3px rgba(90,55,67,.08);
+}
+
+.v6-customer-stage .order-ticket::before {
+  left: 16px;
+  transform: rotate(-7deg);
+}
+
+.v6-customer-stage .order-ticket::after {
+  right: 16px;
+  transform: rotate(6deg);
+}
+
+.v6-customer-stage .ticket-pin {
+  display: none;
+}
+
+.v6-customer-stage .ticket-head h3 {
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.v6-customer-stage .ticket-head > b {
+  padding: 5px 8px;
+  border: 2px solid #e6c2ac;
+  border-radius: 8px;
+  background: #fff8df;
+  color: #7e4d61;
+}
+
+.v6-customer-stage .order-chips {
+  gap: 6px;
+}
+
+.v6-customer-stage .order-chips span {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px dashed #d4ad97;
+  border-radius: 8px;
+  background: rgba(255,250,240,.76);
+  color: #745061;
+  font-size: 9px;
+}
+
+.v6-customer-stage .order-service-panel {
+  border: 3px solid #503246;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, #513349, #3e2838);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.05),
+    0 9px 0 rgba(71,42,57,.12);
+  color: #fff8f1;
+}
+
+.v6-customer-stage .order-service-panel .eyebrow,
+.v6-customer-stage .order-service-panel h3,
+.v6-customer-stage .order-service-panel .recipe-readiness > div:first-child,
+.v6-customer-stage .order-service-panel .service-hint {
+  color: #ffe6f0;
+}
+
+.v6-customer-stage .order-service-panel .recipe-readiness b {
+  color: #ffd67c;
+}
+
+.v6-customer-stage .order-service-panel .order-check-grid > div,
+.v6-customer-stage .order-service-panel .service-radar > div {
+  border-color: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: #dcc4d0;
+}
+
+.v6-customer-stage .order-service-panel .order-check-grid > div.matched {
+  border-color: rgba(174,232,207,.32);
+  background: rgba(103,191,151,.16);
+  color: #c9f2df;
+}
+
+.v6-customer-stage .order-service-panel .service-radar span {
+  color: #efd8e3;
+}
+
+.v6-customer-stage .order-service-panel .service-mode-actions button {
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: #fff0f6;
+}
+
+.v6-customer-stage .order-service-panel .service-mode-actions button.active {
+  border-color: #efb8cf;
+  background: rgba(255,160,199,.18);
+  color: #fff;
+}
+
+/* Full-width physical brew bench */
+.v6-brew-bench {
+  position: relative;
+  overflow: visible;
+  margin-top: 26px;
+  padding: 26px 24px 24px;
+  border: 4px solid var(--v6-plum);
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, #fff4e7 0 18px, #f5c6a6 18px 24px, #f0b991 24px 31px, #fff9f3 31px 100%);
+  box-shadow: 0 14px 0 rgba(107,60,89,.1), 0 32px 70px rgba(107,60,89,.2);
+}
+
+.v6-brew-bench::before {
+  position: absolute;
+  top: -17px;
+  left: 50%;
+  content: "HANDMADE TEA BAR · TODAY'S STATION";
+  transform: translateX(-50%);
+  padding: 7px 15px 6px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff83b5, #ec5797);
+  color: white;
+  box-shadow: 0 6px 0 rgba(107,60,89,.16);
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+.v6-brew-bench::after {
+  position: absolute;
+  right: 26px;
+  bottom: -12px;
+  width: 84px;
+  height: 26px;
+  content: "";
+  border-radius: 50%;
+  background: rgba(77,48,65,.13);
+  filter: blur(9px);
+  pointer-events: none;
+}
+
+.v6-brew-bench .workstation-head {
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.v6-brew-bench .workstation-head .eyebrow {
+  color: #b24f7a;
+}
+
+.v6-brew-bench .workstation-head h2 {
+  color: var(--v6-plum-deep);
+  font-size: clamp(26px, 2.3vw, 36px);
+  letter-spacing: -.025em;
+}
+
+.v6-brew-bench .workstation-badge {
+  border: 2px solid #d59a55;
+  border-radius: 999px;
+  background: #fff2ba;
+  color: #8d5e2b;
+  box-shadow: 0 4px 0 rgba(141,94,43,.12);
+}
+
+.v6-craft-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, .36fr) minmax(0, 1.64fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.v6-brew-bench .cup-wrap {
+  position: sticky;
+  top: 98px;
+  overflow: visible;
+  min-height: 430px;
+  padding: 56px 18px 24px;
+  border: 3px solid #77465f;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 49%, rgba(255,255,255,.96) 0 88px, rgba(255,230,239,.95) 89px 128px, transparent 129px),
+    linear-gradient(180deg, #fffdfb, #fff1e9);
+  box-shadow:
+    inset 0 -12px 0 rgba(107,60,89,.04),
+    0 11px 0 rgba(107,60,89,.09);
+}
+
+.v6-brew-bench .cup-wrap::before {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  content: "CURRENT DRINK";
+  transform: translateX(-50%);
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--v6-plum-deep);
+  color: white;
+  font-size: 8px;
+  font-weight: 1000;
+  letter-spacing: .12em;
+}
+
+.v6-brew-bench .cup-wrap::after {
+  position: absolute;
+  z-index: 0;
+  bottom: 76px;
+  left: 50%;
+  width: 170px;
+  height: 35px;
+  content: "";
+  transform: translateX(-50%);
+  border: 3px solid #8f5b73;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f7d7c0, #dca27d);
+  box-shadow: 0 10px 0 rgba(107,60,89,.12);
+}
+
+.v6-brew-bench .drink-cup,
+.v6-brew-bench .cup-lid,
+.v6-brew-bench .cup-straw,
+.v6-brew-bench .cup-caption {
+  z-index: 2;
+}
+
+.v6-brew-bench .drink-cup {
+  width: 142px;
+  height: 198px;
+  border-width: 5px;
+  border-radius: 10px 10px 42px 42px;
+  box-shadow: 0 18px 26px rgba(77,48,65,.18), inset 0 0 0 2px rgba(188,125,151,.13);
+}
+
+.v6-brew-bench .cup-lid {
+  width: 152px;
+  height: 17px;
+  border-width: 3px;
+}
+
+.v6-brew-bench .cup-straw {
+  width: 10px;
+  height: 106px;
+  margin-top: -72px;
+  margin-left: 40px;
+}
+
+.v6-brew-bench .cup-logo {
+  top: 98px;
+  width: 44px;
+  height: 44px;
+  font-size: 25px;
+}
+
+.v6-brew-bench .cup-caption {
+  position: relative;
+  z-index: 3;
+  justify-content: center;
+  max-width: 220px;
+  margin-top: 22px;
+}
+
+.v6-brew-bench .cup-caption span {
+  border: 1px solid rgba(107,60,89,.12);
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 4px 0 rgba(107,60,89,.05);
+}
+
+/* Tray system instead of equal cards */
+.v6-craft-controls {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.v6-craft-controls > .v6-control-drawer:nth-of-type(1) {
+  grid-column: span 7;
+}
+
+.v6-craft-controls > .two-col-controls {
+  grid-column: span 5;
+}
+
+.v6-craft-controls > .v6-control-drawer:nth-of-type(2) {
+  grid-column: span 6;
+}
+
+.v6-craft-controls > .v6-control-drawer:nth-of-type(3) {
+  grid-column: span 6;
+}
+
+.v6-craft-controls > .adaptive-hint,
+.v6-craft-controls > .recipe-checklist,
+.v6-craft-controls > .craft-hotkeys,
+.v6-craft-controls > .finish-actions {
+  grid-column: 1 / -1;
+}
+
+.v6-craft-controls > .two-col-controls {
+  display: grid;
+  grid-template-columns: .78fr 1.22fr;
+  gap: 12px;
+}
+
+.v6-control-drawer {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+  padding: 15px;
+  border: 3px solid rgba(107,60,89,.18);
+  border-radius: 18px 18px 14px 14px;
+  background:
+    linear-gradient(180deg, #fffdf9, #fff8f2);
+  box-shadow:
+    inset 0 -5px 0 rgba(107,60,89,.045),
+    0 6px 0 rgba(107,60,89,.06);
+}
+
+.v6-control-drawer::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 7px;
+  height: 100%;
+  content: "";
+  background: linear-gradient(var(--v6-pink), #ffb3ce);
+}
+
+.v6-control-drawer h4 {
+  margin-left: 4px;
+  color: #624154;
+  font-size: 13px;
+}
+
+.v6-control-drawer h4 span {
+  border: 1px solid rgba(107,60,89,.1);
+  background: #fff0f5;
+}
+
+.v6-brew-bench .choice-card {
+  min-height: 96px;
+  border: 2px solid rgba(107,60,89,.1);
+  border-radius: 14px;
+  background: #fffaf7;
+  box-shadow: 0 4px 0 rgba(107,60,89,.05);
+}
+
+.v6-brew-bench .choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 rgba(107,60,89,.07);
+}
+
+.v6-brew-bench .choice-card.selected {
+  border-color: #f066a0;
+  background: linear-gradient(180deg, #fff1f6, #ffe3ef);
+  box-shadow: 0 5px 0 rgba(239,79,147,.14);
+}
+
+.v6-brew-bench .choice-card > span {
+  font-size: 30px;
+}
+
+.v6-brew-bench .choice-card b {
+  font-size: 11px;
+}
+
+.v6-brew-bench .topping-tray {
+  gap: 7px;
+}
+
+.v6-brew-bench .topping-items {
+  gap: 6px;
+}
+
+.v6-brew-bench .topping-chip {
+  min-height: 50px;
+  border: 2px solid rgba(107,60,89,.11);
+  border-radius: 12px;
+  background: #fffaf7;
+  box-shadow: 0 3px 0 rgba(107,60,89,.05);
+}
+
+.v6-brew-bench .hold-dispenser,
+.v6-brew-bench .craft-gauge,
+.v6-brew-bench .adaptive-hint,
+.v6-brew-bench .recipe-checklist,
+.v6-brew-bench .performance-pulse {
+  border-width: 2px;
+}
+
+.v6-brew-bench .adaptive-hint {
+  border-color: #e3b372;
+  background: linear-gradient(180deg, #fff8da, #fff3cb);
+  box-shadow: 0 5px 0 rgba(178,128,55,.08);
+}
+
+.v6-brew-bench .recipe-checklist {
+  border-color: #9ecdb8;
+  background: linear-gradient(180deg, #f3fff9, #e9f9f1);
+  box-shadow: 0 5px 0 rgba(72,132,103,.08);
+}
+
+.v6-brew-bench .finish-actions {
+  position: relative;
+  margin-top: 3px;
+  padding: 14px;
+  border: 3px solid var(--v6-plum);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #5a374c, #442b3c);
+  box-shadow: 0 8px 0 rgba(68,43,60,.13);
+}
+
+.v6-brew-bench .finish-actions::before {
+  position: absolute;
+  top: -9px;
+  left: 16px;
+  content: "FINAL CHECK";
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--v6-gold);
+  color: #725026;
+  font-size: 7px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+}
+
+.v6-brew-bench .seal-button {
+  border: 2px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.09);
+  color: #fff5f9;
+}
+
+.v6-brew-bench .serve-button {
+  border: 2px solid #fff;
+  background: linear-gradient(180deg, #ff85b6, #ea4d8f);
+  box-shadow: 0 7px 0 #ae376b;
+  color: white;
+}
+
+.v6-brew-bench .serve-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 #ae376b;
+}
+
+/* Sticker dock */
+.v6-dock {
+  right: 50%;
+  left: auto;
+  width: min(720px, calc(100% - 18px));
+  transform: translateX(50%);
+  padding: 7px;
+  border: 3px solid rgba(107,60,89,.18);
+  border-radius: 24px;
+  background: rgba(255,253,250,.95);
+  box-shadow: 0 9px 0 rgba(107,60,89,.08), 0 18px 42px rgba(107,60,89,.16);
+}
+
+.v6-dock button {
+  min-height: 60px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+}
+
+.v6-dock button > span {
+  font-size: 23px;
+  transition: transform .18s ease;
+}
+
+.v6-dock button > b {
+  font-size: 9px;
+  letter-spacing: .02em;
+}
+
+.v6-dock button.active {
+  border-color: #f4a2c1;
+  background: linear-gradient(180deg, #fff1f6, #ffe2ee);
+  box-shadow: 0 4px 0 rgba(239,79,147,.12);
+}
+
+.v6-dock button.active > span {
+  transform: translateY(-4px) rotate(-4deg) scale(1.12);
+}
+
+/* Prep becomes poster + storefront rather than two generic cards */
+.v6-theater-shell .prep-layout {
+  gap: 22px;
+}
+
+.v6-theater-shell .prep-scene {
+  border-width: 5px;
+  border-color: white;
+  border-radius: 34px;
+  box-shadow: var(--v6-shadow);
+}
+
+.v6-theater-shell .prep-card {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid var(--v6-plum);
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, #fffdf8, #fff4ee);
+  box-shadow: 0 11px 0 rgba(107,60,89,.09), 0 22px 42px rgba(107,60,89,.14);
+}
+
+.v6-theater-shell .prep-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 110px;
+  height: 110px;
+  content: "♡";
+  display: grid;
+  place-items: center;
+  border-radius: 0 0 0 100%;
+  background: #ffe1ed;
+  color: #e86b9f;
+  font-size: 34px;
+}
+
+/* Secondary screens look like shop books / ledgers */
+.v6-theater-shell .stock-panel,
+.v6-theater-shell .management-panel,
+.v6-theater-shell .goals-panel,
+.v6-theater-shell .review-overview,
+.v6-theater-shell .review-card {
+  border: 2px solid rgba(107,60,89,.15);
+  box-shadow: 0 7px 0 rgba(107,60,89,.05), 0 16px 34px rgba(107,60,89,.09);
+}
+
+.v6-theater-shell .stock-item,
+.v6-theater-shell .upgrade-card,
+.v6-theater-shell .staff-card,
+.v6-theater-shell .quest-card,
+.v6-theater-shell .achievement-card,
+.v6-theater-shell .research-card {
+  border-width: 2px;
+  box-shadow: 0 3px 0 rgba(107,60,89,.045);
+}
+
+/* Responsive theater */
+@media (max-width: 1180px) {
+  .v6-customer-stage {
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+  }
+
+  .v6-craft-grid {
+    grid-template-columns: minmax(220px, .42fr) minmax(0, 1.58fr);
+  }
+
+  .v6-craft-controls > .v6-control-drawer:nth-of-type(1),
+  .v6-craft-controls > .two-col-controls,
+  .v6-craft-controls > .v6-control-drawer:nth-of-type(2),
+  .v6-craft-controls > .v6-control-drawer:nth-of-type(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 920px) {
+  .v6-customer-stage {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "scene"
+      "order"
+      "progress"
+      "pulse";
+  }
+
+  .v6-customer-stage > .order-experience {
+    position: static;
+  }
+
+  .v6-live-scene {
+    min-height: 430px;
+  }
+
+  .v6-craft-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .v6-brew-bench .cup-wrap {
+    position: relative;
+    top: auto;
+    min-height: 330px;
+  }
+
+  .v6-craft-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .v6-craft-controls > * {
+    grid-column: 1 / -1 !important;
+  }
+
+  .v6-craft-controls > .two-col-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .v6-hud {
+    top: 6px;
+    width: calc(100% - 12px);
+    margin-top: 6px;
+    padding: 7px 8px;
+    border-radius: 20px;
+  }
+
+  .v6-hud .brand-mark::after {
+    display: none;
+  }
+
+  .v6-content {
+    width: calc(100% - 14px);
+    margin-top: 10px;
+  }
+
+  .v6-marquee {
+    border-radius: 15px;
+  }
+
+  .v6-live-scene {
+    min-height: 360px;
+    border-width: 3px;
+    border-radius: 24px;
+  }
+
+  .v6-live-scene::before {
+    top: 10px;
+    left: 10px;
+  }
+
+  .v6-live-scene::after {
+    display: none;
+  }
+
+  .v6-live-scene .speech-bubble {
+    top: 62px;
+    left: 10px;
+    width: min(230px, 68%);
+    padding: 11px 12px;
+    border-width: 2px;
+  }
+
+  .v6-customer-stage .order-experience {
+    padding: 9px;
+    border-width: 2px;
+    border-radius: 22px;
+  }
+
+  .v6-customer-stage .order-ticket {
+    padding: 18px 12px 14px;
+  }
+
+  .v6-customer-stage .ticket-head h3 {
+    font-size: 18px;
+  }
+
+  .v6-brew-bench {
+    margin-top: 22px;
+    padding: 22px 10px 14px;
+    border-width: 3px;
+    border-radius: 25px;
+  }
+
+  .v6-brew-bench::before {
+    max-width: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 7px;
+  }
+
+  .v6-brew-bench .workstation-head {
+    padding-inline: 2px;
+  }
+
+  .v6-brew-bench .workstation-head h2 {
+    font-size: 23px;
+  }
+
+  .v6-brew-bench .cup-wrap {
+    min-height: 300px;
+    padding-top: 46px;
+  }
+
+  .v6-brew-bench .drink-cup {
+    width: 124px;
+    height: 174px;
+  }
+
+  .v6-brew-bench .cup-lid {
+    width: 134px;
+  }
+
+  .v6-brew-bench .cup-logo {
+    top: 86px;
+  }
+
+  .v6-craft-controls > .two-col-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .v6-control-drawer {
+    padding: 12px;
+    border-width: 2px;
+  }
+
+  .v6-brew-bench .finish-actions {
+    grid-template-columns: 1fr;
+    padding: 11px;
+  }
+
+  .v6-dock {
+    width: calc(100% - 12px);
+    padding: 5px;
+    border-width: 2px;
+    border-radius: 19px;
+  }
+
+  .v6-dock button {
+    min-height: 56px;
+    border-radius: 14px;
+  }
+
+  .v6-dock button > span {
+    font-size: 19px;
+  }
+
+  .v6-dock button > b {
+    font-size: 7.5px;
+  }
+}
+
+@media (max-width: 420px) {
+  .v6-live-scene {
+    min-height: 330px;
+  }
+
+  .v6-live-scene .speech-bubble {
+    width: 72%;
+  }
+
+  .v6-brew-bench .workstation-badge {
+    display: none;
+  }
+
+  .v6-brew-bench .drink-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v6-dock button > span,
+  .v6-brew-bench .choice-card,
+  .v6-brew-bench .serve-button {
+    transition: none;
+  }
+}
