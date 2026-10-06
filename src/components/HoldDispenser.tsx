@@ -14,10 +14,15 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
   const valueRef = useRef(value);
   const frameRef = useRef<number | null>(null);
   const previousRef = useRef<number | null>(null);
+  const onChangeRef = useRef(onChange);
 
   useEffect(() => {
     valueRef.current = value;
   }, [value]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (!holding) return;
@@ -30,7 +35,7 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
       const next = Math.min(100, valueRef.current + delta * 0.045);
       if (Math.floor(next / 10) !== Math.floor(valueRef.current / 10)) pulseFeedback("tap");
       valueRef.current = next;
-      onChange(Math.round(next));
+      onChangeRef.current(Math.round(next));
 
       if (next >= 100) {
         setHolding(false);
@@ -45,7 +50,7 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
       frameRef.current = null;
       previousRef.current = null;
     };
-  }, [holding, onChange]);
+  }, [holding, target]);
 
   const stop = () => {
     if (!holding) return;
@@ -57,7 +62,7 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
   const reset = () => {
     setHolding(false);
     valueRef.current = 0;
-    onChange(0);
+    onChangeRef.current(0);
     pulseFeedback("tap");
   };
 
