@@ -91,7 +91,7 @@ function App() {
   };
 
   return (
-    <main className={`app-shell v2-shell season-${season.id}`}>
+    <main className={`app-shell v2-shell v6-theater-shell season-${season.id}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <CafeAtmosphere phase={game.phase} season={season.id} />
@@ -99,7 +99,7 @@ function App() {
       <GameSettings />
       <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} />
 
-      <header className="topbar v2-topbar">
+      <header className="topbar v2-topbar v6-hud">
         <div className="brand">
           <div className="brand-mark">🧋</div>
           <div>
@@ -117,8 +117,8 @@ function App() {
         </div>
       </header>
 
-      <section className="content">
-        <div className="notice-card v2-notice">
+      <section className="content v6-content">
+        <div className="notice-card v2-notice v6-marquee">
           <span className="notice-icon">{game.lastScore !== null ? "✨" : game.event.emoji}</span>
           <p>{game.notice}</p>
           {game.lastScore !== null && <b>{game.lastScore}/100</b>}
@@ -133,7 +133,7 @@ function App() {
         {screen === "goals" && <GoalsScreen game={game} onGame={setGame} />}
       </section>
 
-      <nav className="bottom-nav v2-nav" aria-label="Điều hướng chính">
+      <nav className="bottom-nav v2-nav v6-dock" aria-label="Điều hướng chính">
         <NavButton active={screen === "shop"} icon="🧋" label="Pha chế" onClick={() => setScreen("shop")} />
         <NavButton active={screen === "stock"} icon="🧺" label="Kho" onClick={() => setScreen("stock")} />
         <NavButton active={screen === "upgrades"} icon="🛠️" label="Nâng cấp" onClick={() => setScreen("upgrades")} />
@@ -301,9 +301,9 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
   };
 
   return (
-    <section className="game-layout">
-      <div className="play-column">
-        <div className="shop-scene live-scene">
+    <section className="game-layout v6-game-layout">
+      <div className="play-column v6-customer-stage">
+        <div className="shop-scene live-scene v6-live-scene">
           <div className="scene-sky">
             <span className="scene-cloud c1" />
             <span className="scene-cloud c2" />
@@ -344,7 +344,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
         />
       </div>
 
-      <div className="panel workstation">
+      <div className="panel workstation v6-brew-bench">
         <div className="workstation-head">
           <div>
             <span className="eyebrow">QUẦY PHA CHẾ · COMBO x{game.combo}</span>
@@ -353,10 +353,10 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
           <span className="workstation-badge">🔥 best x{game.bestCombo}</span>
         </div>
 
-        <div className="craft-grid">
+        <div className="craft-grid v6-craft-grid">
           <DrinkCup draft={game.draft} />
 
-          <div className="craft-controls">
+          <div className="craft-controls v6-craft-controls">
             <ControlGroup title="1. Chọn nền trà" icon="🫖">
               <div className="choice-grid drink-choices v2-drink-choices">
                 {game.unlockedBaseIds.map((id) => {
@@ -476,7 +476,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
 
 function ControlGroup({ title, icon, children }: { title: string; icon: string; children: ReactNode }) {
   return (
-    <div className="control-group">
+    <div className="control-group v6-control-drawer">
       <h4><span>{icon}</span>{title}</h4>
       {children}
     </div>
