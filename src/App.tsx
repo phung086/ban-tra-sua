@@ -1,21 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChibiCustomer } from "./components/ChibiCustomer";
+import { CraftGauge } from "./components/CraftGauge";
 import { DrinkCup } from "./components/DrinkCup";
 import {
   ACHIEVEMENTS,
+  CUSTOMERS,
+  DECORATIONS,
   DRINKS,
+  RESEARCH,
   RESTOCK_ITEMS,
   STAFF,
   TOPPINGS,
   UPGRADES,
 } from "./game/content";
 import {
+  buyDecoration,
+  buyResearch,
   buyUpgrade,
   claimQuest,
   createInitialState,
   formatMoney,
   getCustomer,
+  getRelationshipTier,
   getRestockPrice,
   getUpgradeCost,
   hireStaff,
@@ -25,13 +32,17 @@ import {
   serveCurrentDrink,
   setActiveStaff,
   startDay,
+  toggleDecoration,
   updateDraft,
 } from "./game/engine";
+import { feedbackForScore } from "./game/feedback";
 import { clearSave, loadGame, saveGame } from "./game/storage";
 import type {
   BaseId,
+  DecorationId,
   GameState,
   ReplyStyle,
+  ResearchId,
   Screen,
   StaffId,
   ToppingId,
@@ -166,6 +177,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <span>{game.event.emoji}</span>
             <div><b>{game.event.name}</b><small>{game.event.description}</small></div>
           </div>
+          <SceneDecor game={game} />
           <div className="counter-front">
             <div className="counter-flower">🌼</div>
             <div className="counter-logo">milk &amp; love</div>
@@ -191,6 +203,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <div><span>🎯</span><b>{game.targetOrders}</b><small>đơn mục tiêu</small></div>
             <div><span>📱</span><b>{game.fans}</b><small>fan theo dõi</small></div>
             <div><span>🔥</span><b>{game.viral}</b><small>điểm viral</small></div>
+            <div><span>🧠</span><b>{game.researchPoints}</b><small>research point</small></div>
           </div>
 
           <div className="prep-brief">
@@ -236,6 +249,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <div><span>💰</span><small>Doanh thu</small><b>{formatMoney(summary.revenue)}</b></div>
             <div><span>🧺</span><small>Chi phí + hao hụt</small><b>-{formatMoney(summary.ingredientCost)}</b></div>
             <div><span>📱</span><small>Fan tăng</small><b>+{summary.fansGained}</b></div>
+            <div><span>🧠</span><small>Research</small><b>+{summary.researchGained} RP</b></div>
             <div className="profit"><span>🌷</span><small>Lợi nhuận</small><b>{formatMoney(summary.profit)}</b></div>
           </div>
           {claimable > 0 && (
@@ -254,6 +268,11 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
   if (!game.currentOrder) return null;
   const order = game.currentOrder;
   const progress = (game.served / game.targetOrders) * 100;
+  const serveDrink = () => {
+    const next = serveCurrentDrink(game);
+    onGame(next);
+    if (next !== game && next.lastScore !== null) feedbackForScore(next.lastScore);
+  };
 
   return (
     <section className="game-layout">
@@ -264,6 +283,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <span className="scene-cloud c2" />
             <span className="hanging-lamp">{game.event.emoji}</span>
           </div>
+          <SceneDecor game={game} compact />
           <div className="awning mini"><span /><span /><span /><span /><span /></div>
           <div className="customer-zone">
             <div className="speech-bubble">
@@ -374,10 +394,28 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               </div>
             </ControlGroup>
 
-            <ControlGroup title="5. Kỹ thuật tay" icon="🪄">
-              <div className="meters v2-meters">
-                <Meter label="Mức rót" icon="🫗" value={game.draft.fill} onChange={(value) => onGame(updateDraft(game, { fill: value, sealed: false }))} />
-                <Meter label="Độ lắc" icon="🌀" value={game.draft.shake} onChange={(value) => onGame(updateDraft(game, { shake: value, sealed: false }))} />
+            <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
+              <div className="timing-grid">
+                <CraftGauge
+                  label="Rót"
+                  icon="🫗"
+                  value={game.draft.fill}
+                  target={order.targetFill}
+                  tolerance={5 + game.upgrades.brewer}
+                  speed={62 - Math.min(15, game.upgrades.brewer * 3)}
+                  helper="Bấm bắt đầu, canh kim vào vùng hồng rồi CHỐT."
+                  onCommit={(value) => onGame(updateDraft(game, { fill: value, sealed: false }))}
+                />
+                <CraftGauge
+                  label="Lắc"
+                  icon="🌀"
+                  value={game.draft.shake}
+                  target={order.targetShake}
+                  tolerance={5 + game.upgrades.shaker * 2}
+                  speed={72 - Math.min(20, game.upgrades.shaker * 4)}
+                  helper="Máy lắc cấp cao làm kim chậm hơn và vùng chuẩn rộng hơn."
+                  onCommit={(value) => onGame(updateDraft(game, { shake: value, sealed: false }))}
+                />
               </div>
             </ControlGroup>
 
@@ -389,7 +427,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
                 <span>{game.draft.sealed ? "🎀" : "🔘"}</span>
                 {game.draft.sealed ? "Nắp đã chuẩn" : "Dập nắp ly"}
               </button>
-              <button className="primary-button serve-button" onClick={() => onGame(serveCurrentDrink(game))}>
+              <button className="primary-button serve-button" onClick={serveDrink}>
                 <span>💗</span> Giao cho {customer.name}
               </button>
             </div>
@@ -549,6 +587,88 @@ function UpgradesScreen({ game, onGame }: { game: GameState; onGame: (state: Gam
         </div>
         {game.activeStaff && <button className="solo-shift" onClick={() => onGame(setActiveStaff(game, null))}>Ca sau chủ tiệm tự làm</button>}
       </div>
+
+      <div className="panel management-panel decor-panel">
+        <div className="section-heading compact-heading">
+          <div>
+            <span className="eyebrow">DECOR · TỐI ĐA 3 MÓN ĐANG TRƯNG</span>
+            <h2>Trang trí có chiến thuật 🌷</h2>
+            <p>Mỗi món decor có buff thật lên tip, doanh thu, fan, viral hoặc research.</p>
+          </div>
+        </div>
+        <div className="decor-grid">
+          {DECORATIONS.map((decoration) => {
+            const owned = game.ownedDecorations.includes(decoration.id);
+            const equipped = game.equippedDecorations.includes(decoration.id);
+            const locked = decoration.unlockLevel > game.level;
+            const buffs = [
+              decoration.revenueBonus ? `+${Math.round(decoration.revenueBonus * 100)}% doanh thu` : "",
+              decoration.tipBonus ? `+${Math.round(decoration.tipBonus * 100)}% tip` : "",
+              decoration.fanBonus ? `+${decoration.fanBonus} fan` : "",
+              decoration.viralBonus ? `+${decoration.viralBonus} viral` : "",
+              decoration.researchBonus ? `+${decoration.researchBonus} RP/perfect` : "",
+            ].filter(Boolean).join(" · ");
+
+            return (
+              <article className={`decor-card ${equipped ? "equipped" : ""} ${locked ? "locked" : ""}`} key={decoration.id}>
+                <div className="decor-icon">{decoration.emoji}</div>
+                <div>
+                  <div className="decor-title"><b>{decoration.name}</b><span>{equipped ? "ĐANG TRƯNG" : `Lv.${decoration.unlockLevel}`}</span></div>
+                  <p>{decoration.description}</p>
+                  <small>{buffs}</small>
+                </div>
+                {owned ? (
+                  <button onClick={() => onGame(toggleDecoration(game, decoration.id as DecorationId))}>
+                    {equipped ? "Cất đi" : "Đặt vào tiệm"}
+                  </button>
+                ) : (
+                  <button
+                    disabled={locked || game.cash < decoration.cost}
+                    onClick={() => onGame(buyDecoration(game, decoration.id as DecorationId))}
+                  >
+                    {locked ? `Mở Lv.${decoration.unlockLevel}` : formatMoney(decoration.cost)}
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="panel management-panel research-panel">
+        <div className="section-heading compact-heading">
+          <div>
+            <span className="eyebrow">RESEARCH LAB · {game.researchPoints} RP</span>
+            <h2>Nghiên cứu công thức vận hành 🧠</h2>
+            <p>RP kiếm từ mỗi ly, bonus khi perfect. Research thay đổi trực tiếp luật game.</p>
+          </div>
+        </div>
+        <div className="research-grid">
+          {RESEARCH.map((research) => {
+            const done = game.researchedIds.includes(research.id);
+            const missing = research.prerequisiteIds.filter((id) => !game.researchedIds.includes(id));
+            return (
+              <article className={`research-card ${done ? "done" : ""}`} key={research.id}>
+                <div className="research-icon">{research.emoji}</div>
+                <div>
+                  <span>{research.category}</span>
+                  <h3>{research.name}</h3>
+                  <p>{research.description}</p>
+                  {missing.length > 0 && (
+                    <small>Cần: {missing.map((id) => RESEARCH.find((item) => item.id === id)?.name ?? id).join(", ")}</small>
+                  )}
+                </div>
+                <button
+                  disabled={done || missing.length > 0 || game.researchPoints < research.cost}
+                  onClick={() => onGame(buyResearch(game, research.id as ResearchId))}
+                >
+                  {done ? "Đã nghiên cứu ✓" : `${research.cost} RP`}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
@@ -612,7 +732,12 @@ function ReviewsScreen({
                   <b>{review.customerName}</b>
                   <span>Ngày {review.day}</span>
                 </div>
-                <div className="review-stars">{stars(review.stars)} <small>{review.score}/100</small></div>
+                <div className="review-stars">
+                  {stars(review.stars)}
+                  <small>
+                    {review.score}/100 · {getRelationshipTier(game.customerBond[review.customerId] ?? 0).emoji} bond {game.customerBond[review.customerId] ?? 0}
+                  </small>
+                </div>
                 <p>{review.text}</p>
                 {review.replyText ? (
                   <div className={`owner-reply reply-${review.replyStyle}`}>
@@ -722,7 +847,75 @@ function GoalsScreen({ game, onGame }: { game: GameState; onGame: (state: GameSt
           </div>
         </div>
       </div>
+
+      <div className="panel goals-panel relationship-panel">
+        <span className="eyebrow">CUSTOMER RELATIONSHIP</span>
+        <h2>Khách quen của tiệm 💞</h2>
+        <p className="section-copy">Pha tốt cho cùng một khách để tăng bond. Khách có bond cao sẽ quay lại thường xuyên hơn.</p>
+        <div className="relationship-grid">
+          {[...CUSTOMERS]
+            .sort((a, b) => (game.customerBond[b.id] ?? 0) - (game.customerBond[a.id] ?? 0))
+            .map((customer) => {
+              const bond = game.customerBond[customer.id] ?? 0;
+              const visits = game.customerVisits[customer.id] ?? 0;
+              const tier = getRelationshipTier(bond);
+              const nextTarget = bond < 5 ? 5 : bond < 12 ? 12 : bond < 25 ? 25 : 25;
+              const percent = bond >= 25 ? 100 : Math.min(100, (bond / nextTarget) * 100);
+              return (
+                <article className="relationship-card" key={customer.id}>
+                  <div className="relationship-avatar" style={{ background: customer.shirt }}>{customer.name.slice(0, 1)}</div>
+                  <div>
+                    <div className="relationship-title"><b>{customer.name}</b><span>{tier.emoji} {tier.label}</span></div>
+                    <p>{customer.archetype} · {visits} lần ghé</p>
+                    <div className="bond-track"><i style={{ width: `${percent}%` }} /></div>
+                    <small>Bond {bond}{customer.favorite ? ` · mê ${DRINKS[customer.favorite].shortName}` : ""}</small>
+                  </div>
+                </article>
+              );
+            })}
+        </div>
+      </div>
+
+      <div className="panel goals-panel story-panel">
+        <span className="eyebrow">STORY MOMENTS</span>
+        <h2>Những chuyện nhỏ ở tiệm 💌</h2>
+        {game.storyLog.length === 0 ? (
+          <div className="story-empty">
+            <span>📖</span>
+            <p>Khi bond với một vị khách đủ cao, câu chuyện riêng của họ sẽ xuất hiện ở đây.</p>
+          </div>
+        ) : (
+          <div className="story-list">
+            {game.storyLog.slice(0, 8).map((story) => (
+              <article className="story-card" key={story.id}>
+                <div>💌</div>
+                <div>
+                  <span>{story.customerName} · Ngày {story.day}</span>
+                  <h3>{story.title}</h3>
+                  <p>{story.text}</p>
+                  <small>Thưởng quan hệ: +{story.rewardFans} fan</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
+  );
+}
+
+function SceneDecor({ game, compact = false }: { game: GameState; compact?: boolean }) {
+  const visible = DECORATIONS.filter((item) => game.equippedDecorations.includes(item.id));
+  if (visible.length === 0) return null;
+
+  return (
+    <div className={`scene-decor ${compact ? "compact" : ""}`} aria-label="Trang trí đang trưng">
+      {visible.map((item, index) => (
+        <span className={`decor-slot decor-slot-${index + 1}`} title={item.name} key={item.id}>
+          {item.emoji}
+        </span>
+      ))}
+    </div>
   );
 }
 
