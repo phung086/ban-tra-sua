@@ -24,6 +24,11 @@ interface LegacyV1 {
 function hydrate(parsed: StoredGame): GameState {
   const initial = createInitialState();
   const xp = typeof parsed.xp === "number" ? parsed.xp : initial.xp;
+  const now = Date.now();
+  const rebasedQueue = (parsed.customerQueue ?? []).map((entry, index) => ({
+    ...entry,
+    joinedAt: now + (index + 1) * 10000,
+  }));
 
   return {
     ...initial,
@@ -41,6 +46,10 @@ function hydrate(parsed: StoredGame): GameState {
     researchedIds: parsed.researchedIds ?? initial.researchedIds,
     customerBond: { ...initial.customerBond, ...(parsed.customerBond ?? {}) },
     customerVisits: { ...initial.customerVisits, ...(parsed.customerVisits ?? {}) },
+    customerQueue: rebasedQueue,
+    currentOrderQueuedAt:
+      parsed.phase === "open" && parsed.currentOrder ? now : null,
+    lastService: parsed.lastService ?? initial.lastService,
     relationshipRewardIds: parsed.relationshipRewardIds ?? initial.relationshipRewardIds,
     storyLog: parsed.storyLog ?? initial.storyLog,
     quests: parsed.quests ?? initial.quests,
