@@ -6,6 +6,7 @@ import "./styles.css";
 import "./styles-v2.css";
 import "./styles-v3.css";
 import "./styles-v4-sol.css";
+import "./styles-v5-layout.css";
 
 syncMotionPreference();
 
