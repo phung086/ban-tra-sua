@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { AdaptiveCraftHint } from "./components/AdaptiveCraftHint";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
-import { DrinkCup } from "./components/DrinkCup";
-import { OrderExperience } from "./components/OrderExperience";
+import { CraftHotkeys } from "./components/CraftHotkeys";
+import { DecorPlanner } from "./components/DecorPlanner";
+import { DrinkCup } from "./components/DrinkCup";\nimport { OrderExperience } from "./components/OrderExperience";
+import { GameSettings } from "./components/GameSettings";
+import { HoldDispenser } from "./components/HoldDispenser";
+import { PerformancePulse } from "./components/PerformancePulse";
+import { PlayCoach } from "./components/PlayCoach";
+import { RecipeChecklist } from "./components/RecipeChecklist";
+import { ServeCelebration } from "./components/ServeCelebration";
+import { ToppingTray } from "./components/ToppingTray";
 import {
   ACHIEVEMENTS,
   CUSTOMERS,
@@ -29,6 +38,7 @@ import {
   hireStaff,
   nextDay,
   replyToReview,
+  reorderDecorations,
   restock,
   serveCurrentDrink,
   setActiveStaff,
@@ -37,6 +47,8 @@ import {
   updateDraft,
 } from "./game/engine";
 import { feedbackForScore } from "./game/feedback";
+import { recordCraftPerformance } from "./game/performance";
+import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
 import type {
   BaseId,
@@ -55,6 +67,7 @@ const stars = (value: number) => "★".repeat(value) + "☆".repeat(5 - value);
 function App() {
   const [game, setGame] = useState<GameState>(() => loadGame());
   const [screen, setScreen] = useState<Screen>("shop");
+  const season = getSeasonForDay(game.day);
 
   useEffect(() => {
     saveGame(game);
@@ -76,9 +89,12 @@ function App() {
   };
 
   return (
-    <main className="app-shell v2-shell">
+    <main className={`app-shell v2-shell season-${season.id}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
+      <PlayCoach />
+      <GameSettings />
+      <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} />
 
       <header className="topbar v2-topbar">
         <div className="brand">
@@ -88,6 +104,7 @@ function App() {
             <h1>Chibi</h1>
           </div>
         </div>
+        <div className="season-pill" title={season.subtitle}><span>{season.emoji}</span><b>{season.name}</b></div>
         <div className="top-stats v2-stats">
           <div className="stat-pill coin"><span>🪙</span><b>{formatMoney(game.cash)}</b></div>
           <div className="stat-pill heart"><span>💗</span><b>{game.reputation}</b></div>
@@ -271,8 +288,12 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
   const progress = (game.served / game.targetOrders) * 100;
   const serveDrink = () => {
     const next = serveCurrentDrink(game);
+    const servedSuccessfully = next.served > game.served;
     onGame(next);
-    if (next !== game && next.lastScore !== null) feedbackForScore(next.lastScore);
+    if (servedSuccessfully && next.lastScore !== null) {
+      feedbackForScore(next.lastScore);
+      recordCraftPerformance(next.lastScore, next.combo);
+    }
   };
 
   return (
@@ -305,6 +326,8 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
           </div>
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
+
+        <PerformancePulse />
 
         <OrderExperience
           key={order.id}
@@ -365,23 +388,31 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
                 </div>
               </ControlGroup>
 
-              <ControlGroup title="3. Topping" icon="🍮">
-                <select
-                  className="cute-select"
-                  value={game.draft.topping}
-                  onChange={(event) => onGame(updateDraft(game, { topping: event.target.value as ToppingId, sealed: false }))}
-                >
-                  {game.unlockedToppingIds.map((id) => (
-                    <option value={id} key={id}>{TOPPINGS[id].emoji} {TOPPINGS[id].name}</option>
-                  ))}
-                </select>
+              <ControlGroup title="3. Topping · kéo thả" icon="🍮">
+                <ToppingTray
+                  unlockedIds={game.unlockedToppingIds}
+                  selected={game.draft.topping}
+                  onSelect={(id) => onGame(updateDraft(game, { topping: id as ToppingId, sealed: false }))}
+                />
               </ControlGroup>
             </div>
 
-            <ControlGroup title="4. Công thức" icon="🎚️">
-              <div className="meters v2-meters">
-                <Meter label="Đường" icon="🍬" value={game.draft.sugar} onChange={(value) => onGame(updateDraft(game, { sugar: value, sealed: false }))} />
-                <Meter label="Đá" icon="🧊" value={game.draft.ice} onChange={(value) => onGame(updateDraft(game, { ice: value, sealed: false }))} />
+            <ControlGroup title="4. Định lượng · giữ để rót" icon="🎚️">
+              <div className="dosing-grid">
+                <HoldDispenser
+                  label="Đường"
+                  icon="🍬"
+                  value={game.draft.sugar}
+                  target={order.sugar}
+                  onChange={(value) => onGame(updateDraft(game, { sugar: value, sealed: false }))}
+                />
+                <HoldDispenser
+                  label="Đá"
+                  icon="🧊"
+                  value={game.draft.ice}
+                  target={order.ice}
+                  onChange={(value) => onGame(updateDraft(game, { ice: value, sealed: false }))}
+                />
               </div>
             </ControlGroup>
 
@@ -410,6 +441,15 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               </div>
             </ControlGroup>
 
+            <AdaptiveCraftHint order={order} draft={game.draft} />
+            <RecipeChecklist order={order} draft={game.draft} />
+            <CraftHotkeys
+              enabled
+              sealed={game.draft.sealed}
+              onSeal={() => onGame(updateDraft(game, { sealed: true }))}
+              onServe={serveDrink}
+            />
+
             <div className="finish-actions">
               <button
                 className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
@@ -435,26 +475,6 @@ function ControlGroup({ title, icon, children }: { title: string; icon: string; 
       <h4><span>{icon}</span>{title}</h4>
       {children}
     </div>
-  );
-}
-
-function Meter({
-  label,
-  icon,
-  value,
-  onChange,
-}: {
-  label: string;
-  icon: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label className="meter">
-      <div><span>{icon} {label}</span><b>{value}%</b></div>
-      <input type="range" min="0" max="100" step="10" value={value} onChange={(event) => onChange(Number(event.target.value))} />
-      <div className="meter-marks"><span>0%</span><span>50%</span><span>100%</span></div>
-    </label>
   );
 }
 
@@ -587,6 +607,12 @@ function UpgradesScreen({ game, onGame }: { game: GameState; onGame: (state: Gam
             <p>Mỗi món decor có buff thật lên tip, doanh thu, fan, viral hoặc research.</p>
           </div>
         </div>
+        <DecorPlanner
+          ownedIds={game.ownedDecorations}
+          equippedIds={game.equippedDecorations}
+          onToggle={(id) => onGame(toggleDecoration(game, id))}
+          onReorder={(ids) => onGame(reorderDecorations(game, ids))}
+        />
         <div className="decor-grid">
           {DECORATIONS.map((decoration) => {
             const owned = game.ownedDecorations.includes(decoration.id);
