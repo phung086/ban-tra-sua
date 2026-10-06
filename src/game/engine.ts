@@ -18,9 +18,16 @@ import {
   TOPPINGS,
   UPGRADES,
 } from "./content";
+import {
+  CUSTOMER_QUEUE_SIZE,
+  QUEUE_ARRIVAL_SPACING_MS,
+  getCustomerMoodMeta,
+  getCustomerServiceFeedback,
+} from "./customerAi";
 import type {
   AchievementMetric,
   BaseId,
+  CustomerQueueEntry,
   DecorationId,
   DrinkDraft,
   Freshness,
@@ -203,6 +210,9 @@ export function createInitialState(): GameState {
     bestCombo: 0,
     perfectToday: 0,
     currentOrder: null,
+    customerQueue: [],
+    currentOrderQueuedAt: null,
+    lastService: null,
     draft: emptyDraft(),
     inventory: { ...DEFAULT_INVENTORY },
     freshness: makeFreshness(),
@@ -272,8 +282,43 @@ export function generateOrder(state: GameState, orderIndex: number): Order {
   };
 }
 
-export function startDay(state: GameState): GameState {
+function buildCustomerQueue(
+  state: GameState,
+  firstOrderIndex: number,
+  now: number,
+): CustomerQueueEntry[] {
+  const remaining = Math.max(0, state.targetOrders - firstOrderIndex);
+  const count = Math.min(CUSTOMER_QUEUE_SIZE, remaining);
+  return Array.from({ length: count }, (_, index) => ({
+    order: generateOrder(state, firstOrderIndex + index),
+    joinedAt: now + (index + 1) * QUEUE_ARRIVAL_SPACING_MS,
+  }));
+}
+
+function refillCustomerQueue(
+  state: GameState,
+  queue: CustomerQueueEntry[],
+  served: number,
+  now: number,
+): CustomerQueueEntry[] {
+  const next = [...queue];
+  while (
+    next.length < CUSTOMER_QUEUE_SIZE &&
+    served + 1 + next.length < state.targetOrders
+  ) {
+    const orderIndex = served + 1 + next.length;
+    const lastArrival = next[next.length - 1]?.joinedAt ?? now;
+    next.push({
+      order: generateOrder(state, orderIndex),
+      joinedAt: Math.max(now, lastArrival) + QUEUE_ARRIVAL_SPACING_MS,
+    });
+  }
+  return next;
+}
+
+export function startDay(state: GameState, now = Date.now()): GameState {
   const prepared = syncProgression(state);
+  const currentOrder = generateOrder(prepared, 0);
   return {
     ...prepared,
     phase: "open",
@@ -281,7 +326,10 @@ export function startDay(state: GameState): GameState {
     combo: 0,
     bestCombo: 0,
     perfectToday: 0,
-    currentOrder: generateOrder(prepared, 0),
+    currentOrder,
+    customerQueue: buildCustomerQueue(prepared, 1, now),
+    currentOrderQueuedAt: now,
+    lastService: null,
     draft: emptyDraft(prepared.unlockedBaseIds[0] ?? "classic-milk-tea"),
     dailyRevenue: 0,
     dailyCost: prepared.dailyWaste,
@@ -408,7 +456,7 @@ function activeStaffBonus(state: GameState, staffId: StaffId) {
   return state.activeStaff === staffId && state.hiredStaff.includes(staffId);
 }
 
-export function serveCurrentDrink(state: GameState): GameState {
+export function serveCurrentDrink(state: GameState, now = Date.now()): GameState {
   const order = state.currentOrder;
   if (!order || state.phase !== "open") return state;
 
@@ -419,6 +467,12 @@ export function serveCurrentDrink(state: GameState): GameState {
   }
 
   const customer = getCustomer(order.customerId);
+  const service = getCustomerServiceFeedback(
+    state,
+    customer,
+    state.currentOrderQueuedAt ?? now,
+    now,
+  );
   const baseIngredient = DRINKS[state.draft.base].ingredient;
   const freshness = state.freshness[baseIngredient] ?? 100;
   const freshnessPenalty = freshness < 30 ? 5 : freshness < 55 ? 2 : 0;
@@ -450,7 +504,8 @@ export function serveCurrentDrink(state: GameState): GameState {
     (tipBase + favoriteTip) *
       state.event.tipMultiplier *
       decorUpgradeMultiplier *
-      decor.tipMultiplier,
+      decor.tipMultiplier *
+      service.tipMultiplier,
   );
   const earned = Math.round(
     order.price *
@@ -469,12 +524,22 @@ export function serveCurrentDrink(state: GameState): GameState {
   const dailyRevenue = state.dailyRevenue + earned;
   const dailyCost = state.dailyCost + ingredientCost;
   const scoreTotal = state.dailyScoreTotal + score;
-  const reputationDelta = stars >= 5 ? 3 : stars >= 4 ? 2 : stars === 3 ? 0 : -1;
+  const serviceReputationDelta =
+    service.mood === "delighted" && stars >= 4 ? 1 : service.mood === "upset" ? -1 : 0;
+  const reputationDelta =
+    (stars >= 5 ? 3 : stars >= 4 ? 2 : stars === 3 ? 0 : -1) + serviceReputationDelta;
   const fanBase = stars >= 5 ? 3 : stars === 4 ? 1 : 0;
   const staffFans = activeStaffBonus(state, "lili") && stars >= 4 ? 2 : 0;
   const comboFans = nextCombo >= 3 ? 1 : 0;
   const favoriteFans = favoriteMatch && stars >= 4 ? 1 : 0;
-  const fanGain = fanBase + staffFans + comboFans + favoriteFans + (stars >= 4 ? decor.fanBonus : 0);
+  const speedyServiceFans = service.mood === "delighted" && stars >= 4 ? 1 : 0;
+  const fanGain =
+    fanBase +
+    staffFans +
+    comboFans +
+    favoriteFans +
+    speedyServiceFans +
+    (stars >= 4 ? decor.fanBonus : 0);
   const viralGain =
     (score >= 97 ? 4 + state.upgrades.decor : stars >= 4 ? 1 : 0) +
     (score >= 90 ? decor.viralBonus : 0);
@@ -482,9 +547,11 @@ export function serveCurrentDrink(state: GameState): GameState {
   const researchGain = 1 + (perfect ? 1 + decor.researchBonus : 0);
   const inventory = consume(state.inventory, requirements);
 
-  const bondGain =
+  const rawBondGain =
     (stars >= 5 ? 3 : stars >= 4 ? 2 : stars === 3 ? 1 : 0) +
     (stars >= 3 ? researchNumber(state, "bondBonus") : 0);
+  const patienceBondPenalty = service.mood === "upset" ? 2 : service.mood === "restless" ? 1 : 0;
+  const bondGain = Math.max(0, rawBondGain - patienceBondPenalty);
   const previousBond = state.customerBond[customer.id] ?? 0;
   const nextBond = previousBond + bondGain;
   const customerBond = { ...state.customerBond, [customer.id]: nextBond };
@@ -529,6 +596,8 @@ export function serveCurrentDrink(state: GameState): GameState {
   };
 
   const storyNotice = story ? ` 💌 Story mở khóa: “${story.title}”!` : "";
+  const mood = getCustomerMoodMeta(service.mood);
+  const serviceNotice = ` ⏱️ ${service.waitedSeconds}s · ${mood.emoji} ${mood.label} · tip x${service.tipMultiplier.toFixed(2)}.`;
   const baseNext: GameState = {
     ...state,
     inventory,
@@ -548,6 +617,7 @@ export function serveCurrentDrink(state: GameState): GameState {
     dailyFansGained: state.dailyFansGained + fanGain + (story?.rewardFans ?? 0),
     dailyResearchGained: state.dailyResearchGained + researchGain,
     lastScore: score,
+    lastService: service,
     reviews: [review, ...state.reviews].slice(0, 60),
     quests,
     stats,
@@ -563,7 +633,7 @@ export function serveCurrentDrink(state: GameState): GameState {
         ? `Perfect ${score}/100! Combo x${nextCombo} ✨`
         : score >= 80
           ? `Khách hài lòng: ${score}/100. Giữ nhịp nào!`
-          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`) + storyNotice,
+          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`) + serviceNotice + storyNotice,
   };
 
   if (served >= state.targetOrders) {
@@ -572,6 +642,8 @@ export function serveCurrentDrink(state: GameState): GameState {
       ...baseNext,
       phase: "summary",
       currentOrder: null,
+      customerQueue: [],
+      currentOrderQueuedAt: null,
       stats: completedStats,
       summary: {
         day: state.day,
@@ -591,9 +663,14 @@ export function serveCurrentDrink(state: GameState): GameState {
     });
   }
 
+  const [queuedNext, ...remainingQueue] = state.customerQueue;
+  const nextEntry =
+    queuedNext ?? { order: generateOrder(baseNext, served), joinedAt: now };
   const withNextOrder = {
     ...baseNext,
-    currentOrder: generateOrder(baseNext, served),
+    currentOrder: nextEntry.order,
+    currentOrderQueuedAt: Math.min(nextEntry.joinedAt, now),
+    customerQueue: refillCustomerQueue(baseNext, remainingQueue, served, now),
   };
   return applyAchievements(withNextOrder);
 }
@@ -841,6 +918,9 @@ export function nextDay(state: GameState): GameState {
     bestCombo: 0,
     perfectToday: 0,
     currentOrder: null,
+    customerQueue: [],
+    currentOrderQueuedAt: null,
+    lastService: null,
     draft: emptyDraft(state.unlockedBaseIds[0] ?? "classic-milk-tea"),
     inventory: decayed.inventory,
     freshness: decayed.freshness,
