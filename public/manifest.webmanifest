@@ -1,0 +1,20 @@
+{
+  "name": "Tiệm Trà Chibi",
+  "short_name": "Trà Chibi",
+  "description": "Game pha chế và quản lý tiệm trà sữa phong cách chibi.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff6fa",
+  "theme_color": "#ff74ad",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
