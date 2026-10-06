@@ -31,15 +31,21 @@ export function DrinkCup({ draft }: Props) {
 
   return (
     <div className="cup-wrap" aria-label="Ly đồ uống đang pha">
+      <div className="cup-stage-glow" />
       <div className={`cup-straw ${draft.sealed ? "visible" : ""}`} />
       <div className={`cup-lid ${draft.sealed ? "sealed" : ""}`}>
         <span />
       </div>
+
       <div className="drink-cup">
         <div
           className={`drink-liquid liquid-${draft.base}`}
           style={{ top: `${liquidTop}%` }}
         >
+          <div className="drink-surface" />
+          <div className="drink-bubbles" aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, index) => <i key={index} />)}
+          </div>
           <div
             className={`drink-swirl ${draft.shake >= 70 ? "strong" : draft.shake >= 40 ? "medium" : ""}`}
             aria-hidden="true"
@@ -51,9 +57,17 @@ export function DrinkCup({ draft }: Props) {
           </div>
           <ToppingVisual topping={draft.topping} />
         </div>
+
+        <div className="cup-rim-glow" />
         <div className="cup-shine" />
+        <div className="cup-condensation" aria-hidden="true">
+          {Array.from({ length: 5 }).map((_, index) => <i key={index} />)}
+        </div>
         <div className="cup-logo">♡</div>
+        <div className="cup-sticker">CHIBI TEA</div>
       </div>
+
+      <div className="cup-base-shadow" />
       <div className="cup-caption v2-cup-caption">
         <span>Size {draft.size}</span>
         <span>🫗 {draft.fill}%</span>
