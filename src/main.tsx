@@ -9,6 +9,7 @@ import "./styles-v4-sol.css";
 import "./styles-v5-layout.css";
 import "./styles-v5-art-direction.css";
 import "./styles-v6-theater.css";
+import "./styles-v6-world.css";
 
 syncMotionPreference();
 
