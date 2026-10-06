@@ -37,6 +37,7 @@ export type ResearchId =
   | "regulars-club";
 export type QuestMetric = "serve" | "perfect" | "revenue" | "reply" | "combo";
 export type AchievementMetric = "served" | "perfect" | "revenue" | "replies" | "days" | "fans";
+export type CustomerMood = "delighted" | "happy" | "neutral" | "restless" | "upset";
 
 export type InventoryKey =
   | "cupsM"
@@ -115,6 +116,21 @@ export interface DrinkDraft {
   fill: number;
   shake: number;
   sealed: boolean;
+}
+
+export interface CustomerQueueEntry {
+  order: Order;
+  joinedAt: number;
+}
+
+export interface CustomerServiceFeedback {
+  customerId: string;
+  waitedSeconds: number;
+  patienceSeconds: number;
+  patienceRatio: number;
+  remainingPercent: number;
+  mood: CustomerMood;
+  tipMultiplier: number;
 }
 
 export type Inventory = Record<InventoryKey, number>;
@@ -278,6 +294,9 @@ export interface GameState {
   bestCombo: number;
   perfectToday: number;
   currentOrder: Order | null;
+  customerQueue: CustomerQueueEntry[];
+  currentOrderQueuedAt: number | null;
+  lastService: CustomerServiceFeedback | null;
   draft: DrinkDraft;
   inventory: Inventory;
   freshness: Freshness;
