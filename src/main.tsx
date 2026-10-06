@@ -1,10 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { syncMotionPreference } from "./game/preferences";
 import "./styles.css";
 import "./styles-v2.css";
 import "./styles-v3.css";
 import "./styles-v4-sol.css";
+
+syncMotionPreference();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
