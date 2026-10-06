@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DRINKS, TOPPINGS } from "../game/content";
 import type { DrinkDraft, Order } from "../game/types";
 import { OrderRecallDrill } from "./OrderRecallDrill";
@@ -30,6 +30,27 @@ export function OrderExperience({
 }: OrderExperienceProps) {
   const [memoryMode, setMemoryMode] = useState(false);
   const [coachMode, setCoachMode] = useState(false);
+  const [peekSeconds, setPeekSeconds] = useState(0);
+  const [peekCount, setPeekCount] = useState(0);
+
+  useEffect(() => {
+    if (peekSeconds <= 0) return;
+    const timer = window.setTimeout(
+      () => setPeekSeconds((seconds) => Math.max(0, seconds - 1)),
+      1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [peekSeconds]);
+
+  const toggleMemoryMode = () => {
+    if (memoryMode) setPeekSeconds(0);
+    setMemoryMode(!memoryMode);
+  };
+
+  const quickPeek = () => {
+    setPeekCount((count) => count + 1);
+    setPeekSeconds(3);
+  };
 
   const checks = useMemo<Check[]>(
     () => [
@@ -138,11 +159,22 @@ export function OrderExperience({
           <span>🫗 Rót {order.targetFill}%</span>
           <span>🌀 Lắc {order.targetShake}%</span>
         </div>
-        {memoryMode && (
+        {memoryMode && peekSeconds === 0 && (
           <div className="memory-cover" role="status">
             <span>🧠</span>
             <b>MEMORY MODE</b>
             <small>Ticket đang được che — pha bằng trí nhớ.</small>
+            <button type="button" className="memory-quick-peek" onClick={quickPeek}>
+              👀 Liếc ticket 3 giây
+            </button>
+            <em>{peekCount === 0 ? "No-peek run đang giữ nguyên ✨" : `Đã quick peek ${peekCount} lần`}</em>
+          </div>
+        )}
+        {memoryMode && peekSeconds > 0 && (
+          <div className="memory-peek-status" role="status" aria-live="polite">
+            <span>👀 QUICK PEEK</span>
+            <b>{peekSeconds}s</b>
+            <small>Ghi nhớ nhanh trước khi ticket bị che lại</small>
           </div>
         )}
       </section>
@@ -158,7 +190,7 @@ export function OrderExperience({
               type="button"
               className={memoryMode ? "active" : ""}
               aria-pressed={memoryMode}
-              onClick={() => setMemoryMode((value) => !value)}
+              onClick={toggleMemoryMode}
             >
               <span>🧠</span>{memoryMode ? "Hiện ticket" : "Nhớ order"}
             </button>
@@ -206,7 +238,7 @@ export function OrderExperience({
           ))}
         </div>
 
-        {memoryMode && <OrderRecallDrill order={order} />}
+        {memoryMode && <OrderRecallDrill order={order} peekCount={peekCount} />}
 
         {coachMode && mismatch.length > 0 && (
           <div className="coach-card">
