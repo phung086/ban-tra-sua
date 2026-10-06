@@ -4,6 +4,10 @@ import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
 import { DecorPlanner } from "./components/DecorPlanner";
 import { DrinkCup } from "./components/DrinkCup";
+import { GameSettings } from "./components/GameSettings";
+import { HoldDispenser } from "./components/HoldDispenser";
+import { PlayCoach } from "./components/PlayCoach";
+import { RecipeChecklist } from "./components/RecipeChecklist";
 import { ToppingTray } from "./components/ToppingTray";
 import {
   ACHIEVEMENTS,
@@ -83,6 +87,8 @@ function App() {
     <main className={`app-shell v2-shell season-${season.id}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
+      <PlayCoach />
+      <GameSettings />
 
       <header className="topbar v2-topbar">
         <div className="brand">
@@ -389,10 +395,22 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               </ControlGroup>
             </div>
 
-            <ControlGroup title="4. Công thức" icon="🎚️">
-              <div className="meters v2-meters">
-                <Meter label="Đường" icon="🍬" value={game.draft.sugar} onChange={(value) => onGame(updateDraft(game, { sugar: value, sealed: false }))} />
-                <Meter label="Đá" icon="🧊" value={game.draft.ice} onChange={(value) => onGame(updateDraft(game, { ice: value, sealed: false }))} />
+            <ControlGroup title="4. Định lượng · giữ để rót" icon="🎚️">
+              <div className="dosing-grid">
+                <HoldDispenser
+                  label="Đường"
+                  icon="🍬"
+                  value={game.draft.sugar}
+                  target={order.sugar}
+                  onChange={(value) => onGame(updateDraft(game, { sugar: value, sealed: false }))}
+                />
+                <HoldDispenser
+                  label="Đá"
+                  icon="🧊"
+                  value={game.draft.ice}
+                  target={order.ice}
+                  onChange={(value) => onGame(updateDraft(game, { ice: value, sealed: false }))}
+                />
               </div>
             </ControlGroup>
 
@@ -421,6 +439,8 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               </div>
             </ControlGroup>
 
+            <RecipeChecklist order={order} draft={game.draft} />
+
             <div className="finish-actions">
               <button
                 className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
@@ -446,26 +466,6 @@ function ControlGroup({ title, icon, children }: { title: string; icon: string; 
       <h4><span>{icon}</span>{title}</h4>
       {children}
     </div>
-  );
-}
-
-function Meter({
-  label,
-  icon,
-  value,
-  onChange,
-}: {
-  label: string;
-  icon: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label className="meter">
-      <div><span>{icon} {label}</span><b>{value}%</b></div>
-      <input type="range" min="0" max="100" step="10" value={value} onChange={(event) => onChange(Number(event.target.value))} />
-      <div className="meter-marks"><span>0%</span><span>50%</span><span>100%</span></div>
-    </label>
   );
 }
 
