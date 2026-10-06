@@ -1,0 +1,199 @@
+.order-service-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid #f1dce6;
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(255,245,250,.94));
+  box-shadow: 0 14px 34px rgba(164, 85, 119, .08);
+}
+
+.order-service-panel.ready {
+  border-color: #bfe6d2;
+  background: linear-gradient(145deg, #f8fffb, #fff8fb);
+}
+
+.service-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.service-panel-head h3 {
+  margin: 4px 0 0;
+  color: #72485d;
+  font-size: 14px;
+}
+
+.memory-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #efd6e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #a55078;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.memory-toggle.active {
+  border-color: #d7c3f1;
+  background: #f6f0ff;
+  color: #7658a6;
+}
+
+.recipe-readiness {
+  display: grid;
+  gap: 6px;
+}
+
+.recipe-readiness > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: #8f6c7d;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.recipe-readiness b {
+  color: #c65487;
+}
+
+.readiness-track {
+  overflow: hidden;
+  height: 7px;
+  border-radius: 999px;
+  background: #f1dfe7;
+}
+
+.readiness-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff9bc3, #ef5a99);
+  transition: width .2s ease;
+}
+
+.order-service-panel.ready .readiness-track i {
+  background: linear-gradient(90deg, #8dd7b1, #4fb783);
+}
+
+.order-check-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.order-check-grid > div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid #efe2e8;
+  border-radius: 11px;
+  background: #faf7f9;
+  color: #a48794;
+}
+
+.order-check-grid > div.matched {
+  border-color: #cce9da;
+  background: #f2fff8;
+  color: #5e8b73;
+}
+
+.order-check-grid span {
+  font-size: 14px;
+}
+
+.order-check-grid b {
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-check-grid i {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #eadfe4;
+  color: #fff;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.order-check-grid > div.matched i {
+  background: #66be91;
+}
+
+.service-hint {
+  margin: 0;
+  color: #987687;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.order-ticket.is-memory-mode {
+  position: relative;
+  overflow: hidden;
+}
+
+.order-ticket.is-memory-mode .order-chips {
+  filter: blur(9px);
+  opacity: .28;
+  pointer-events: none;
+  user-select: none;
+}
+
+.order-ticket.is-memory-mode::after {
+  content: "🧠 MEMORY MODE · ticket đang được che";
+  position: absolute;
+  right: 18px;
+  bottom: 20px;
+  left: 18px;
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  border: 1px dashed #cfb7e9;
+  border-radius: 14px;
+  background: rgba(248, 243, 255, .94);
+  color: #76599f;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+@media (max-width: 720px) {
+  .service-panel-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .memory-toggle {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .order-check-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .readiness-track i {
+    transition: none;
+  }
+}
