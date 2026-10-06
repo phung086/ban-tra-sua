@@ -303,6 +303,14 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {\n  cons
             <span>🌀 Lắc {order.targetShake}%</span>
           </div>
         </div>
+
+        <OrderServicePanel
+          order={order}
+          draft={game.draft}
+          customerName={customer.name}
+          focusMode={orderFocus}
+          onFocusModeChange={setOrderFocus}
+        />
       </div>
 
       <div className="panel workstation">
