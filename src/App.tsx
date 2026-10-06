@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { AdaptiveCraftHint } from "./components/AdaptiveCraftHint";
+import { CafeAtmosphere, CafeSceneChrome } from "./components/CafeAtmosphere";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
 import { CraftHotkeys } from "./components/CraftHotkeys";
@@ -93,6 +94,7 @@ function App() {
     <main className={`app-shell v2-shell season-${season.id}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
+      <CafeAtmosphere phase={game.phase} season={season.id} />
       <PlayCoach />
       <GameSettings />
       <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} />
@@ -192,6 +194,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
               <i>🫙</i><i>🍵</i><i>🧋</i><i>🍑</i>
             </div>
           </div>
+          <CafeSceneChrome />
           <div className="event-banner">
             <span>{game.event.emoji}</span>
             <div><b>{game.event.name}</b><small>{game.event.description}</small></div>
@@ -306,6 +309,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
             <span className="scene-cloud c2" />
             <span className="hanging-lamp">{game.event.emoji}</span>
           </div>
+          <CafeSceneChrome />
           <SceneDecor game={game} compact />
           <div className="awning mini"><span /><span /><span /><span /><span /></div>
           <div className="customer-zone">
