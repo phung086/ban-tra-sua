@@ -100,3 +100,14 @@ src/
 - Customer quest chain và story chapter dài hơn.
 - Cloud save/account.
 - Visit/friends/leaderboard sau khi core loop ổn định.
+
+
+## Nhánh thử nghiệm spatial-interactions-v4-sol
+
+Nhánh này cố ý tách biệt khỏi các nhánh v4 khác và không thay đổi order-service. Mục tiêu là phát triển các interaction độc lập, dễ cherry-pick:
+
+- kéo/thả topping với fallback chạm trên mobile;
+- decor planner 3 vị trí, kéo để đổi thứ tự hiển thị;
+- thứ tự decor được lưu bằng mảng equipped hiện có, không đổi save schema;
+- seasonal ambience suy ra trực tiếp từ ngày chơi, không thêm state mới;
+- CSS nằm riêng trong `styles-v4-sol.css` để giảm xung đột merge.

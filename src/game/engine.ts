@@ -712,6 +712,27 @@ export function toggleDecoration(state: GameState, decorationId: DecorationId): 
   };
 }
 
+export function reorderDecorations(state: GameState, ids: DecorationId[]): GameState {
+  const valid = ids.filter(
+    (id, index) =>
+      state.equippedDecorations.includes(id) &&
+      ids.indexOf(id) === index,
+  );
+
+  if (
+    valid.length !== state.equippedDecorations.length ||
+    valid.some((id) => !state.ownedDecorations.includes(id))
+  ) {
+    return { ...state, notice: "Bố cục decor không hợp lệ nên chưa được áp dụng." };
+  }
+
+  return {
+    ...state,
+    equippedDecorations: valid,
+    notice: "🌷 Đã cập nhật vị trí decor trong tiệm.",
+  };
+}
+
 export function buyResearch(state: GameState, researchId: ResearchId): GameState {
   const research = RESEARCH.find((item) => item.id === researchId);
   if (!research || state.researchedIds.includes(researchId)) return state;
