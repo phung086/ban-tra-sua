@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChibiCustomer } from "./components/ChibiCustomer";
-import { DrinkCup } from "./components/DrinkCup";
+import { DrinkCup } from "./components/DrinkCup";\nimport { OrderServicePanel } from "./components/OrderServicePanel";
 import {
   ACHIEVEMENTS,
   DRINKS,
@@ -140,7 +140,7 @@ interface ShopProps {
   onNavigate: (screen: Screen) => void;
 }
 
-function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
+function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {\n  const [orderFocus, setOrderFocus] = useState(false);\n\n  useEffect(() => {\n    setOrderFocus(false);\n  }, [game.currentOrder?.id]);
   if (game.phase === "prep") {
     const visibleStock = RESTOCK_ITEMS.filter((item) => item.unlockLevel <= game.level);
     const lowStock = visibleStock.filter((item) => game.inventory[item.key] <= 3).slice(0, 4);
@@ -285,7 +285,7 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
 
-        <div className="order-ticket v2-ticket">
+        <div className={`order-ticket v2-ticket ${orderFocus ? "is-memory-mode" : ""}`}>
           <div className="ticket-pin">📌</div>
           <div className="ticket-head">
             <div>
