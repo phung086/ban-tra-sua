@@ -6,6 +6,7 @@ import { CraftGauge } from "./components/CraftGauge";
 import { CraftHotkeys } from "./components/CraftHotkeys";
 import { DecorPlanner } from "./components/DecorPlanner";
 import { DrinkCup } from "./components/DrinkCup";
+import { OrderExperience } from "./components/OrderExperience";
 import { GameSettings } from "./components/GameSettings";
 import { HoldDispenser } from "./components/HoldDispenser";
 import { PerformancePulse } from "./components/PerformancePulse";
@@ -329,24 +330,14 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
 
         <PerformancePulse />
 
-        <div className="order-ticket v2-ticket">
-          <div className="ticket-pin">📌</div>
-          <div className="ticket-head">
-            <div>
-              <span className="eyebrow">ORDER #{game.served + 1}</span>
-              <h3>{DRINKS[order.base].name}</h3>
-            </div>
-            <b>{formatMoney(order.price)}</b>
-          </div>
-          <div className="order-chips">
-            <span>🥤 Size {order.size}</span>
-            <span>🍬 {order.sugar}% đường</span>
-            <span>🧊 {order.ice}% đá</span>
-            <span>{TOPPINGS[order.topping].emoji} {TOPPINGS[order.topping].name}</span>
-            <span>🫗 Rót {order.targetFill}%</span>
-            <span>🌀 Lắc {order.targetShake}%</span>
-          </div>
-        </div>
+        <OrderExperience
+          key={order.id}
+          order={order}
+          draft={game.draft}
+          customerName={customer.name}
+          orderNumber={game.served + 1}
+          priceText={formatMoney(order.price)}
+        />
       </div>
 
       <div className="panel workstation">
