@@ -1023,3 +1023,213 @@ html[data-contrast="high"] p {
     animation: none;
   }
 }
+
+
+/* Focus mode, hotkeys and local performance pulse */
+.performance-pulse {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #efdce5;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fffafd, #fffaf1);
+  box-shadow: 0 6px 16px rgba(93,57,75,.05);
+}
+
+.performance-pulse.empty {
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+}
+
+.performance-pulse.empty > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #ffeaf2;
+  font-size: 17px;
+}
+
+.performance-pulse.empty > div {
+  display: grid;
+  gap: 2px;
+}
+
+.performance-pulse.empty b,
+.performance-copy b {
+  color: #764e61;
+  font-size: 8px;
+}
+
+.performance-pulse.empty small,
+.performance-copy small {
+  color: #9c7a89;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+}
+
+.performance-copy {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.performance-copy > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #eef8ff;
+  font-size: 17px;
+}
+
+.performance-copy > div {
+  display: grid;
+  gap: 2px;
+}
+
+.performance-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 5px;
+}
+
+.performance-stats > span {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  min-height: 38px;
+  padding: 5px;
+  border-radius: 10px;
+  background: #f8f2f5;
+}
+
+.performance-stats small {
+  color: #a98495;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.performance-stats b {
+  color: #765163;
+  font-size: 10px;
+}
+
+.performance-stats .up b {
+  color: #4c966f;
+}
+
+.performance-stats .down b {
+  color: #c06477;
+}
+
+.performance-bars {
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  height: 34px;
+  padding: 4px 5px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(246,239,243,.45), rgba(246,239,243,.9));
+}
+
+.performance-bars i {
+  flex: 1;
+  min-width: 3px;
+  max-width: 14px;
+  border-radius: 999px 999px 3px 3px;
+  background: #cda9b9;
+  opacity: .8;
+}
+
+.performance-bars i.strong {
+  background: #78bd9a;
+}
+
+.performance-bars i.perfect {
+  background: #eba15d;
+}
+
+.craft-hotkeys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px dashed #e8d1dc;
+  border-radius: 12px;
+  background: #fcf8fa;
+  color: #886777;
+  font-size: 7px;
+}
+
+.craft-hotkeys > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.craft-hotkeys kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 1px solid #d9bdc9;
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(120,78,98,.08);
+  color: #744e60;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.craft-hotkeys small {
+  flex-basis: 100%;
+  color: #a18090;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+html[data-focus="on"] .live-scene,
+html[data-focus="on"] .play-column > .progress-card {
+  display: none;
+}
+
+html[data-focus="on"] .play-column {
+  align-self: start;
+}
+
+html[data-focus="on"] .order-ticket {
+  position: sticky;
+  top: 76px;
+}
+
+html[data-focus="on"] .performance-pulse {
+  opacity: .9;
+}
+
+html[data-focus="on"] .workstation {
+  box-shadow: 0 18px 46px rgba(91,55,74,.14);
+}
+
+@media (min-width: 900px) {
+  html[data-focus="on"] .game-layout {
+    grid-template-columns: minmax(220px, .58fr) minmax(0, 1.72fr);
+  }
+}
+
+@media (max-width: 699px) {
+  .craft-hotkeys {
+    display: none;
+  }
+
+  html[data-focus="on"] .order-ticket {
+    position: static;
+  }
+}
