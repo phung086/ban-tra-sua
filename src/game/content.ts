@@ -221,7 +221,7 @@ export const DEFAULT_UPGRADES: UpgradeLevels = {
 };
 
 export const STAFF: StaffDefinition[] = [
-  { id: "momo", name: "Momo", emoji: "👩🏻‍🍳", role: "Phụ bar", description: "+5% doanh thu mỗi đơn khi đang trực.", hireCost: 180000 },
+  { id: "momo", name: "Momo", emoji: "👩🏻‍🍳", role: "Phụ bar", description: "+5% doanh thu mỗi đơn và +10% thời gian kiên nhẫn của khách khi đang trực.", hireCost: 180000 },
   { id: "kiki", name: "Kiki", emoji: "🧺", role: "Kho hàng", description: "Giảm 10% giá nhập hàng khi đang trực.", hireCost: 160000 },
   { id: "lili", name: "Lili", emoji: "📱", role: "Social", description: "Tăng fan và viral từ review tốt.", hireCost: 200000 },
 ];
@@ -324,7 +324,7 @@ export const RESEARCH: ResearchDefinition[] = [
     name: "Quy trình giờ cao điểm",
     emoji: "⚡",
     category: "Vận hành",
-    description: "Giữ combo dễ hơn: ngưỡng duy trì combo giảm 4 điểm.",
+    description: "Giữ combo dễ hơn và tăng 12% thời gian kiên nhẫn của khách trong giờ cao điểm.",
     cost: 12,
     prerequisiteIds: ["precision-tools"],
     comboThresholdReduction: 4,
