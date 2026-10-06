@@ -105,6 +105,10 @@ export function OrderExperience({
   const progress = Math.round((matched / checks.length) * 100);
   const ready = matched === checks.length;
   const mismatch = checks.filter((item) => !item.ok);
+  const recipeChecks = checks.slice(0, 5);
+  const techniqueChecks = checks.slice(5);
+  const recipeScore = Math.round((recipeChecks.filter((item) => item.ok).length / recipeChecks.length) * 100);
+  const techniqueScore = Math.round((techniqueChecks.filter((item) => item.ok).length / techniqueChecks.length) * 100);
 
   const mood =
     ready
@@ -176,6 +180,19 @@ export function OrderExperience({
           </div>
           <div className="readiness-track" aria-label={`Độ khớp ${progress}%`}>
             <i style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <div className="service-radar" aria-label="Tách độ chính xác công thức và kỹ thuật">
+          <div>
+            <span>🍹 Công thức</span>
+            <b>{recipeScore}%</b>
+            <div><i style={{ width: `${recipeScore}%` }} /></div>
+          </div>
+          <div>
+            <span>🪄 Kỹ thuật</span>
+            <b>{techniqueScore}%</b>
+            <div><i style={{ width: `${techniqueScore}%` }} /></div>
           </div>
         </div>
 
