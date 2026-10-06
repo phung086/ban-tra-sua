@@ -338,3 +338,443 @@
     font-size: 6px;
   }
 }
+
+
+/* Interaction UX: dosing, checklist, coach, settings */
+.dosing-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.hold-dispenser {
+  display: grid;
+  grid-template-columns: 1fr 66px;
+  gap: 8px 10px;
+  padding: 10px;
+  border: 1px solid #f0dce5;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fff, #fff8fb);
+}
+
+.hold-dispenser.is-close {
+  border-color: #a7dfc4;
+  box-shadow: inset 0 0 0 1px rgba(75, 183, 132, .08);
+}
+
+.hold-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #765364;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.hold-head b {
+  min-width: 40px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: #ffe8f1;
+  color: #bd4d7e;
+  text-align: center;
+}
+
+.hold-tank {
+  position: relative;
+  grid-row: span 2;
+  align-self: stretch;
+  min-height: 112px;
+  overflow: hidden;
+  border: 4px solid #fff;
+  border-radius: 18px 18px 24px 24px;
+  background: #f5edf1;
+  box-shadow: inset 0 0 0 2px #e8d5de, 0 6px 14px rgba(91,58,74,.08);
+}
+
+.hold-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  border-radius: 0 0 18px 18px;
+  background: linear-gradient(#ffbfd6, #ee76a7);
+  transition: height .04s linear;
+}
+
+.hold-target {
+  position: absolute;
+  z-index: 4;
+  right: 4px;
+  left: 4px;
+  height: 2px;
+  margin-bottom: -1px;
+  border-radius: 999px;
+  background: #9c4770;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.74);
+}
+
+.hold-tank > span {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  right: 5px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.76);
+  color: #8e6578;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.hold-actions {
+  display: grid;
+  grid-template-columns: 1fr 34px;
+  gap: 6px;
+  align-self: end;
+}
+
+.hold-actions button {
+  min-height: 39px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.hold-main {
+  background: linear-gradient(145deg, #ffedf4, #ffe0ec);
+  color: #ae4877;
+}
+
+.hold-dispenser.is-holding .hold-main {
+  background: linear-gradient(145deg, #ff8db8, #ed5897);
+  color: #fff;
+  box-shadow: 0 7px 15px rgba(219,67,130,.18);
+}
+
+.hold-reset {
+  background: #f4edf1;
+  color: #937184;
+  font-size: 13px !important;
+}
+
+.hold-dispenser > small {
+  align-self: start;
+  color: #a07d8d;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+.recipe-checklist {
+  padding: 10px;
+  border: 1px solid #efdee6;
+  border-radius: 15px;
+  background: #fffbfd;
+}
+
+.recipe-checklist-head > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #a16f86;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.recipe-checklist-head b {
+  color: #bc4e7f;
+  font-size: 8px;
+}
+
+.recipe-checklist-head {
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.recipe-checklist-head > i {
+  display: block;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f28db4, #69c594);
+  transition: width .18s ease;
+}
+
+.recipe-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.recipe-checklist-grid > div {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 10px;
+  background: #f8f3f6;
+  color: #9a7788;
+}
+
+.recipe-checklist-grid > div.ok {
+  background: #eefbf4;
+  color: #4d896c;
+}
+
+.recipe-checklist-grid span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.8);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.recipe-checklist-grid b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-checklist-grid small {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+.game-settings {
+  position: fixed;
+  z-index: 90;
+  right: 14px;
+  bottom: 82px;
+}
+
+.settings-trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #fff2f7;
+  box-shadow: 0 8px 24px rgba(93,55,75,.15);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.settings-popover {
+  position: absolute;
+  right: 0;
+  bottom: 50px;
+  display: grid;
+  gap: 6px;
+  width: min(250px, calc(100vw - 28px));
+  padding: 12px;
+  border: 1px solid #efdce5;
+  border-radius: 17px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 18px 50px rgba(84,49,68,.18);
+  backdrop-filter: blur(14px);
+}
+
+.settings-eyebrow {
+  color: #c25a87;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.settings-popover h3 {
+  margin: 0 0 3px;
+  color: #70495c;
+  font-size: 12px;
+}
+
+.settings-popover > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid #f0dfe7;
+  border-radius: 11px;
+  background: #fff9fc;
+  color: #79596a;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.settings-popover > button b {
+  color: #ba4f7f;
+  font-size: 7px;
+}
+
+.settings-popover > small {
+  color: #9f7e8d;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.play-coach-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(71,42,57,.35);
+  backdrop-filter: blur(9px);
+}
+
+.play-coach-card {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 24px 20px 18px;
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 26px;
+  background: linear-gradient(145deg, #fff, #fff5fa);
+  box-shadow: 0 24px 70px rgba(77,45,61,.25);
+  text-align: center;
+}
+
+.coach-skip {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  color: #a98797;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.coach-emoji {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  margin: 5px auto 10px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #ffe5f0, #fff2d7);
+  font-size: 34px;
+}
+
+.coach-step {
+  color: #c25383;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.play-coach-card h2 {
+  margin: 6px 0 7px;
+  color: #70495c;
+  font-size: 21px;
+}
+
+.play-coach-card p {
+  margin: 0 auto;
+  max-width: 330px;
+  color: #917181;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.coach-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin: 14px 0;
+}
+
+.coach-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ead7e0;
+}
+
+.coach-dots i.active {
+  width: 20px;
+  background: #ed6da2;
+}
+
+.coach-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.coach-actions button {
+  min-height: 40px;
+  border: 1px solid #ead8e0;
+  border-radius: 12px;
+  background: #fff;
+  color: #876576;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.coach-actions button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.coach-actions button.primary {
+  border-color: transparent;
+  background: linear-gradient(145deg, #ff89b5, #ef5c99);
+  color: #fff;
+}
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: .001ms !important;
+}
+
+@media (min-width: 700px) {
+  .dosing-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .game-settings {
+    bottom: 24px;
+  }
+
+  .recipe-checklist-grid {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .game-settings {
+    right: 9px;
+    bottom: 72px;
+  }
+
+  .settings-trigger {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+  }
+}
