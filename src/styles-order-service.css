@@ -707,3 +707,86 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Timed memory quick peek */
+.memory-cover .memory-quick-peek {
+  min-height: 34px;
+  margin-top: 7px;
+  padding: 0 12px;
+  border: 1px solid #cdb8e5;
+  border-radius: 11px;
+  background: #fff;
+  color: #735493;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.memory-cover em {
+  color: #a28db5;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+  font-style: normal;
+}
+
+.memory-peek-status {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 1px 7px;
+  padding: 7px 9px;
+  border: 1px solid #e2d3ef;
+  border-radius: 11px;
+  background: rgba(252,248,255,.94);
+  color: #78599a;
+  box-shadow: 0 7px 18px rgba(97,66,124,.12);
+  backdrop-filter: blur(8px);
+}
+
+.memory-peek-status span {
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.memory-peek-status b {
+  font-size: 12px;
+}
+
+.memory-peek-status small {
+  grid-column: 1 / -1;
+  color: #a18bb5;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+.recall-integrity {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 6px;
+  padding: 4px 7px;
+  border: 1px solid #ead9c6;
+  border-radius: 999px;
+  background: #fff8ef;
+  color: #9a7046;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.recall-integrity.pure {
+  border-color: #cce4d7;
+  background: #f2fff8;
+  color: #528269;
+}
+
+@media (max-width: 520px) {
+  .memory-peek-status {
+    right: 6px;
+    left: 6px;
+  }
+}
