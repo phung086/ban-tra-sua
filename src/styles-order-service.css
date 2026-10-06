@@ -839,3 +839,105 @@
     min-width: 0;
   }
 }
+
+
+/* Memory confidence calibration */
+.recall-confidence {
+  display: grid;
+  gap: 5px;
+  padding-top: 7px;
+  border-top: 1px dashed #eadfeb;
+}
+
+.recall-confidence > small {
+  color: #9e8ba7;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.recall-confidence > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.recall-confidence button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 7px;
+  border: 1px solid #e8ddeb;
+  border-radius: 9px;
+  background: #fff;
+  color: #887591;
+  font-size: 6px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.recall-confidence button.selected {
+  border-color: #c8b1df;
+  background: #f2ebfa;
+  color: #6e5090;
+}
+
+.recall-calibration {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  border: 1px solid #efd6c8;
+  border-radius: 12px;
+  background: #fff8f4;
+}
+
+.recall-calibration.stable {
+  border-color: #cce6d8;
+  background: #f4fff9;
+}
+
+.recall-calibration > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recall-calibration span {
+  color: #806776;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.recall-calibration b {
+  color: #b65f83;
+  font-size: 10px;
+}
+
+.recall-calibration.stable b {
+  color: #53876a;
+}
+
+.recall-calibration p {
+  margin: 0;
+  color: #7e6673;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.recall-calibration small {
+  color: #a08995;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+}
+
+.recall-review em {
+  display: block;
+  margin-top: 2px;
+  color: #9f8aa5;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+  font-style: normal;
+}
