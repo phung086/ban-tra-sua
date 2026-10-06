@@ -21,6 +21,20 @@ export type ToppingId =
 export type UpgradeId = "brewer" | "shaker" | "sealer" | "fridge" | "decor";
 export type StaffId = "momo" | "kiki" | "lili";
 export type ReplyStyle = "sweet" | "witty" | "spicy";
+export type DecorationId =
+  | "sakura-lantern"
+  | "bunny-sign"
+  | "flower-wall"
+  | "neon-heart"
+  | "lucky-cat"
+  | "moon-window";
+export type ResearchId =
+  | "precision-tools"
+  | "rush-flow"
+  | "zero-waste"
+  | "social-storytelling"
+  | "signature-service"
+  | "regulars-club";
 export type QuestMetric = "serve" | "perfect" | "revenue" | "reply" | "combo";
 export type AchievementMetric = "served" | "perfect" | "revenue" | "replies" | "days" | "fans";
 
@@ -147,6 +161,57 @@ export interface StaffDefinition {
   hireCost: number;
 }
 
+export interface DecorationDefinition {
+  id: DecorationId;
+  name: string;
+  emoji: string;
+  description: string;
+  cost: number;
+  unlockLevel: number;
+  revenueBonus: number;
+  tipBonus: number;
+  fanBonus: number;
+  viralBonus: number;
+  researchBonus: number;
+}
+
+export interface ResearchDefinition {
+  id: ResearchId;
+  name: string;
+  emoji: string;
+  category: string;
+  description: string;
+  cost: number;
+  prerequisiteIds: ResearchId[];
+  scoreBonus?: number;
+  comboThresholdReduction?: number;
+  decayReduction?: number;
+  replyFanBonus?: number;
+  replyViralBonus?: number;
+  perfectRevenueBonus?: number;
+  bondBonus?: number;
+}
+
+export interface CustomerStoryDefinition {
+  customerId: string;
+  bond: number;
+  title: string;
+  text: string;
+  rewardCash: number;
+  rewardFans: number;
+  rewardViral: number;
+}
+
+export interface StoryMoment {
+  id: string;
+  customerId: string;
+  customerName: string;
+  title: string;
+  text: string;
+  day: number;
+  rewardFans: number;
+}
+
 export interface Quest {
   id: string;
   title: string;
@@ -193,16 +258,18 @@ export interface DaySummary {
   profit: number;
   averageScore: number;
   fansGained: number;
+  researchGained: number;
 }
 
 export interface GameState {
-  saveVersion: 2;
+  saveVersion: 3;
   day: number;
   phase: Phase;
   cash: number;
   reputation: number;
   fans: number;
   viral: number;
+  researchPoints: number;
   xp: number;
   level: number;
   served: number;
@@ -219,6 +286,13 @@ export interface GameState {
   upgrades: UpgradeLevels;
   hiredStaff: StaffId[];
   activeStaff: StaffId | null;
+  ownedDecorations: DecorationId[];
+  equippedDecorations: DecorationId[];
+  researchedIds: ResearchId[];
+  customerBond: Record<string, number>;
+  customerVisits: Record<string, number>;
+  relationshipRewardIds: string[];
+  storyLog: StoryMoment[];
   quests: Quest[];
   achievementIds: string[];
   stats: LifetimeStats;
@@ -229,6 +303,7 @@ export interface GameState {
   dailyWaste: number;
   dailyScoreTotal: number;
   dailyFansGained: number;
+  dailyResearchGained: number;
   lastScore: number | null;
   notice: string;
   summary: DaySummary | null;
