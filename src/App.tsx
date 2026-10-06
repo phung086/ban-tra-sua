@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
+import { DecorPlanner } from "./components/DecorPlanner";
 import { DrinkCup } from "./components/DrinkCup";
+import { ToppingTray } from "./components/ToppingTray";
 import {
   ACHIEVEMENTS,
   CUSTOMERS,
@@ -28,6 +30,7 @@ import {
   hireStaff,
   nextDay,
   replyToReview,
+  reorderDecorations,
   restock,
   serveCurrentDrink,
   setActiveStaff,
@@ -36,6 +39,7 @@ import {
   updateDraft,
 } from "./game/engine";
 import { feedbackForScore } from "./game/feedback";
+import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
 import type {
   BaseId,
@@ -54,6 +58,7 @@ const stars = (value: number) => "★".repeat(value) + "☆".repeat(5 - value);
 function App() {
   const [game, setGame] = useState<GameState>(() => loadGame());
   const [screen, setScreen] = useState<Screen>("shop");
+  const season = getSeasonForDay(game.day);
 
   useEffect(() => {
     saveGame(game);
@@ -75,7 +80,7 @@ function App() {
   };
 
   return (
-    <main className="app-shell v2-shell">
+    <main className={`app-shell v2-shell season-${season.id}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
@@ -87,6 +92,7 @@ function App() {
             <h1>Chibi</h1>
           </div>
         </div>
+        <div className="season-pill" title={season.subtitle}><span>{season.emoji}</span><b>{season.name}</b></div>
         <div className="top-stats v2-stats">
           <div className="stat-pill coin"><span>🪙</span><b>{formatMoney(game.cash)}</b></div>
           <div className="stat-pill heart"><span>💗</span><b>{game.reputation}</b></div>
@@ -374,16 +380,12 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
                 </div>
               </ControlGroup>
 
-              <ControlGroup title="3. Topping" icon="🍮">
-                <select
-                  className="cute-select"
-                  value={game.draft.topping}
-                  onChange={(event) => onGame(updateDraft(game, { topping: event.target.value as ToppingId, sealed: false }))}
-                >
-                  {game.unlockedToppingIds.map((id) => (
-                    <option value={id} key={id}>{TOPPINGS[id].emoji} {TOPPINGS[id].name}</option>
-                  ))}
-                </select>
+              <ControlGroup title="3. Topping · kéo thả" icon="🍮">
+                <ToppingTray
+                  unlockedIds={game.unlockedToppingIds}
+                  selected={game.draft.topping}
+                  onSelect={(id) => onGame(updateDraft(game, { topping: id as ToppingId, sealed: false }))}
+                />
               </ControlGroup>
             </div>
 
@@ -596,6 +598,12 @@ function UpgradesScreen({ game, onGame }: { game: GameState; onGame: (state: Gam
             <p>Mỗi món decor có buff thật lên tip, doanh thu, fan, viral hoặc research.</p>
           </div>
         </div>
+        <DecorPlanner
+          ownedIds={game.ownedDecorations}
+          equippedIds={game.equippedDecorations}
+          onToggle={(id) => onGame(toggleDecoration(game, id))}
+          onReorder={(ids) => onGame(reorderDecorations(game, ids))}
+        />
         <div className="decor-grid">
           {DECORATIONS.map((decoration) => {
             const owned = game.ownedDecorations.includes(decoration.id);
