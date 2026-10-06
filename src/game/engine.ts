@@ -3,11 +3,14 @@ import {
   BASE_IDS,
   CUSTOMERS,
   DAY_EVENTS,
+  DECORATIONS,
   DEFAULT_INVENTORY,
   DEFAULT_UPGRADES,
   DRINKS,
   FILL_OPTIONS,
   PERCENT_OPTIONS,
+  RELATIONSHIP_STORIES,
+  RESEARCH,
   RESTOCK_ITEMS,
   SHAKE_OPTIONS,
   STAFF,
@@ -18,6 +21,7 @@ import {
 import type {
   AchievementMetric,
   BaseId,
+  DecorationId,
   DrinkDraft,
   Freshness,
   GameState,
@@ -27,6 +31,7 @@ import type {
   Quest,
   QuestMetric,
   ReplyStyle,
+  ResearchId,
   Review,
   Size,
   StaffId,
@@ -113,16 +118,83 @@ function targetOrdersFor(day: number, demandBonus: number) {
   return Math.max(4, 5 + Math.min(5, Math.floor((day - 1) / 2)) + demandBonus);
 }
 
+export function hasResearch(state: GameState, researchId: ResearchId) {
+  return state.researchedIds.includes(researchId);
+}
+
+function researchNumber(
+  state: GameState,
+  field:
+    | "scoreBonus"
+    | "comboThresholdReduction"
+    | "decayReduction"
+    | "replyFanBonus"
+    | "replyViralBonus"
+    | "perfectRevenueBonus"
+    | "bondBonus",
+) {
+  return RESEARCH.filter((item) => state.researchedIds.includes(item.id)).reduce(
+    (sum, item) => sum + (item[field] ?? 0),
+    0,
+  );
+}
+
+export function getDecorationBonuses(state: GameState) {
+  return state.equippedDecorations
+    .map((id) => DECORATIONS.find((item) => item.id === id))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .reduce(
+      (bonus, item) => ({
+        revenueMultiplier: bonus.revenueMultiplier + item.revenueBonus,
+        tipMultiplier: bonus.tipMultiplier + item.tipBonus,
+        fanBonus: bonus.fanBonus + item.fanBonus,
+        viralBonus: bonus.viralBonus + item.viralBonus,
+        researchBonus: bonus.researchBonus + item.researchBonus,
+      }),
+      {
+        revenueMultiplier: 1,
+        tipMultiplier: 1,
+        fanBonus: 0,
+        viralBonus: 0,
+        researchBonus: 0,
+      },
+    );
+}
+
+export function getRelationshipTier(bond: number) {
+  if (bond >= 25) return { label: "Bạn của tiệm", emoji: "💞", level: 4 };
+  if (bond >= 12) return { label: "Khách quen", emoji: "💗", level: 3 };
+  if (bond >= 5) return { label: "Đã nhớ mặt", emoji: "🌷", level: 2 };
+  return { label: "Khách mới", emoji: "✨", level: 1 };
+}
+
+function pickCustomerForOrder(state: GameState) {
+  const bonded = CUSTOMERS.filter((customer) => (state.customerBond[customer.id] ?? 0) > 0);
+  const regularChance = hasResearch(state, "regulars-club") ? 0.56 : 0.38;
+
+  if (bonded.length && Math.random() < regularChance) {
+    const weighted = bonded.flatMap((customer) => {
+      const bond = state.customerBond[customer.id] ?? 0;
+      const weight = Math.min(6, 1 + Math.floor(bond / 5));
+      return Array.from({ length: weight }, () => customer);
+    });
+    return pick(weighted);
+  }
+
+  return pick(CUSTOMERS);
+}
+
 export function createInitialState(): GameState {
   const event = getEventForDay(1);
   return {
-    saveVersion: 2,
+    saveVersion: 3,
     day: 1,
     phase: "prep",
     cash: 220000,
     reputation: 12,
     fans: 0,
     viral: 0,
+    researchPoints: 0,
     xp: 0,
     level: 1,
     served: 0,
@@ -139,6 +211,13 @@ export function createInitialState(): GameState {
     upgrades: { ...DEFAULT_UPGRADES },
     hiredStaff: [],
     activeStaff: null,
+    ownedDecorations: [],
+    equippedDecorations: [],
+    researchedIds: [],
+    customerBond: Object.fromEntries(CUSTOMERS.map((customer) => [customer.id, 0])),
+    customerVisits: Object.fromEntries(CUSTOMERS.map((customer) => [customer.id, 0])),
+    relationshipRewardIds: [],
+    storyLog: [],
     quests: makeDailyQuests(1),
     achievementIds: [],
     stats: {
@@ -157,6 +236,7 @@ export function createInitialState(): GameState {
     dailyWaste: 0,
     dailyScoreTotal: 0,
     dailyFansGained: 0,
+    dailyResearchGained: 0,
     lastScore: null,
     notice: "Sẵn sàng mở một ngày thật ngọt ngào!",
     summary: null,
@@ -164,11 +244,12 @@ export function createInitialState(): GameState {
 }
 
 export function generateOrder(state: GameState, orderIndex: number): Order {
-  const customer = pick(CUSTOMERS);
+  const customer = pickCustomerForOrder(state);
   const basePool = state.unlockedBaseIds.length ? state.unlockedBaseIds : getUnlockedBases(state.level);
   const toppingPool = state.unlockedToppingIds.length ? state.unlockedToppingIds : getUnlockedToppings(state.level);
+  const favoriteChance = hasResearch(state, "regulars-club") ? 0.42 : 0.28;
   const favoriteAvailable = customer.favorite && basePool.includes(customer.favorite);
-  const base = favoriteAvailable && Math.random() < 0.28 ? customer.favorite! : pick(basePool);
+  const base = favoriteAvailable && Math.random() < favoriteChance ? customer.favorite! : pick(basePool);
   const size = pick<Size>(["M", "L"]);
   const topping = pick(toppingPool);
   const sugar = pick(PERCENT_OPTIONS);
@@ -206,6 +287,7 @@ export function startDay(state: GameState): GameState {
     dailyCost: prepared.dailyWaste,
     dailyScoreTotal: 0,
     dailyFansGained: 0,
+    dailyResearchGained: 0,
     lastScore: null,
     notice: `${prepared.event.emoji} ${prepared.event.name}: khách đầu tiên tới rồi!`,
     summary: null,
@@ -336,6 +418,7 @@ export function serveCurrentDrink(state: GameState): GameState {
     return { ...state, notice: "Kho đang thiếu nguyên liệu cho ly này. Ghé tab Kho nhập thêm nhé!" };
   }
 
+  const customer = getCustomer(order.customerId);
   const baseIngredient = DRINKS[state.draft.base].ingredient;
   const freshness = state.freshness[baseIngredient] ?? 100;
   const freshnessPenalty = freshness < 30 ? 5 : freshness < 55 ? 2 : 0;
@@ -343,27 +426,44 @@ export function serveCurrentDrink(state: GameState): GameState {
     6,
     state.upgrades.brewer + state.upgrades.shaker + (state.draft.sealed ? state.upgrades.sealer : 0),
   );
-  const score = clamp(scoreDrink(order, state.draft) + machineBonus - freshnessPenalty, 0, 100);
+  const researchScoreBonus = researchNumber(state, "scoreBonus");
+  const score = clamp(
+    scoreDrink(order, state.draft) + machineBonus + researchScoreBonus - freshnessPenalty,
+    0,
+    100,
+  );
   const stars = getStars(score);
-  const nextCombo = score >= 88 ? state.combo + 1 : 0;
+  const comboThreshold = 88 - researchNumber(state, "comboThresholdReduction");
+  const nextCombo = score >= comboThreshold ? state.combo + 1 : 0;
   const bestCombo = Math.max(state.bestCombo, nextCombo);
   const comboMultiplier = 1 + Math.min(6, nextCombo) * 0.025;
-  const decorMultiplier = 1 + state.upgrades.decor * 0.025;
+  const decor = getDecorationBonuses(state);
+  const decorUpgradeMultiplier = 1 + state.upgrades.decor * 0.025;
   const staffMultiplier = activeStaffBonus(state, "momo") ? 1.05 : 1;
   const eventMultiplier = state.event.revenueMultiplier;
+  const perfect = score >= 95;
+  const signatureMultiplier = perfect ? 1 + researchNumber(state, "perfectRevenueBonus") : 1;
+  const favoriteMatch = customer.favorite === order.base;
+  const favoriteTip = favoriteMatch && score >= 85 ? 1500 : 0;
   const tipBase = score >= 95 ? 6500 : score >= 85 ? 3000 : 0;
-  const tip = Math.round(tipBase * state.event.tipMultiplier * decorMultiplier);
+  const tip = Math.round(
+    (tipBase + favoriteTip) *
+      state.event.tipMultiplier *
+      decorUpgradeMultiplier *
+      decor.tipMultiplier,
+  );
   const earned = Math.round(
     order.price *
       (0.7 + (score / 100) * 0.3) *
       comboMultiplier *
-      decorMultiplier *
+      decorUpgradeMultiplier *
+      decor.revenueMultiplier *
       staffMultiplier *
-      eventMultiplier,
+      eventMultiplier *
+      signatureMultiplier,
   ) + tip;
   const ingredientCost = (state.draft.size === "L" ? 9500 : 7600) + (state.draft.topping === "none" ? 0 : 2500);
   const served = state.served + 1;
-  const perfect = score >= 95;
   const perfectToday = state.perfectToday + (perfect ? 1 : 0);
   const review = makeReview(state, order, score);
   const dailyRevenue = state.dailyRevenue + earned;
@@ -373,10 +473,47 @@ export function serveCurrentDrink(state: GameState): GameState {
   const fanBase = stars >= 5 ? 3 : stars === 4 ? 1 : 0;
   const staffFans = activeStaffBonus(state, "lili") && stars >= 4 ? 2 : 0;
   const comboFans = nextCombo >= 3 ? 1 : 0;
-  const fanGain = fanBase + staffFans + comboFans;
-  const viralGain = score >= 97 ? 4 + state.upgrades.decor : stars >= 4 ? 1 : 0;
+  const favoriteFans = favoriteMatch && stars >= 4 ? 1 : 0;
+  const fanGain = fanBase + staffFans + comboFans + favoriteFans + (stars >= 4 ? decor.fanBonus : 0);
+  const viralGain =
+    (score >= 97 ? 4 + state.upgrades.decor : stars >= 4 ? 1 : 0) +
+    (score >= 90 ? decor.viralBonus : 0);
   const xpGain = 10 + stars * 4 + (perfect ? 8 : 0);
+  const researchGain = 1 + (perfect ? 1 + decor.researchBonus : 0);
   const inventory = consume(state.inventory, requirements);
+
+  const bondGain =
+    (stars >= 5 ? 3 : stars >= 4 ? 2 : stars === 3 ? 1 : 0) +
+    (stars >= 3 ? researchNumber(state, "bondBonus") : 0);
+  const previousBond = state.customerBond[customer.id] ?? 0;
+  const nextBond = previousBond + bondGain;
+  const customerBond = { ...state.customerBond, [customer.id]: nextBond };
+  const customerVisits = {
+    ...state.customerVisits,
+    [customer.id]: (state.customerVisits[customer.id] ?? 0) + 1,
+  };
+
+  const story = RELATIONSHIP_STORIES.find((item) => {
+    const rewardId = `${item.customerId}:${item.bond}`;
+    return (
+      item.customerId === customer.id &&
+      previousBond < item.bond &&
+      nextBond >= item.bond &&
+      !state.relationshipRewardIds.includes(rewardId)
+    );
+  });
+  const storyRewardId = story ? `${story.customerId}:${story.bond}` : null;
+  const storyMoment = story
+    ? {
+        id: `story-${story.customerId}-${story.bond}-d${state.day}`,
+        customerId: customer.id,
+        customerName: customer.name,
+        title: story.title,
+        text: story.text,
+        day: state.day,
+        rewardFans: story.rewardFans,
+      }
+    : null;
 
   let quests = advanceQuests(state.quests, "serve", 1);
   quests = advanceQuests(quests, "revenue", earned);
@@ -391,13 +528,15 @@ export function serveCurrentDrink(state: GameState): GameState {
     bestCombo: Math.max(state.stats.bestCombo, bestCombo),
   };
 
+  const storyNotice = story ? ` 💌 Story mở khóa: “${story.title}”!` : "";
   const baseNext: GameState = {
     ...state,
     inventory,
-    cash: state.cash + earned,
+    cash: state.cash + earned + (story?.rewardCash ?? 0),
     reputation: Math.max(0, state.reputation + reputationDelta),
-    fans: state.fans + fanGain,
-    viral: state.viral + viralGain,
+    fans: state.fans + fanGain + (story?.rewardFans ?? 0),
+    viral: state.viral + viralGain + (story?.rewardViral ?? 0),
+    researchPoints: state.researchPoints + researchGain,
     xp: state.xp + xpGain,
     combo: nextCombo,
     bestCombo,
@@ -406,18 +545,25 @@ export function serveCurrentDrink(state: GameState): GameState {
     dailyRevenue,
     dailyCost,
     dailyScoreTotal: scoreTotal,
-    dailyFansGained: state.dailyFansGained + fanGain,
+    dailyFansGained: state.dailyFansGained + fanGain + (story?.rewardFans ?? 0),
+    dailyResearchGained: state.dailyResearchGained + researchGain,
     lastScore: score,
     reviews: [review, ...state.reviews].slice(0, 60),
     quests,
     stats,
+    customerBond,
+    customerVisits,
+    relationshipRewardIds: storyRewardId
+      ? [...state.relationshipRewardIds, storyRewardId]
+      : state.relationshipRewardIds,
+    storyLog: storyMoment ? [storyMoment, ...state.storyLog].slice(0, 24) : state.storyLog,
     draft: emptyDraft(state.unlockedBaseIds[0] ?? "classic-milk-tea"),
     notice:
-      score >= 95
+      (score >= 95
         ? `Perfect ${score}/100! Combo x${nextCombo} ✨`
         : score >= 80
           ? `Khách hài lòng: ${score}/100. Giữ nhịp nào!`
-          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`,
+          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`) + storyNotice,
   };
 
   if (served >= state.targetOrders) {
@@ -438,9 +584,10 @@ export function serveCurrentDrink(state: GameState): GameState {
         wasteCost: state.dailyWaste,
         profit: dailyRevenue - dailyCost,
         averageScore: Math.round(scoreTotal / served),
-        fansGained: state.dailyFansGained + fanGain,
+        fansGained: state.dailyFansGained + fanGain + (story?.rewardFans ?? 0),
+        researchGained: state.dailyResearchGained + researchGain,
       },
-      notice: "Hết ca rồi! Mở sổ tổng kết xem hôm nay tiệm tiến bộ tới đâu nhé.",
+      notice: "Hết ca rồi! Mở sổ tổng kết xem hôm nay tiệm tiến bộ tới đâu nhé." + storyNotice,
     });
   }
 
@@ -522,6 +669,69 @@ export function setActiveStaff(state: GameState, staffId: StaffId | null): GameS
   };
 }
 
+export function buyDecoration(state: GameState, decorationId: DecorationId): GameState {
+  const decoration = DECORATIONS.find((item) => item.id === decorationId);
+  if (!decoration || state.ownedDecorations.includes(decorationId)) return state;
+  if (decoration.unlockLevel > state.level) {
+    return { ...state, notice: `${decoration.name} mở ở level ${decoration.unlockLevel}.` };
+  }
+  if (state.cash < decoration.cost) {
+    return { ...state, notice: `Chưa đủ tiền mua ${decoration.name}.` };
+  }
+
+  const autoEquip = state.equippedDecorations.length < 3;
+  return {
+    ...state,
+    cash: state.cash - decoration.cost,
+    ownedDecorations: [...state.ownedDecorations, decorationId],
+    equippedDecorations: autoEquip
+      ? [...state.equippedDecorations, decorationId]
+      : state.equippedDecorations,
+    notice: `${decoration.emoji} Đã mua ${decoration.name}${autoEquip ? " và đặt ngay vào tiệm" : ""}.`,
+  };
+}
+
+export function toggleDecoration(state: GameState, decorationId: DecorationId): GameState {
+  if (!state.ownedDecorations.includes(decorationId)) return state;
+  const equipped = state.equippedDecorations.includes(decorationId);
+  if (equipped) {
+    return {
+      ...state,
+      equippedDecorations: state.equippedDecorations.filter((id) => id !== decorationId),
+      notice: "Đã cất món decor khỏi quầy.",
+    };
+  }
+  if (state.equippedDecorations.length >= 3) {
+    return { ...state, notice: "Tiệm chỉ trưng tối đa 3 món decor cùng lúc. Hãy cất bớt một món." };
+  }
+  const decoration = DECORATIONS.find((item) => item.id === decorationId);
+  return {
+    ...state,
+    equippedDecorations: [...state.equippedDecorations, decorationId],
+    notice: `${decoration?.emoji ?? "🌷"} Đã đặt ${decoration?.name ?? "decor"} vào tiệm.`,
+  };
+}
+
+export function buyResearch(state: GameState, researchId: ResearchId): GameState {
+  const research = RESEARCH.find((item) => item.id === researchId);
+  if (!research || state.researchedIds.includes(researchId)) return state;
+  const missingPrerequisite = research.prerequisiteIds.find((id) => !state.researchedIds.includes(id));
+  if (missingPrerequisite) {
+    const prerequisite = RESEARCH.find((item) => item.id === missingPrerequisite);
+    return { ...state, notice: `Cần nghiên cứu “${prerequisite?.name ?? missingPrerequisite}” trước.` };
+  }
+  if (state.researchPoints < research.cost) {
+    return { ...state, notice: `Cần ${research.cost} RP để nghiên cứu ${research.name}.` };
+  }
+
+  return {
+    ...state,
+    researchPoints: state.researchPoints - research.cost,
+    researchedIds: [...state.researchedIds, researchId],
+    notice: `${research.emoji} Hoàn tất nghiên cứu “${research.name}”!`,
+  };
+}
+
 export function replyToReview(state: GameState, reviewId: string, style: ReplyStyle): GameState {
   const review = state.reviews.find((item) => item.id === reviewId);
   if (!review || review.replyStyle) return state;
@@ -537,16 +747,18 @@ export function replyToReview(state: GameState, reviewId: string, style: ReplySt
     spicy: { reputation: -1, fans: 7, viral: 8 },
   };
   const effect = effects[style];
+  const socialFanBonus = researchNumber(state, "replyFanBonus");
+  const socialViralBonus = researchNumber(state, "replyViralBonus");
   const updatedReviews = state.reviews.map((item) =>
     item.id === reviewId ? { ...item, replyStyle: style, replyText: replies[style] } : item,
   );
-  let quests = advanceQuests(state.quests, "reply", 1);
+  const quests = advanceQuests(state.quests, "reply", 1);
   const next = {
     ...state,
     reviews: updatedReviews,
     reputation: Math.max(0, state.reputation + effect.reputation),
-    fans: state.fans + effect.fans,
-    viral: state.viral + effect.viral,
+    fans: state.fans + effect.fans + socialFanBonus,
+    viral: state.viral + effect.viral + socialViralBonus,
     quests,
     stats: { ...state.stats, replies: state.stats.replies + 1 },
     notice:
@@ -577,7 +789,8 @@ function decayInventory(state: GameState) {
   const inventory = { ...state.inventory };
   const freshness = { ...state.freshness };
   let wasteValue = 0;
-  const loss = Math.max(7, 22 - state.upgrades.fridge * 3);
+  const researchReduction = researchNumber(state, "decayReduction");
+  const loss = Math.max(4, 22 - state.upgrades.fridge * 3 - researchReduction);
 
   for (const item of RESTOCK_ITEMS) {
     if (!item.perishable || inventory[item.key] <= 0) continue;
