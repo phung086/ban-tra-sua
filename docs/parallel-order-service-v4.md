@@ -31,7 +31,7 @@ This branch does not modify:
 4. Coach Mode shows up to three mismatches without auto-correcting the drink.
 5. Responsive mobile layout and reduced-motion support.
 6. UI state is ephemeral React component state; no save-version impact.
-7. Memory Drill quizzes 7 order details, scores recall separately, and reveals mistakes without changing gameplay score.\n8. Focus Practice can immediately re-quiz only the missed details, split into recipe vs technique recall.\n9. Quick Peek reveals the ticket for 3 seconds inside Memory Mode, tracks peek count, and marks true no-peek recall runs.
+7. Memory Drill quizzes 7 order details, scores recall separately, and reveals mistakes without changing gameplay score.\n8. Focus Practice can immediately re-quiz only the missed details, split into recipe vs technique recall.\n9. Quick Peek reveals the ticket for 3 seconds inside Memory Mode, tracks peek count, and marks true no-peek recall runs.\n10. Per-order Mastery keeps best full-recall and best no-peek scores in ephemeral component state only.
 
 ## Merge guidance
 
