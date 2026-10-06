@@ -67,9 +67,9 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
 
         <button className="v6-open-sign" onClick={() => onGame(startDay(game))}>
           <span className="v6-open-rope" />
-          <small>CLICK TO</small>
-          <b>OPEN</b>
-          <em>{game.targetOrders} orders today</em>
+          <small>SẴN SÀNG RỒI?</small>
+          <b>MỞ TIỆM</b>
+          <em>{game.targetOrders} đơn trong ca hôm nay</em>
         </button>
 
         <div className="v6-prep-cat" aria-hidden="true">🐾</div>

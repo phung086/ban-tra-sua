@@ -90,7 +90,9 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
           }}
           onPointerUp={stop}
           onPointerCancel={stop}
+          onLostPointerCapture={stop}
           onPointerLeave={stop}
+          onBlur={stop}
           onKeyDown={(event) => {
             if ((event.key === " " || event.key === "Enter") && !holding) {
               event.preventDefault();
@@ -106,7 +108,7 @@ export function HoldDispenser({ label, icon, value, target, onChange }: Props) {
         >
           {holding ? "Đang rót…" : "Giữ để rót"}
         </button>
-        <button type="button" className="hold-reset" onClick={reset}>↺</button>
+        <button type="button" className="hold-reset" aria-label={`Đặt lại ${label.toLowerCase()}`} onClick={reset}>↺</button>
       </div>
       <small>Giữ nút và nhả gần mốc {target}%.</small>
     </div>

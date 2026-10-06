@@ -26,7 +26,7 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
         <div className="v6-room-title">
           <small>SOCIAL DESK · REVIEWS</small>
           <h2>Điện thoại của tiệm</h2>
-          <p>Review không còn là bảng dữ liệu — đây là inbox social thật của tiệm.</p>
+          <p>Đọc lời nhắn của khách và chọn cách trả lời để xây uy tín cho tiệm.</p>
         </div>
 
         <div className="v6-social-sticky v6-social-sticky-a">
@@ -92,7 +92,7 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
           <p>💗 Ngọt → uy tín</p>
           <p>😌 Duyên → fan + viral</p>
           <p>🔥 Cà khịa → viral mạnh</p>
-          <button onClick={onReset}>Reset save</button>
+          <button onClick={onReset}>Chơi lại từ ngày 1</button>
         </div>
 
         <div className="v6-social-ledger">

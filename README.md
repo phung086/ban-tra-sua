@@ -50,8 +50,11 @@ Chuẩn bị ngày mới
 
 ## Chạy local
 
+UI v7 đã tích hợp các nhánh quầy pha, world rooms và customer AI. Quầy có bốn trạm
+và giữ ly đang pha khi ghé kho. Chi tiết: [UI/UX hệ thống v7](docs/ui-ux-system-v7.md).
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -60,6 +63,13 @@ Production:
 ```bash
 npm run build
 npm run preview
+```
+
+Kiểm thử:
+
+```bash
+npm test
+npm run typecheck
 ```
 
 ## Kiến trúc

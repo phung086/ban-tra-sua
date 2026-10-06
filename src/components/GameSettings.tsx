@@ -11,11 +11,12 @@ export function GameSettings() {
 
   return (
     <div className={`game-settings ${open ? "open" : ""}`}>
-      <button className="settings-trigger" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <button className="settings-trigger" aria-label="Cài đặt game" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
+        onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
         ⚙️
       </button>
       {open && (
-        <div className="settings-popover">
+        <div className="settings-popover" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
           <span className="settings-eyebrow">TRẢI NGHIỆM</span>
           <h3>Cài đặt game</h3>
           <button type="button" onClick={() => toggle("sound")}><span>🔊 Âm thanh</span><b>{prefs.sound ? "ON" : "OFF"}</b></button>
