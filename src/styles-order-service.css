@@ -584,3 +584,126 @@
     transition: none;
   }
 }
+
+
+/* Focused recall retry */
+.recall-question legend i {
+  margin-left: auto;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #f2ebf8;
+  color: #9078a8;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.recall-focus-banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 1px solid #efd9a6;
+  border-radius: 12px;
+  background: #fffaf0;
+}
+
+.recall-focus-banner > span { font-size: 17px; }
+
+.recall-focus-banner p {
+  min-width: 0;
+  margin: 0;
+}
+
+.recall-focus-banner b,
+.recall-focus-banner small {
+  display: block;
+}
+
+.recall-focus-banner b {
+  color: #83672e;
+  font-size: 8px;
+}
+
+.recall-focus-banner small {
+  margin-top: 2px;
+  color: #ad9159;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 7px;
+}
+
+.recall-focus-banner button,
+.recall-focus-retry {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid #ead29c;
+  border-radius: 9px;
+  background: #fff;
+  color: #8b6b2d;
+  font-size: 7px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.recall-score-column {
+  display: grid;
+  gap: 7px;
+}
+
+.recall-split-score {
+  display: grid;
+  gap: 4px;
+}
+
+.recall-split-score span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 7px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.76);
+  color: #795f91;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.recall-split-score small {
+  color: #9d8aaa;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+  font-weight: 600;
+}
+
+.recall-result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.recall-result-actions .recall-retry {
+  margin-top: 0;
+}
+
+.recall-focus-retry {
+  border-color: #d7c1eb;
+  background: #f6effd;
+  color: #735393;
+}
+
+@media (max-width: 520px) {
+  .recall-focus-banner {
+    grid-template-columns: auto 1fr;
+  }
+
+  .recall-focus-banner button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .recall-result-actions {
+    grid-template-columns: 1fr;
+  }
+}
