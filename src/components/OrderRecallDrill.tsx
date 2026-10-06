@@ -43,6 +43,11 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
   const [submitted, setSubmitted] = useState(false);
   const [focusQuestionIds, setFocusQuestionIds] = useState<string[] | null>(null);
   const [attempt, setAttempt] = useState(1);
+  const [attemptPeekStart, setAttemptPeekStart] = useState(peekCount);
+  const [submittedPeekCount, setSubmittedPeekCount] = useState(0);
+  const [bestFullScore, setBestFullScore] = useState(0);
+  const [bestNoPeekScore, setBestNoPeekScore] = useState(0);
+  const [fullAttempts, setFullAttempts] = useState(0);
 
   const questions = useMemo<RecallQuestion[]>(() => {
     const baseIds = Object.keys(DRINKS) as BaseId[];
@@ -153,10 +158,29 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
     setAnswers((current) => ({ ...current, [questionId]: value }));
   };
 
+  const submitAttempt = () => {
+    if (!complete) return;
+    const attemptCorrect = activeQuestions.filter((question) => answers[question.id] === question.answer).length;
+    const attemptScore = Math.round((attemptCorrect / activeQuestions.length) * 100);
+    const peeksThisAttempt = Math.max(0, peekCount - attemptPeekStart);
+
+    setSubmittedPeekCount(peeksThisAttempt);
+    if (focusQuestionIds === null) {
+      setFullAttempts((value) => value + 1);
+      setBestFullScore((value) => Math.max(value, attemptScore));
+      if (peeksThisAttempt === 0) {
+        setBestNoPeekScore((value) => Math.max(value, attemptScore));
+      }
+    }
+    setSubmitted(true);
+  };
+
   const resetAttempt = (ids: string[] | null) => {
     setAnswers({});
     setSubmitted(false);
     setFocusQuestionIds(ids);
+    setAttemptPeekStart(peekCount);
+    setSubmittedPeekCount(0);
     setAttempt((value) => value + 1);
   };
 
@@ -172,9 +196,17 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
               : "Trả lời nhanh trước khi mở ticket lại. Kết quả này không ảnh hưởng điểm ly."}
           </p>
         </div>
-        <div className="recall-progress" aria-label={`Đã trả lời ${answeredCount} trên ${activeQuestions.length}`}>
-          <b>{answeredCount}/{activeQuestions.length}</b>
-          <small>lần {attempt}</small>
+        <div className="recall-head-stats">
+          {fullAttempts > 0 && (
+            <div className="recall-mastery" aria-label="Thành tích nhớ order trong lượt hiện tại">
+              <span>🏆 <b>{bestFullScore}%</b><small>best full</small></span>
+              <span>🧠 <b>{bestNoPeekScore}%</b><small>best no-peek</small></span>
+            </div>
+          )}
+          <div className="recall-progress" aria-label={`Đã trả lời ${answeredCount} trên ${activeQuestions.length}`}>
+            <b>{answeredCount}/{activeQuestions.length}</b>
+            <small>lần {attempt}</small>
+          </div>
         </div>
       </div>
 
@@ -220,7 +252,7 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
             type="button"
             className="recall-submit"
             disabled={!complete}
-            onClick={() => setSubmitted(true)}
+            onClick={submitAttempt}
           >
             {complete ? "Chấm trí nhớ ✨" : `Còn ${activeQuestions.length - answeredCount} câu chưa chọn`}
           </button>
@@ -243,8 +275,10 @@ export function OrderRecallDrill({ order, peekCount }: { order: Order; peekCount
           </div>
 
           <div className="recall-result-copy">
-            <div className={`recall-integrity ${peekCount === 0 ? "pure" : ""}`}>
-              {peekCount === 0 ? "🏅 No-peek memory" : `👀 ${peekCount} quick peek${peekCount > 1 ? "s" : ""}`}
+            <div className={`recall-integrity ${submittedPeekCount === 0 ? "pure" : ""}`}>
+              {submittedPeekCount === 0
+                ? "🏅 No-peek attempt"
+                : `👀 ${submittedPeekCount} quick peek${submittedPeekCount > 1 ? "s" : ""} trong attempt này`}
             </div>
             <h4>{result.emoji} {result.label}</h4>
             <div className="recall-review">
