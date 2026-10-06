@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { ACHIEVEMENTS, CUSTOMERS, DRINKS, TOPPINGS } from "../../game/content";
 import { claimQuest, formatMoney, getRelationshipTier } from "../../game/engine";
 import type { GameState } from "../../game/types";
@@ -41,7 +42,7 @@ export function GoalsRoom({ game, onGame }: Props) {
             const done = quest.progress >= quest.target;
             const percent = Math.min(100, (quest.progress / quest.target) * 100);
             return (
-              <article className={`v6-pinned-note ${done ? "done" : ""}`} key={quest.id} style={{ "--note-index": index } as React.CSSProperties}>
+              <article className={`v6-pinned-note ${done ? "done" : ""}`} key={quest.id} style={{ "--note-index": index } as CSSProperties}>
                 <i className="v6-pin" />
                 <small>DAILY #{index + 1}</small>
                 <h3>{quest.title}</h3>
@@ -61,7 +62,7 @@ export function GoalsRoom({ game, onGame }: Props) {
             const value = achievement.metric === "fans" ? game.fans : game.stats[achievement.metric];
             const percent = Math.min(100, (value / achievement.threshold) * 100);
             return (
-              <article className={`v6-polaroid ${unlocked ? "unlocked" : ""}`} key={achievement.id} style={{ "--note-index": index } as React.CSSProperties}>
+              <article className={`v6-polaroid ${unlocked ? "unlocked" : ""}`} key={achievement.id} style={{ "--note-index": index } as CSSProperties}>
                 <span>{achievement.emoji}</span>
                 <h3>{achievement.name}</h3>
                 <p>{achievement.description}</p>
@@ -102,7 +103,7 @@ export function GoalsRoom({ game, onGame }: Props) {
                   const bond = game.customerBond[customer.id] ?? 0;
                   const tier = getRelationshipTier(bond);
                   return (
-                    <article className="v6-customer-photo" key={customer.id} style={{ "--note-index": index } as React.CSSProperties}>
+                    <article className="v6-customer-photo" key={customer.id} style={{ "--note-index": index } as CSSProperties}>
                       <i />
                       <span style={{ background: customer.shirt }}>{customer.name.slice(0, 1)}</span>
                       <b>{customer.name}</b>
