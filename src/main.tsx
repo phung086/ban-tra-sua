@@ -5,7 +5,7 @@ import { syncMotionPreference } from "./game/preferences";
 import "./styles.css";
 import "./styles-v2.css";
 import "./styles-v3.css";
-import "./styles-v4-sol.css";
+import "./styles-v4-sol.css";\nimport "./styles-v5-art-direction.css";
 
 syncMotionPreference();
 
