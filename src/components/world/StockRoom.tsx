@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { RESTOCK_ITEMS } from "../../game/content";
 import { formatMoney, getRestockPrice, restock } from "../../game/engine";
 import type { GameState } from "../../game/types";
@@ -43,7 +44,7 @@ export function StockRoom({ game, onGame }: Props) {
                 key={item.key}
                 className={`v6-pantry-item ${low ? "low" : ""} ${selectedItem ? "selected" : ""}`}
                 onClick={() => setSelectedKey(item.key)}
-                style={{ "--pantry-index": index } as React.CSSProperties}
+                style={{ "--pantry-index": index } as CSSProperties}
               >
                 <span className="v6-jar-lid" />
                 <strong>{item.emoji}</strong>
