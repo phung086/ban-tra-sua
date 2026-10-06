@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 import { AdaptiveCraftHint } from "./components/AdaptiveCraftHint";
 import { ChibiCustomer } from "./components/ChibiCustomer";
 import { CraftGauge } from "./components/CraftGauge";
+import { CraftHotkeys } from "./components/CraftHotkeys";
 import { DecorPlanner } from "./components/DecorPlanner";
 import { DrinkCup } from "./components/DrinkCup";
 import { GameSettings } from "./components/GameSettings";
 import { HoldDispenser } from "./components/HoldDispenser";
+import { PerformancePulse } from "./components/PerformancePulse";
 import { PlayCoach } from "./components/PlayCoach";
 import { RecipeChecklist } from "./components/RecipeChecklist";
 import { ServeCelebration } from "./components/ServeCelebration";
@@ -45,6 +47,7 @@ import {
   updateDraft,
 } from "./game/engine";
 import { feedbackForScore } from "./game/feedback";
+import { recordCraftPerformance } from "./game/performance";
 import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
 import type {
@@ -285,8 +288,12 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
   const progress = (game.served / game.targetOrders) * 100;
   const serveDrink = () => {
     const next = serveCurrentDrink(game);
+    const servedSuccessfully = next.served > game.served;
     onGame(next);
-    if (next !== game && next.lastScore !== null) feedbackForScore(next.lastScore);
+    if (servedSuccessfully && next.lastScore !== null) {
+      feedbackForScore(next.lastScore);
+      recordCraftPerformance(next.lastScore, next.combo);
+    }
   };
 
   return (
@@ -319,6 +326,8 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
           </div>
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
+
+        <PerformancePulse />
 
         <div className="order-ticket v2-ticket">
           <div className="ticket-pin">📌</div>
@@ -444,6 +453,12 @@ function ShopScreen({ game, onGame, customer, onNavigate }: ShopProps) {
 
             <AdaptiveCraftHint order={order} draft={game.draft} />
             <RecipeChecklist order={order} draft={game.draft} />
+            <CraftHotkeys
+              enabled
+              sealed={game.draft.sealed}
+              onSeal={() => onGame(updateDraft(game, { sealed: true }))}
+              onServe={serveDrink}
+            />
 
             <div className="finish-actions">
               <button
