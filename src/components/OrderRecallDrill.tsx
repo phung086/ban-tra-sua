@@ -12,6 +12,7 @@ type RecallQuestion = {
   id: string;
   icon: string;
   label: string;
+  group: "recipe" | "technique";
   answer: string;
   choices: Array<{ value: string; label: string }>;
 };
@@ -40,6 +41,8 @@ function numericChoices(values: readonly number[], answer: number) {
 export function OrderRecallDrill({ order }: { order: Order }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [focusQuestionIds, setFocusQuestionIds] = useState<string[] | null>(null);
+  const [attempt, setAttempt] = useState(1);
 
   const questions = useMemo<RecallQuestion[]>(() => {
     const baseIds = Object.keys(DRINKS) as BaseId[];
@@ -50,6 +53,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "base",
         icon: "🫖",
         label: "Nền trà gì?",
+        group: "recipe",
         answer: order.base,
         choices: rotateChoices(baseIds, order.base).map((id) => ({
           value: id,
@@ -60,6 +64,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "size",
         icon: "🥤",
         label: "Size nào?",
+        group: "recipe",
         answer: order.size,
         choices: [
           { value: "M", label: "Size M" },
@@ -70,6 +75,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "topping",
         icon: "🍮",
         label: "Topping gì?",
+        group: "recipe",
         answer: order.topping,
         choices: rotateChoices(toppingIds, order.topping).map((id) => ({
           value: id,
@@ -80,6 +86,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "sugar",
         icon: "🍬",
         label: "Bao nhiêu đường?",
+        group: "recipe",
         answer: String(order.sugar),
         choices: numericChoices(PERCENT_OPTIONS, order.sugar),
       },
@@ -87,6 +94,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "ice",
         icon: "🧊",
         label: "Bao nhiêu đá?",
+        group: "recipe",
         answer: String(order.ice),
         choices: numericChoices(PERCENT_OPTIONS, order.ice),
       },
@@ -94,6 +102,7 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "fill",
         icon: "🫗",
         label: "Rót tới đâu?",
+        group: "technique",
         answer: String(order.targetFill),
         choices: numericChoices(FILL_OPTIONS, order.targetFill),
       },
@@ -101,18 +110,36 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         id: "shake",
         icon: "🌀",
         label: "Lắc mức nào?",
+        group: "technique",
         answer: String(order.targetShake),
         choices: numericChoices(SHAKE_OPTIONS, order.targetShake),
       },
     ];
   }, [order]);
 
-  const answeredCount = questions.filter((question) => answers[question.id] !== undefined).length;
+  const activeQuestions = focusQuestionIds
+    ? questions.filter((question) => focusQuestionIds.includes(question.id))
+    : questions;
+  const answeredCount = activeQuestions.filter((question) => answers[question.id] !== undefined).length;
   const correctCount = submitted
-    ? questions.filter((question) => answers[question.id] === question.answer).length
+    ? activeQuestions.filter((question) => answers[question.id] === question.answer).length
     : 0;
-  const complete = answeredCount === questions.length;
-  const score = submitted ? Math.round((correctCount / questions.length) * 100) : 0;
+  const complete = answeredCount === activeQuestions.length;
+  const score = submitted && activeQuestions.length
+    ? Math.round((correctCount / activeQuestions.length) * 100)
+    : 0;
+  const incorrectIds = submitted
+    ? activeQuestions.filter((question) => answers[question.id] !== question.answer).map((question) => question.id)
+    : [];
+
+  const recipeQuestions = activeQuestions.filter((question) => question.group === "recipe");
+  const techniqueQuestions = activeQuestions.filter((question) => question.group === "technique");
+  const recipeCorrect = submitted
+    ? recipeQuestions.filter((question) => answers[question.id] === question.answer).length
+    : 0;
+  const techniqueCorrect = submitted
+    ? techniqueQuestions.filter((question) => answers[question.id] === question.answer).length
+    : 0;
 
   const result =
     score === 100
@@ -126,9 +153,11 @@ export function OrderRecallDrill({ order }: { order: Order }) {
     setAnswers((current) => ({ ...current, [questionId]: value }));
   };
 
-  const retry = () => {
+  const resetAttempt = (ids: string[] | null) => {
     setAnswers({});
     setSubmitted(false);
+    setFocusQuestionIds(ids);
+    setAttempt((value) => value + 1);
   };
 
   return (
@@ -137,22 +166,35 @@ export function OrderRecallDrill({ order }: { order: Order }) {
         <div>
           <span className="eyebrow">MEMORY DRILL · OPTIONAL</span>
           <h4>🧠 Nhớ được bao nhiêu chi tiết?</h4>
-          <p>Trả lời nhanh trước khi mở ticket lại. Kết quả này không ảnh hưởng điểm ly.</p>
+          <p>
+            {focusQuestionIds
+              ? "Đang luyện lại đúng những chi tiết vừa nhớ sai."
+              : "Trả lời nhanh trước khi mở ticket lại. Kết quả này không ảnh hưởng điểm ly."}
+          </p>
         </div>
-        <div className="recall-progress" aria-label={`Đã trả lời ${answeredCount} trên ${questions.length}`}>
-          <b>{answeredCount}/{questions.length}</b>
-          <small>đã nhớ</small>
+        <div className="recall-progress" aria-label={`Đã trả lời ${answeredCount} trên ${activeQuestions.length}`}>
+          <b>{answeredCount}/{activeQuestions.length}</b>
+          <small>lần {attempt}</small>
         </div>
       </div>
+
+      {focusQuestionIds && (
+        <div className="recall-focus-banner">
+          <span>🎯</span>
+          <p><b>Focus practice</b><small>{activeQuestions.length} chi tiết cần củng cố</small></p>
+          <button type="button" onClick={() => resetAttempt(null)}>Luyện full order</button>
+        </div>
+      )}
 
       {!submitted ? (
         <>
           <div className="recall-question-list">
-            {questions.map((question, questionIndex) => (
+            {activeQuestions.map((question, questionIndex) => (
               <fieldset className="recall-question" key={question.id}>
                 <legend>
                   <span>{question.icon}</span>
                   <b>{questionIndex + 1}. {question.label}</b>
+                  <i>{question.group === "recipe" ? "Công thức" : "Kỹ thuật"}</i>
                 </legend>
                 <div className="recall-choices">
                   {question.choices.map((choice) => {
@@ -180,19 +222,30 @@ export function OrderRecallDrill({ order }: { order: Order }) {
             disabled={!complete}
             onClick={() => setSubmitted(true)}
           >
-            {complete ? "Chấm trí nhớ ✨" : `Còn ${questions.length - answeredCount} câu chưa chọn`}
+            {complete ? "Chấm trí nhớ ✨" : `Còn ${activeQuestions.length - answeredCount} câu chưa chọn`}
           </button>
         </>
       ) : (
         <div className="recall-result" aria-live="polite">
-          <div className="recall-score-ring">
-            <strong>{score}%</strong>
-            <small>{correctCount}/{questions.length}</small>
+          <div className="recall-score-column">
+            <div className="recall-score-ring">
+              <strong>{score}%</strong>
+              <small>{correctCount}/{activeQuestions.length}</small>
+            </div>
+            <div className="recall-split-score">
+              {recipeQuestions.length > 0 && (
+                <span>🍹 {recipeCorrect}/{recipeQuestions.length}<small>công thức</small></span>
+              )}
+              {techniqueQuestions.length > 0 && (
+                <span>🪄 {techniqueCorrect}/{techniqueQuestions.length}<small>kỹ thuật</small></span>
+              )}
+            </div>
           </div>
+
           <div className="recall-result-copy">
             <h4>{result.emoji} {result.label}</h4>
             <div className="recall-review">
-              {questions.map((question) => {
+              {activeQuestions.map((question) => {
                 const correct = answers[question.id] === question.answer;
                 const selected = question.choices.find((choice) => choice.value === answers[question.id]);
                 const expected = question.choices.find((choice) => choice.value === question.answer);
@@ -207,7 +260,17 @@ export function OrderRecallDrill({ order }: { order: Order }) {
                 );
               })}
             </div>
-            <button type="button" className="recall-retry" onClick={retry}>Làm lại memory drill</button>
+
+            <div className="recall-result-actions">
+              {incorrectIds.length > 0 && (
+                <button type="button" className="recall-focus-retry" onClick={() => resetAttempt(incorrectIds)}>
+                  🎯 Luyện lại {incorrectIds.length} câu sai
+                </button>
+              )}
+              <button type="button" className="recall-retry" onClick={() => resetAttempt(null)}>
+                Làm lại full order
+              </button>
+            </div>
           </div>
         </div>
       )}
