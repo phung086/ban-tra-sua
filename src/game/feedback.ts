@@ -1,3 +1,5 @@
+import { getUiPreferences } from "./preferences";
+
 export type FeedbackKind = "tap" | "good" | "perfect" | "bad";
 
 const vibration: Record<FeedbackKind, number | number[]> = {
@@ -15,11 +17,17 @@ const tone: Record<FeedbackKind, { frequency: number; duration: number; gain: nu
 };
 
 export function pulseFeedback(kind: FeedbackKind) {
-  try {
-    if ("vibrate" in navigator) navigator.vibrate(vibration[kind]);
-  } catch {
-    // Haptics are an enhancement only.
+  const preferences = getUiPreferences();
+
+  if (preferences.haptics) {
+    try {
+      if ("vibrate" in navigator) navigator.vibrate(vibration[kind]);
+    } catch {
+      // Haptics are an enhancement only.
+    }
   }
+
+  if (!preferences.sound) return;
 
   try {
     const AudioCtor = window.AudioContext;
