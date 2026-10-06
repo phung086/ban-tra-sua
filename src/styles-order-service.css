@@ -790,3 +790,52 @@
     left: 6px;
   }
 }
+
+
+/* Per-order recall mastery */
+.recall-head-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.recall-mastery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.recall-mastery span {
+  display: grid;
+  place-items: center;
+  min-width: 62px;
+  padding: 5px 7px;
+  border: 1px solid #eadde7;
+  border-radius: 11px;
+  background: rgba(255,255,255,.8);
+  color: #73598b;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.recall-mastery b {
+  margin-inline: 2px;
+  font-size: 9px;
+}
+
+.recall-mastery small {
+  color: #a28da9;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 6px;
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .recall-head-stats {
+    flex-direction: column;
+  }
+
+  .recall-mastery span {
+    min-width: 0;
+  }
+}
