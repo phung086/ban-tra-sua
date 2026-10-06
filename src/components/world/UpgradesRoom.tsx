@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { DECORATIONS, RESEARCH, STAFF, UPGRADES } from "../../game/content";
 import {
   buyDecoration,
@@ -9,6 +10,7 @@ import {
   hireStaff,
   setActiveStaff,
   toggleDecoration,
+  reorderDecorations,
 } from "../../game/engine";
 import type {
   DecorationId,
@@ -59,7 +61,7 @@ export function UpgradesRoom({ game, onGame }: Props) {
               const cost = getUpgradeCost(game, upgrade.id);
               const maxed = level >= upgrade.maxLevel;
               return (
-                <article className="v6-machine" key={upgrade.id} style={{ "--machine-index": index } as React.CSSProperties}>
+                <article className="v6-machine" key={upgrade.id} style={{ "--machine-index": index } as CSSProperties}>
                   <div className="v6-machine-body">
                     <span>{upgrade.emoji}</span>
                     <i />
@@ -123,7 +125,7 @@ export function UpgradesRoom({ game, onGame }: Props) {
               ownedIds={game.ownedDecorations}
               equippedIds={game.equippedDecorations}
               onToggle={(id) => onGame(toggleDecoration(game, id))}
-              onReorder={(ids) => onGame({ ...game, equippedDecorations: ids })}
+              onReorder={(ids) => onGame(reorderDecorations(game, ids))}
             />
             <div className="v6-decor-shelf">
               {DECORATIONS.map((decoration) => {
@@ -160,7 +162,7 @@ export function UpgradesRoom({ game, onGame }: Props) {
               const done = game.researchedIds.includes(research.id);
               const missing = research.prerequisiteIds.filter((id) => !game.researchedIds.includes(id));
               return (
-                <article className={`v6-blueprint ${done ? "done" : ""}`} key={research.id} style={{ "--blueprint-index": index } as React.CSSProperties}>
+                <article className={`v6-blueprint ${done ? "done" : ""}`} key={research.id} style={{ "--blueprint-index": index } as CSSProperties}>
                   <span>{research.emoji}</span>
                   <small>{research.category}</small>
                   <h3>{research.name}</h3>
