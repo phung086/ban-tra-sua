@@ -11,6 +11,7 @@ import "./styles-v5-art-direction.css";
 import "./styles-v6-theater.css";
 import "./styles-v6-world.css";
 import "./styles-v7-system.css";
+import "./styles-v8-pastel.css";
 
 syncMotionPreference();
 

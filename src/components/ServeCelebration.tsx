@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { getCustomer } from "../game/engine";
+import { ChibiCustomer } from "./ChibiCustomer";
 
 interface Props {
   served: number;
   score: number | null;
   combo: number;
+  customerId?: string;
 }
 
 function getMood(score: number) {
@@ -14,22 +17,22 @@ function getMood(score: number) {
   return { emoji: "📝", title: "Rút kinh nghiệm", className: "retry" };
 }
 
-export function ServeCelebration({ served, score, combo }: Props) {
+export function ServeCelebration({ served, score, combo, customerId }: Props) {
   const previousServed = useRef(served);
   const [visible, setVisible] = useState(false);
-  const [snapshot, setSnapshot] = useState<{ score: number; combo: number } | null>(null);
+  const [snapshot, setSnapshot] = useState<{ score: number; combo: number; customerId?: string } | null>(null);
 
   useEffect(() => {
     if (served === previousServed.current) return;
     previousServed.current = served;
     if (score === null) return;
 
-    setSnapshot({ score, combo });
+    setSnapshot({ score, combo, customerId });
     setVisible(true);
 
-    const timer = window.setTimeout(() => setVisible(false), 1550);
+    const timer = window.setTimeout(() => setVisible(false), 2400);
     return () => window.clearTimeout(timer);
-  }, [served, score, combo]);
+  }, [served, score, combo, customerId]);
 
   if (!visible || !snapshot) return null;
   const mood = getMood(snapshot.score);
@@ -39,9 +42,9 @@ export function ServeCelebration({ served, score, combo }: Props) {
       <div className="celebration-burst" aria-hidden="true">
         <i>✦</i><i>♡</i><i>✦</i><i>•</i><i>♡</i><i>✦</i>
       </div>
-      <span className="celebration-emoji">{mood.emoji}</span>
+      {snapshot.customerId ? <ChibiCustomer customer={getCustomer(snapshot.customerId)} mood={snapshot.score >= 80 ? "delighted" : "neutral"} celebrating={snapshot.score >= 80} /> : <span className="celebration-emoji">{mood.emoji}</span>}
       <div>
-        <small>LY VỪA GIAO</small>
+        <small>{snapshot.customerId ? `${getCustomer(snapshot.customerId).name} đã nhận ly` : "Ly vừa giao"}</small>
         <b>{mood.title}</b>
         <strong>{snapshot.score}/100</strong>
         {snapshot.combo > 1 && <em>COMBO x{snapshot.combo}</em>}

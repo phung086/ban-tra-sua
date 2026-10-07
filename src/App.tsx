@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { CafeAtmosphere, CafeSceneChrome } from "./components/CafeAtmosphere";
-import { ChibiCustomer } from "./components/ChibiCustomer";
+import { CafeAtmosphere } from "./components/CafeAtmosphere";
 import { CraftWorkbench } from "./components/CraftWorkbench";
-import { CustomerQueueStatus } from "./components/CustomerQueueStatus";
+import { CustomerScene } from "./components/CustomerScene";
 import { OrderExperience } from "./components/OrderExperience";
 import { GameSettings } from "./components/GameSettings";
 import { PerformancePulse } from "./components/PerformancePulse";
@@ -14,7 +13,6 @@ import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
 import { WorldChrome } from "./components/world/WorldChrome";
-import { DECORATIONS } from "./game/content";
 import {
   createInitialState,
   formatMoney,
@@ -66,7 +64,7 @@ function App() {
       <CafeAtmosphere phase={game.phase} season={season.id} />
       <PlayCoach />
       <GameSettings />
-      <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} />
+      <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} customerId={game.lastService?.customerId} />
 
       <WorldChrome
         screen={screen}
@@ -163,28 +161,7 @@ function ShopScreen({ game, onGame, customer, onNavigate, station, onStation }: 
   return (
     <section className="game-layout v6-craft-theater v6-game-layout">
       <div className="play-column v6-customer-stage">
-        <div className="shop-scene live-scene v6-live-scene">
-          <div className="scene-sky">
-            <span className="scene-cloud c1" />
-            <span className="scene-cloud c2" />
-            <span className="hanging-lamp">{game.event.emoji}</span>
-          </div>
-          <CafeSceneChrome />
-          <SceneDecor game={game} compact />
-          <div className="awning mini"><span /><span /><span /><span /><span /></div>
-          <div className="customer-zone">
-            <div className="speech-bubble">
-              <small>{customer.name} · {customer.archetype}</small>
-              <p>{customer.greeting}</p>
-            </div>
-            <ChibiCustomer customer={customer} talking />
-          </div>
-          <div className="counter-edge">
-            <span>🌷</span><b>{game.combo > 1 ? `COMBO x${game.combo}` : "made with love"}</b><span>🌷</span>
-          </div>
-        </div>
-
-        <CustomerQueueStatus game={game} />
+        <CustomerScene game={game} />
 
         <div className="progress-card">
           <div className="progress-row">
@@ -233,21 +210,6 @@ function ReviewsScreen({
 
 function GoalsScreen({ game, onGame }: { game: GameState; onGame: (state: GameState) => void }) {
   return <GoalsRoom game={game} onGame={onGame} />;
-}
-
-function SceneDecor({ game, compact = false }: { game: GameState; compact?: boolean }) {
-  const visible = DECORATIONS.filter((item) => game.equippedDecorations.includes(item.id));
-  if (visible.length === 0) return null;
-
-  return (
-    <div className={`scene-decor ${compact ? "compact" : ""}`} aria-label="Trang trí đang trưng">
-      {visible.map((item, index) => (
-        <span className={`decor-slot decor-slot-${index + 1}`} title={item.name} key={item.id}>
-          {item.emoji}
-        </span>
-      ))}
-    </div>
-  );
 }
 
 export default App;

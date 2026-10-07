@@ -1,7 +1,8 @@
 import { DRINKS, RESTOCK_ITEMS, STAFF } from "../../game/content";
-import { startDay } from "../../game/engine";
+import { getCustomer, startDay } from "../../game/engine";
 import type { GameState, Screen } from "../../game/types";
 import { RoomBackdrop } from "./RoomBackdrop";
+import { ChibiCustomer } from "../ChibiCustomer";
 
 interface Props {
   game: GameState;
@@ -25,12 +26,6 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
           <small>CHUẨN BỊ CA · NGÀY {game.day}</small>
           <h2>{game.event.emoji} {game.event.name}</h2>
           <p>{game.event.description}</p>
-        </div>
-
-        <div className="v6-prep-window-notes" aria-hidden="true">
-          <span>fresh tea</span>
-          <span>made daily</span>
-          <span>♡</span>
         </div>
 
         <div className="v6-prep-clipboard">
@@ -65,12 +60,15 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
           </button>
         )}
 
-        <button className="v6-open-sign" onClick={() => onGame(startDay(game))}>
+        <div className="prep-greeting">
+          <div aria-hidden="true"><ChibiCustomer customer={getCustomer("miu")} mood="delighted" /></div>
+          <button className="v6-open-sign" onClick={() => onGame(startDay(game))}>
           <span className="v6-open-rope" />
           <small>SẴN SÀNG RỒI?</small>
           <b>MỞ TIỆM</b>
           <em>{game.targetOrders} đơn trong ca hôm nay</em>
-        </button>
+          </button>
+        </div>
 
         <div className="v6-prep-cat" aria-hidden="true">🐾</div>
       </RoomBackdrop>

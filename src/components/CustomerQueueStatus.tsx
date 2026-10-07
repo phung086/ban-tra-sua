@@ -1,15 +1,8 @@
-import { useEffect, useState } from "react";
 import { getCustomerMoodMeta, getCustomerServiceFeedback } from "../game/customerAi";
 import { getCustomer } from "../game/engine";
 import type { GameState } from "../game/types";
 
-export function CustomerQueueStatus({ game }: { game: GameState }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    setNow(Date.now());
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [game.currentOrder?.id]);
+export function CustomerQueueStatus({ game, now }: { game: GameState; now: number }) {
   if (!game.currentOrder || game.currentOrderQueuedAt === null) return null;
   const customer = getCustomer(game.currentOrder.customerId);
   const feedback = getCustomerServiceFeedback(game, customer, game.currentOrderQueuedAt, now);

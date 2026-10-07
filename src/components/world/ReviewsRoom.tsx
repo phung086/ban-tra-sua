@@ -1,6 +1,7 @@
-import { formatMoney, getRelationshipTier, replyToReview } from "../../game/engine";
+import { formatMoney, getCustomer, getRelationshipTier, replyToReview } from "../../game/engine";
 import type { GameState, ReplyStyle } from "../../game/types";
 import { RoomBackdrop } from "./RoomBackdrop";
+import { ChibiPortrait } from "../ChibiCustomer";
 
 interface Props {
   game: GameState;
@@ -61,7 +62,7 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
             ) : (
               game.reviews.map((review) => (
                 <article className="v6-social-post" key={review.id}>
-                  <div className="v6-post-avatar">{review.customerName.slice(0, 1)}</div>
+                  <div className="v6-post-avatar"><ChibiPortrait customer={getCustomer(review.customerId)} /></div>
                   <div>
                     <header><b>{review.customerName}</b><small>ngày {review.day}</small></header>
                     <span className="v6-post-stars">{stars(review.stars)} · {review.score}/100</span>
