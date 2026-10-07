@@ -1,17 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import "@fontsource/be-vietnam-pro/400.css";
+import "@fontsource/be-vietnam-pro/600.css";
+import "./styles-street.css";
 import { syncMotionPreference } from "./game/preferences";
-import "./styles.css";
-import "./styles-v2.css";
-import "./styles-v3.css";
-import "./styles-v4-sol.css";
-import "./styles-v5-layout.css";
-import "./styles-v5-art-direction.css";
-import "./styles-v6-theater.css";
-import "./styles-v6-world.css";
-import "./styles-v7-system.css";
-import "./styles-v8-pastel.css";
 
 syncMotionPreference();
 

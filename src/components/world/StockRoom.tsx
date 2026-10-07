@@ -11,10 +11,16 @@ interface Props {
 }
 
 export function StockRoom({ game, onGame }: Props) {
-  const availableItems = RESTOCK_ITEMS.filter((item) => item.unlockLevel <= game.level);
-  const [selectedKey, setSelectedKey] = useState(availableItems[0]?.key ?? null);
+  const availableItems = RESTOCK_ITEMS.filter(
+    (item) => item.unlockLevel <= game.level,
+  );
+  const [selectedKey, setSelectedKey] = useState(
+    availableItems[0]?.key ?? null,
+  );
   const selected = useMemo(
-    () => availableItems.find((item) => item.key === selectedKey) ?? availableItems[0],
+    () =>
+      availableItems.find((item) => item.key === selectedKey) ??
+      availableItems[0],
     [availableItems, selectedKey],
   );
   const lockedCount = RESTOCK_ITEMS.length - availableItems.length;
@@ -25,7 +31,7 @@ export function StockRoom({ game, onGame }: Props) {
         <div className="v6-room-title">
           <small>PANTRY · FRESHNESS · WASTE</small>
           <h2>Kho sau quầy</h2>
-          <p>Chạm trực tiếp vào hũ hoặc khay trên kệ để nhập hàng.</p>
+          <p>Chọn nguyên liệu bên dưới để xem độ tươi và nhập thêm.</p>
         </div>
 
         <div className="v6-pantry-magnets">
@@ -50,42 +56,61 @@ export function StockRoom({ game, onGame }: Props) {
                 <strong>{item.emoji}</strong>
                 <b>{item.label}</b>
                 <small>{game.inventory[item.key]}</small>
-                {item.perishable && <i style={{ height: `${Math.max(8, freshness)}%` }} />}
+                {item.perishable && (
+                  <i style={{ height: `${Math.max(8, freshness)}%` }} />
+                )}
                 {low && <em>!</em>}
               </button>
             );
           })}
         </div>
 
-        {selected && (() => {
-          const price = getRestockPrice(game, selected.key);
-          const freshness = game.freshness[selected.key] ?? 100;
-          const low = game.inventory[selected.key] <= 3;
-          return (
-            <aside className="v6-pantry-drawer">
-              <div className="v6-drawer-tab">STOCK CARD</div>
-              <div className="v6-stock-hero">{selected.emoji}</div>
-              <div>
-                <small>{low ? "SẮP HẾT" : selected.perishable ? "HÀNG TƯƠI" : "HÀNG KHÔ"}</small>
-                <h3>{selected.label}</h3>
-                <p>Còn <b>{game.inventory[selected.key]}</b> · nhập thêm <b>{selected.amount}</b></p>
-              </div>
-              {selected.perishable && (
-                <div className="v6-freshness-meter">
-                  <span>Freshness</span>
-                  <div><i style={{ width: `${freshness}%` }} /></div>
-                  <b>{freshness}%</b>
+        {selected &&
+          (() => {
+            const price = getRestockPrice(game, selected.key);
+            const freshness = game.freshness[selected.key] ?? 100;
+            const low = game.inventory[selected.key] <= 3;
+            return (
+              <aside className="v6-pantry-drawer">
+                <div className="v6-drawer-tab">STOCK CARD</div>
+                <div className="v6-stock-hero">{selected.emoji}</div>
+                <div>
+                  <small>
+                    {low
+                      ? "SẮP HẾT"
+                      : selected.perishable
+                        ? "HÀNG TƯƠI"
+                        : "HÀNG KHÔ"}
+                  </small>
+                  <h3>{selected.label}</h3>
+                  <p>
+                    Còn <b>{game.inventory[selected.key]}</b> · nhập thêm{" "}
+                    <b>{selected.amount}</b>
+                  </p>
                 </div>
-              )}
-              <button disabled={game.cash < price} onClick={() => onGame(restock(game, selected.key))}>
-                <span>🪙</span>
-                <b>Nhập +{selected.amount}</b>
-                <strong>{formatMoney(price)}</strong>
-              </button>
-              <small className="v6-drawer-tip">Kiki giảm 10% giá nhập · tủ mát giữ freshness lâu hơn.</small>
-            </aside>
-          );
-        })()}
+                {selected.perishable && (
+                  <div className="v6-freshness-meter">
+                    <span>Freshness</span>
+                    <div>
+                      <i style={{ width: `${freshness}%` }} />
+                    </div>
+                    <b>{freshness}%</b>
+                  </div>
+                )}
+                <button
+                  disabled={game.cash < price}
+                  onClick={() => onGame(restock(game, selected.key))}
+                >
+                  <span>🪙</span>
+                  <b>Nhập +{selected.amount}</b>
+                  <strong>{formatMoney(price)}</strong>
+                </button>
+                <small className="v6-drawer-tip">
+                  Kiki giảm 10% giá nhập · tủ mát giữ freshness lâu hơn.
+                </small>
+              </aside>
+            );
+          })()}
 
         <div className="v6-pantry-cash">
           <small>TIỀN QUỸ</small>

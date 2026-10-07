@@ -1,8 +1,8 @@
 import { DRINKS, RESTOCK_ITEMS, STAFF } from "../../game/content";
-import { getCustomer, startDay } from "../../game/engine";
+import { startDay } from "../../game/engine";
 import type { GameState, Screen } from "../../game/types";
 import { RoomBackdrop } from "./RoomBackdrop";
-import { ChibiCustomer } from "../ChibiCustomer";
+
 
 interface Props {
   game: GameState;
@@ -61,7 +61,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
         )}
 
         <div className="prep-greeting">
-          <div aria-hidden="true"><ChibiCustomer customer={getCustomer("miu")} mood="delighted" /></div>
+
           <button className="v6-open-sign" onClick={() => onGame(startDay(game))}>
           <span className="v6-open-rope" />
           <small>SẴN SÀNG RỒI?</small>
@@ -70,7 +70,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
           </button>
         </div>
 
-        <div className="v6-prep-cat" aria-hidden="true">🐾</div>
+
       </RoomBackdrop>
     </section>
   );

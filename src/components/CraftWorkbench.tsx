@@ -33,7 +33,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
         </div>
 
         <nav className="craft-stations" aria-label="Các bước pha chế">
-          {["Lắp ly", "Đường & đá", "Rót & lắc", "Giao khách"].map((label, index) => (
+          {["Lắp ly", "Đường & đá", "Rót & lắc", "Bê ly"].map((label, index) => (
             <button key={label} type="button" aria-current={station === index ? "step" : undefined}
               onClick={() => setStation(index)} aria-controls="craft-station">
               <span>{index + 1}</span><b>{label}</b>
@@ -125,7 +125,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
                   target={order.targetFill}
                   tolerance={5 + game.upgrades.brewer}
                   speed={62 - Math.min(15, game.upgrades.brewer * 3)}
-                  helper="Bấm bắt đầu, canh kim vào vùng hồng rồi CHỐT."
+                  helper="Bấm bắt đầu, canh kim vào vùng chuẩn rồi CHỐT."
                   onCommit={(value) => onGame(updateDraft(game, { fill: value, sealed: false }))}
                 />
                 <CraftGauge
@@ -161,7 +161,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
                 {game.draft.sealed ? "Nắp đã chuẩn" : "Dập nắp ly"}
               </button>
               <button className="primary-button serve-button" onClick={serveDrink}>
-                <span>💗</span> Giao cho {customerName}
+                <span>💗</span> Bê ly cho {customerName}
               </button>
             </div>
             </section>)}

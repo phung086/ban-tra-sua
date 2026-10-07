@@ -1,6 +1,6 @@
 # 🧋 Tiệm Trà Chibi
 
-Game web/PWA quản lý tiệm trà sữa phong cách **chibi + tone hồng**, xây theo hướng data-driven và có thể mở rộng thành game vận hành tiệm dài hạn.
+Game web/PWA quản lý tiệm trà sữa **3D, tone hồng pastel, bối cảnh phố Việt Nam**, xây theo hướng data-driven. Tên Chibi được giữ trong tên dự án; nhân vật hiện tại là những người hàng xóm đa dạng, có chuyển động.
 
 ## Gameplay loop hiện tại
 
@@ -13,7 +13,7 @@ Chuẩn bị ngày mới
 → chọn món / size / topping / đường / đá
 → mini-game timing rót + lắc
 → dập nắp
-→ giao khách
+→ bê ly → đi đến quầy hoặc bàn được chỉ định → giao khách
 → score / combo / tip / XP / RP / fan / viral / bond
 → review
 → rep review theo phong cách
@@ -50,8 +50,7 @@ Chuẩn bị ngày mới
 
 ## Chạy local
 
-UI v7 đã tích hợp các nhánh quầy pha, world rooms và customer AI. Quầy có bốn trạm
-và giữ ly đang pha khi ghé kho. Chi tiết: [UI/UX hệ thống v7](docs/ui-ux-system-v7.md).
+Tiệm 3D giữ bốn trạm pha thủ công và ly đang pha khi ghé kho. Dùng WASD/phím mũi tên hoặc nút đi bộ, kéo để nhìn; chọn địa điểm để tự đi vòng quầy. “Nhìn toàn tiệm” mở góc nhìn trên cao, có thể kéo để xoay và chạm sàn để đi. Dập nắp và bê ly, rồi đến gần đúng khách để giao. Chi tiết bản hiện tại: [Tiệm 3D hồng pastel](docs/street-shop-3d.md).
 
 ```bash
 npm ci
@@ -88,9 +87,8 @@ src/
 │   └── types.ts        # domain model
 ├── App.tsx             # orchestration + screens
 ├── main.tsx
-├── styles.css
-├── styles-v2.css
-└── styles-v3.css
+├── scene/              # world, models, visitors, rendering and static batches
+└── styles-street.css   # active unified pink visual system
 ```
 
 ## Nguyên tắc phát triển

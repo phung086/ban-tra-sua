@@ -1,3 +1,4 @@
+import { GameIcon } from "../GameIcon";
 import type { Screen } from "../../game/types";
 
 interface Props {
@@ -15,11 +16,11 @@ interface Props {
 }
 
 const navItems: Array<{ id: Screen; icon: string; label: string; room: string }> = [
-  { id: "shop", icon: "🧋", label: "Quầy", room: "Pha chế" },
-  { id: "stock", icon: "🧺", label: "Kho", room: "Nguyên liệu" },
-  { id: "upgrades", icon: "🛠️", label: "Xưởng", room: "Nâng cấp" },
-  { id: "reviews", icon: "📱", label: "Đánh giá", room: "Khách nói" },
-  { id: "goals", icon: "📌", label: "Bảng tin", room: "Mục tiêu" },
+  { id: "shop", icon: "cup", label: "Quầy", room: "Pha chế" },
+  { id: "stock", icon: "box", label: "Kho", room: "Nguyên liệu" },
+  { id: "upgrades", icon: "tool", label: "Xưởng", room: "Nâng cấp" },
+  { id: "reviews", icon: "chat", label: "Đánh giá", room: "Khách nói" },
+  { id: "goals", icon: "board", label: "Bảng tin", room: "Mục tiêu" },
 ];
 
 export function WorldChrome({
@@ -40,13 +41,13 @@ export function WorldChrome({
       <a className="skip-to-game" href="#game-content">Đến nội dung game</a>
       <header className="v6-hud">
         <div className="v6-brand">
-          <span>🧋</span>
-          <div><small>TIỆM TRÀ</small><b>Chibi</b></div>
+          <GameIcon />
+          <div><small>TIỆM TRÀ CHIBI</small><b>Phố nhỏ</b></div>
         </div>
         <div className="v6-hud-cluster">
-          <span aria-label={`Tiền quỹ ${cash}`}><i>🪙</i><b>{cash}</b></span>
-          <span aria-label={`Uy tín ${reputation}`}><i>💗</i><b>{reputation}</b></span>
-          <span aria-label={`Cấp độ ${level}`}><i>✨</i><b>Lv.{level}</b></span>
+          <span aria-label={`Tiền quỹ ${cash}`}><GameIcon name="coin" /><b>{cash}</b></span>
+          <span aria-label={`Uy tín ${reputation}`}><GameIcon name="person" /><b>{reputation}</b></span>
+          <span aria-label={`Cấp độ ${level}`}><GameIcon name="star" /><b>Lv.{level}</b></span>
           <span><i>{seasonEmoji}</i><b>Ngày {day}</b></span>
         </div>
       </header>
@@ -63,7 +64,7 @@ export function WorldChrome({
               aria-pressed={screen === item.id}
               aria-current={screen === item.id ? "page" : undefined}
             >
-              <span>{item.icon}</span>
+              <GameIcon name={item.icon} />
               <b>{item.label}</b>
               <small>{item.room}</small>
               {badge > 0 && <i className="v6-nav-badge" aria-label={`${badge} mục đang chờ`}>{badge > 9 ? "9+" : badge}</i>}
@@ -73,7 +74,7 @@ export function WorldChrome({
       </nav>
 
       <div className="v6-toast" role="status">
-        <span>{score !== null ? "✨" : "🌷"}</span>
+        <GameIcon name="leaf" />
         <p>{notice}</p>
         {score !== null && <b>{score}/100</b>}
       </div>

@@ -1,3 +1,4 @@
+import { GameIcon } from "./GameIcon";
 import { useState } from "react";
 import { getUiPreferences, updateUiPreferences } from "../game/preferences";
 
@@ -13,7 +14,7 @@ export function GameSettings() {
     <div className={`game-settings ${open ? "open" : ""}`}>
       <button className="settings-trigger" aria-label="Cài đặt game" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
         onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
-        ⚙️
+        <GameIcon name="settings" />
       </button>
       {open && (
         <div className="settings-popover" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>

@@ -1,23 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#ff9dc3"/>
-      <stop offset="1" stop-color="#f05294"/>
-    </linearGradient>
-    <linearGradient id="tea" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#d9aa7f"/>
-      <stop offset="1" stop-color="#b87851"/>
-    </linearGradient>
-  </defs>
-  <rect width="128" height="128" rx="34" fill="url(#bg)"/>
-  <path d="M42 31h44l-7 68H49z" fill="#fff" opacity=".95"/>
-  <path d="M47 51h34l-5 43H52z" fill="url(#tea)"/>
-  <path d="M38 30h52v11H38z" rx="5.5" fill="#ffe4ef"/>
-  <path d="M74 7l8 3-18 50-8-3z" rx="4" fill="#fff"/>
-  <circle cx="58" cy="82" r="5" fill="#482a30"/>
-  <circle cx="69" cy="85" r="5" fill="#482a30"/>
-  <circle cx="63" cy="72" r="5" fill="#482a30"/>
-  <path d="M56 61c4-6 12-6 16 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-  <path d="M62 67c3 4 6 4 9 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  <path d="M20 28l4 8 8 4-8 4-4 8-4-8-8-4 8-4zM103 71l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="#fff3b5"/>
+  <rect width="128" height="128" rx="27" fill="#a04773"/>
+  <path d="M42 35h44l-7 65H49z" fill="#f8deeb"/>
+  <path d="M47 55h34l-5 40H52z" fill="#b79162"/>
+  <path d="M38 34h52v9H38zM72 16l7 3-14 39-7-3z" fill="#fff6e3"/>
+  <g fill="#4f4030"><circle cx="57" cy="84" r="4"/><circle cx="70" cy="86" r="4"/><circle cx="64" cy="76" r="4"/></g>
+  <path d="M55 62h18v8H55z" fill="#a04773"/>
 </svg>
