@@ -132,4 +132,3 @@ export function RoomBackdrop({ kind, children }: Props) {
     </div>
   );
 }
-
