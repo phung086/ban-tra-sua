@@ -2,11 +2,12 @@ import { useState } from "react";
 import { getUiPreferences, updateUiPreferences } from "../game/preferences";
 
 const STEPS = [
+  { emoji: "↗", title: "Đứng quầy, đi quanh tiệm", text: "Dùng WASD, phím mũi tên hoặc nút đi bộ để di chuyển. Kéo khung tiệm để nhìn quanh; các nút địa điểm giúp đi đến quầy hoặc bàn." },
   { emoji: "📌", title: "Đọc order", text: "Nhìn kỹ món, size, topping, đường, đá và hai mốc kỹ thuật trước khi pha." },
   { emoji: "🧋", title: "Lắp ly", text: "Chọn đúng nền trà, size và kéo topping vào ly hoặc chạm để chọn." },
   { emoji: "🍬", title: "Định lượng", text: "Giữ nút đường/đá rồi nhả gần đúng mốc order. Có thể reset và làm lại." },
   { emoji: "🪄", title: "Kỹ thuật", text: "Canh timing rót và lắc. Máy nâng cấp sẽ làm vùng thao tác dễ kiểm soát hơn." },
-  { emoji: "🎀", title: "Hoàn thiện", text: "Kiểm checklist, dập nắp rồi giao khách. Combo tốt giúp economy tăng nhanh." },
+  { emoji: "🎀", title: "Hoàn thiện", text: "Kiểm tra ly, dập nắp rồi bê ly. Đi đến bàn của khách hoặc quầy mang đi để giao." },
 ];
 
 export function PlayCoach() {

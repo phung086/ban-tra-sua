@@ -1,5 +1,5 @@
-const CACHE = "tiem-tra-chibi-shell-v8";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./assets/chibi-guests-v8.png"];
+const CACHE = "tiem-tra-chibi-shell-v9";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

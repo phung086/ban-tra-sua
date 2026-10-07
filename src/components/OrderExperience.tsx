@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DRINKS, TOPPINGS } from "../game/content";
 import type { DrinkDraft, Order } from "../game/types";
 import { OrderRecallDrill } from "./OrderRecallDrill";
-import "../styles-order-service.css";
+
 
 interface OrderExperienceProps {
   order: Order;

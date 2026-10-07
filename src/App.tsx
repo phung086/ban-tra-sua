@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { CafeAtmosphere } from "./components/CafeAtmosphere";
 import { CraftWorkbench } from "./components/CraftWorkbench";
 import { CustomerScene } from "./components/CustomerScene";
 import { OrderExperience } from "./components/OrderExperience";
 import { GameSettings } from "./components/GameSettings";
-import { PerformancePulse } from "./components/PerformancePulse";
 import { PlayCoach } from "./components/PlayCoach";
 import { ServeCelebration } from "./components/ServeCelebration";
+import { StreetWorld } from "./components/StreetWorld";
 import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
@@ -18,8 +17,13 @@ import {
   formatMoney,
   getCustomer,
   nextDay,
-  serveCurrentDrink,
 } from "./game/engine";
+import {
+  deliverDrink,
+  deliveryFor,
+  PLACES,
+  type Position,
+} from "./game/service";
 import { feedbackForScore } from "./game/feedback";
 import { recordCraftPerformance } from "./game/performance";
 import { getSeasonForDay } from "./game/season";
@@ -30,42 +34,62 @@ function App() {
   const [game, setGame] = useState<GameState>(() => loadGame());
   const [screen, setScreen] = useState<Screen>("shop");
   const [station, setStation] = useState(0);
+  const [carrying, setCarrying] = useState(false);
+  const [position, setPosition] = useState<Position>({ x: 0, z: 3.15 });
   const season = getSeasonForDay(game.day);
-
   useEffect(() => {
     saveGame(game);
   }, [game]);
-
-  useEffect(() => { window.scrollTo(0, 0); }, [screen]);
   useEffect(() => {
     setStation(0);
-    window.scrollTo(0, 0);
+    setCarrying(false);
   }, [game.currentOrder?.id]);
-
   const order = game.currentOrder;
   const customer = useMemo(
-    () => (order ? getCustomer(order.customerId) : getCustomer("miu")),
-    [order],
+    () => getCustomer(order?.customerId ?? "miu"),
+    [order?.customerId],
   );
-  const claimable = game.quests.filter((quest) => !quest.claimed && quest.progress >= quest.target).length;
-  const unreplied = game.reviews.filter((review) => !review.replyStyle).length;
-
-  const resetProgress = () => {
-    if (!window.confirm("Xóa toàn bộ tiến trình và mở lại tiệm từ ngày 1?")) return;
+  const claimable = game.quests.filter(
+    (q) => !q.claimed && q.progress >= q.target,
+  ).length;
+  const unreplied = game.reviews.filter((r) => !r.replyStyle).length;
+  const atCounter =
+    Math.hypot(position.x, position.z - PLACES.counter.z) <= 1.45;
+  const deliver = () => {
+    if (!order) return;
+    const next = deliverDrink(game, carrying, position, order.id);
+    if (next.served > game.served && next.lastScore !== null) {
+      setCarrying(false);
+      feedbackForScore(next.lastScore);
+      recordCraftPerformance(next.lastScore, next.combo);
+    }
+    setGame(next);
+  };
+  const pickUp = () => {
+    if (!game.draft.sealed) {
+      setGame({ ...game, notice: "Dập nắp ly trước khi mang ra khách." });
+      return;
+    }
+    if (atCounter) setCarrying(true);
+  };
+  const reset = () => {
+    if (!window.confirm("Xóa toàn bộ tiến trình và mở lại tiệm từ ngày 1?"))
+      return;
     clearSave();
     setGame(createInitialState());
     setScreen("shop");
+    setCarrying(false);
   };
-
   return (
-    <main className={`app-shell v2-shell v6-theater-shell season-${season.id}`}>
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
-      <CafeAtmosphere phase={game.phase} season={season.id} />
+    <main className={`app-shell season-${season.id}`}>
       <PlayCoach />
       <GameSettings />
-      <ServeCelebration served={game.served} score={game.lastScore} combo={game.combo} customerId={game.lastService?.customerId} />
-
+      <ServeCelebration
+        served={game.served}
+        score={game.lastScore}
+        combo={game.combo}
+        customerId={game.lastService?.customerId}
+      />
       <WorldChrome
         screen={screen}
         cash={formatMoney(game.cash)}
@@ -79,137 +103,129 @@ function App() {
         goalBadge={claimable}
         onNavigate={setScreen}
       />
-
-      <section id="game-content" tabIndex={-1} className={`content v6-world-content v6-screen-${screen}`}>
-        {game.phase === "open" && screen !== "shop" && (
-          <button className="return-to-counter" onClick={() => setScreen("shop")}>
-            ← Về quầy · {customer.name} đang chờ ly thứ {game.served + 1}
-          </button>
-        )}
-        {screen === "shop" && (
-          <ShopScreen game={game} onGame={setGame} customer={customer} onNavigate={setScreen} station={station} onStation={setStation} />
-        )}
-        {screen === "stock" && <StockScreen game={game} onGame={setGame} />}
-        {screen === "upgrades" && <UpgradesScreen game={game} onGame={setGame} />}
-        {screen === "reviews" && <ReviewsScreen game={game} onGame={setGame} onReset={resetProgress} />}
-        {screen === "goals" && <GoalsScreen game={game} onGame={setGame} />}
-      </section>
-
+      <div className="street-layout">
+        <StreetWorld
+          game={game}
+          screen={screen}
+          station={station}
+          carrying={carrying}
+          position={position}
+          onPosition={setPosition}
+          onDeliver={deliver}
+        />
+        <section
+          id="game-content"
+          tabIndex={-1}
+          className={`content screen-${screen}`}
+        >
+          {game.phase === "open" && screen !== "shop" && (
+            <button
+              className="return-to-counter"
+              onClick={() => setScreen("shop")}
+            >
+              ← Về phục vụ · {customer.name} đang chờ
+            </button>
+          )}
+          {screen === "shop" && game.phase === "prep" && (
+            <PrepWorld game={game} onGame={setGame} onNavigate={setScreen} />
+          )}
+          {screen === "shop" && game.phase === "summary" && game.summary && (
+            <div className="panel summary-card">
+              <span className="eyebrow">HẾT CA · NGÀY {game.day}</span>
+              <h2>Cảm ơn một ngày bận rộn.</h2>
+              <p>
+                {game.summary.eventName} · điểm trung bình{" "}
+                {game.summary.averageScore}/100
+              </p>
+              <div className="summary-grid">
+                {[
+                  ["Đơn hoàn tất", game.summary.orders],
+                  ["Ly perfect", game.summary.perfectOrders],
+                  ["Doanh thu", formatMoney(game.summary.revenue)],
+                  ["Lợi nhuận", formatMoney(game.summary.profit)],
+                  ["Fan tăng", `+${game.summary.fansGained}`],
+                  ["Nghiên cứu", `+${game.summary.researchGained} RP`],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <small>{label}</small>
+                    <b>{value}</b>
+                  </div>
+                ))}
+              </div>
+              {claimable > 0 && (
+                <button onClick={() => setScreen("goals")}>
+                  Nhận thưởng {claimable} mục tiêu đã xong →
+                </button>
+              )}
+              <button
+                className="primary-button"
+                onClick={() => setGame(nextDay(game))}
+              >
+                Chuẩn bị ngày {game.day + 1} →
+              </button>
+            </div>
+          )}
+          {screen === "shop" && game.phase === "open" && order && (
+            <>
+              <CustomerScene game={game} />
+              <OrderExperience
+                key={order.id}
+                order={order}
+                draft={game.draft}
+                customerName={customer.name}
+                orderNumber={game.served + 1}
+                priceText={formatMoney(order.price)}
+              />
+              {carrying ? (
+                <section className="panel carry-card">
+                  <span className="eyebrow">ĐANG BÊ LY</span>
+                  <h2>
+                    Mang đến {PLACES[deliveryFor(order)].label.toLowerCase()}
+                  </h2>
+                  <p>
+                    Chọn địa điểm trong tiệm hoặc tự đi bằng phím / nút mũi tên.
+                    Đến gần đúng khách, nút giao ly sẽ mở.
+                  </p>
+                  <button
+                    disabled={!atCounter}
+                    onClick={() => setCarrying(false)}
+                  >
+                    Đặt ly lại quầy để chỉnh
+                  </button>
+                </section>
+              ) : (
+                <>
+                  {!atCounter && (
+                    <p className="counter-reminder" role="status">
+                      Bạn đang rời quầy. Chọn “Quầy pha chế” để tiếp tục pha.
+                    </p>
+                  )}
+                  <fieldset disabled={!atCounter} className="craft-fieldset">
+                    <CraftWorkbench
+                      key={order.id}
+                      game={game}
+                      customerName={customer.name}
+                      onGame={setGame}
+                      onServe={pickUp}
+                      station={station}
+                      onStation={setStation}
+                    />
+                  </fieldset>
+                </>
+              )}
+            </>
+          )}
+          {screen === "stock" && <StockRoom game={game} onGame={setGame} />}
+          {screen === "upgrades" && (
+            <UpgradesRoom game={game} onGame={setGame} />
+          )}
+          {screen === "reviews" && (
+            <ReviewsRoom game={game} onGame={setGame} onReset={reset} />
+          )}
+          {screen === "goals" && <GoalsRoom game={game} onGame={setGame} />}
+        </section>
+      </div>
     </main>
   );
 }
-
-interface ShopProps {
-  game: GameState;
-  onGame: (state: GameState) => void;
-  customer: ReturnType<typeof getCustomer>;
-  onNavigate: (screen: Screen) => void;
-  station: number;
-  onStation: (station: number) => void;
-}
-
-function ShopScreen({ game, onGame, customer, onNavigate, station, onStation }: ShopProps) {
-  if (game.phase === "prep") {
-    return <PrepWorld game={game} onGame={onGame} onNavigate={onNavigate} />;
-  }
-
-  if (game.phase === "summary" && game.summary) {
-    const summary = game.summary;
-    const claimable = game.quests.filter((quest) => !quest.claimed && quest.progress >= quest.target).length;
-    return (
-      <section className="summary-wrap">
-        <div className="panel summary-card v2-summary-card">
-          <div className="summary-mascot">🎀</div>
-          <span className="eyebrow">TỔNG KẾT NGÀY {summary.day} · {summary.eventName}</span>
-          <h2>Một ca bán hàng thật trọn vẹn!</h2>
-          <p className="summary-score">Điểm trung bình <b>{summary.averageScore}/100</b> · Combo tốt nhất <b>x{summary.bestCombo}</b></p>
-          <div className="summary-grid v2-summary-grid">
-            <div><span>🧾</span><small>Đơn hoàn tất</small><b>{summary.orders}</b></div>
-            <div><span>✨</span><small>Ly perfect</small><b>{summary.perfectOrders}</b></div>
-            <div><span>💰</span><small>Doanh thu</small><b>{formatMoney(summary.revenue)}</b></div>
-            <div><span>🧺</span><small>Chi phí + hao hụt</small><b>-{formatMoney(summary.ingredientCost)}</b></div>
-            <div><span>📱</span><small>Fan tăng</small><b>+{summary.fansGained}</b></div>
-            <div><span>🧠</span><small>Research</small><b>+{summary.researchGained} RP</b></div>
-            <div className="profit"><span>🌷</span><small>Lợi nhuận</small><b>{formatMoney(summary.profit)}</b></div>
-          </div>
-          {claimable > 0 && (
-            <button className="summary-quest-link" onClick={() => onNavigate("goals")}>
-              🎁 Có {claimable} nhiệm vụ đã hoàn thành đang chờ nhận thưởng
-            </button>
-          )}
-          <button className="primary-button jumbo" onClick={() => onGame(nextDay(game))}>
-            Chuẩn bị ngày {game.day + 1} <span>→</span>
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  if (!game.currentOrder) return null;
-  const order = game.currentOrder;
-  const progress = (game.served / game.targetOrders) * 100;
-  const serveDrink = () => {
-    const next = serveCurrentDrink(game);
-    const servedSuccessfully = next.served > game.served;
-    onGame(next);
-    if (servedSuccessfully && next.lastScore !== null) {
-      feedbackForScore(next.lastScore);
-      recordCraftPerformance(next.lastScore, next.combo);
-    }
-  };
-
-  return (
-    <section className="game-layout v6-craft-theater v6-game-layout">
-      <div className="play-column v6-customer-stage">
-        <CustomerScene game={game} />
-
-        <div className="progress-card">
-          <div className="progress-row">
-            <span>{game.event.emoji} {game.event.name}</span>
-            <b>{game.served}/{game.targetOrders} đơn</b>
-          </div>
-          <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
-        </div>
-
-        <details className="craft-performance"><summary>Phong độ pha chế</summary><PerformancePulse /></details>
-
-        <OrderExperience
-          key={order.id}
-          order={order}
-          draft={game.draft}
-          customerName={customer.name}
-          orderNumber={game.served + 1}
-          priceText={formatMoney(order.price)}
-        />
-      </div>
-
-      <CraftWorkbench key={order.id} game={game} customerName={customer.name} onGame={onGame} onServe={serveDrink} station={station} onStation={onStation} />
-    </section>
-  );
-}
-
-function StockScreen({ game, onGame }: { game: GameState; onGame: (state: GameState) => void }) {
-  return <StockRoom game={game} onGame={onGame} />;
-}
-
-function UpgradesScreen({ game, onGame }: { game: GameState; onGame: (state: GameState) => void }) {
-  return <UpgradesRoom game={game} onGame={onGame} />;
-}
-
-function ReviewsScreen({
-  game,
-  onGame,
-  onReset,
-}: {
-  game: GameState;
-  onGame: (state: GameState) => void;
-  onReset: () => void;
-}) {
-  return <ReviewsRoom game={game} onGame={onGame} onReset={onReset} />;
-}
-
-function GoalsScreen({ game, onGame }: { game: GameState; onGame: (state: GameState) => void }) {
-  return <GoalsRoom game={game} onGame={onGame} />;
-}
-
 export default App;

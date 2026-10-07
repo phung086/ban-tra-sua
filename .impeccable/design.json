@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T01:38:00Z",
+  "title": "Design System: Tiệm Trà — Phố nhỏ",
+  "extensions": {
+    "colorMeta": {
+      "primary": {"role":"primary","displayName":"Rose tea","tonalRamp":["#341021","#54203a","#783154","#a04773","#bc6c96","#d59fbc","#efd3e1","#fff2f8"]},
+      "paper": {"role":"neutral","displayName":"Warm pink paper","tonalRamp":["#302329","#504049","#75616c","#9b8692","#c2aab8","#e5c7d5","#faedf2","#fff9fc"]}
+    },
+    "typographyMeta":{"body":{"displayName":"Vietnamese work text","purpose":"Self-hosted Vietnamese reading and controls."}},
+    "shadows":[{"name":"ambient-low","value":"0 8px 22px #34453a17","purpose":"Quiet scene and panel elevation."}],
+    "motion":[{"name":"control-feedback","value":"150ms","purpose":"Button press and hover; reduced motion disables transitions."},{"name":"scene-clock","value":"30fps cap","purpose":"A single loop drives people and camera movement."}],
+    "breakpoints":[{"name":"stacked-shop","value":"900px"},{"name":"phone","value":"700px"}]
+  },
+  "components": [
+    {"name":"Primary button","kind":"button","refersTo":"button-primary","description":"Commit opening, pickup or handoff.","html":"<button class=\"ds-primary\">Giao ly cho khách</button>","css":".ds-primary{font:600 14px 'Be Vietnam Pro',sans-serif;background:var(--rose,#a04773);color:var(--paper,#fff9fc);border:1px solid #a04773;border-radius:9px;min-height:44px;padding:10px 13px;cursor:pointer}.ds-primary:hover{filter:brightness(.95)}.ds-primary:focus-visible{outline:3px solid #a04773;outline-offset:3px}.ds-primary:active{transform:translateY(1px)}"},
+    {"name":"Destination button","kind":"button","description":"Choose a physical service location.","html":"<button class=\"ds-place\"><b>01</b> Bàn 01 <small>Khách chờ</small></button>","css":".ds-place{font:400 13px 'Be Vietnam Pro',sans-serif;background:#f1d9e6;color:#553343;border:1px solid #b7859f;border-radius:9px;padding:10px 13px;min-height:44px;cursor:pointer}.ds-place small{display:block;font-size:10px;color:#795b6d}.ds-place:hover{background:#efd3e1}.ds-place:focus-visible{outline:3px solid #a04773;outline-offset:3px}.ds-place:active{transform:translateY(1px)}"},
+    {"name":"Room navigation","kind":"nav","description":"Select one management room while the shop stays mounted.","html":"<nav class=\"ds-nav\"><button aria-pressed=\"true\">Quầy</button><button>Kho</button><button>Xưởng</button></nav>","css":".ds-nav{display:flex;gap:8px;font-family:'Be Vietnam Pro',sans-serif}.ds-nav button{font:inherit;color:#553343;background:transparent;border:1px solid transparent;border-radius:9px;min-height:44px;padding:10px 13px;cursor:pointer}.ds-nav [aria-pressed=true]{color:#a04773;background:#fff9fc;border-color:#e5c7d5}.ds-nav button:hover{background:#f7dfeb}.ds-nav button:focus-visible{outline:3px solid #a04773;outline-offset:3px}"},
+    {"name":"Delivery tag","kind":"chip","description":"Keep the guest and handoff location visible.","html":"<div class=\"ds-tag\"><small>DÙNG TẠI TIỆM · BÀN 01</small><b>Cô Hạnh</b><p>Ly đã trên tay. Mang đến bàn khách.</p></div>","css":".ds-tag{font-family:'Be Vietnam Pro',sans-serif;max-width:240px;padding:14px;background:#fff9fc;color:#553343;border:1px solid #e5c7d5;border-radius:9px;box-shadow:0 8px 22px #34453a17}.ds-tag small{font-size:10px;color:#795b6d}.ds-tag b{display:block;font-size:17px;margin-top:6px}.ds-tag p{font-size:12px;line-height:1.5;color:#795b6d;margin:7px 0 0}"},
+    {"name":"Work panel","kind":"card","description":"Readable manual crafting and management content.","html":"<section class=\"ds-card\"><h2>Pha một ly thật ngon</h2><p>Đứng gần quầy để tiếp tục pha.</p></section>","css":".ds-card{font-family:'Be Vietnam Pro',sans-serif;color:#553343;background:#fff9fc;border:1px solid #e5c7d5;border-radius:12px;padding:18px;box-shadow:0 8px 22px #34453a17}.ds-card h2{font-size:25px;line-height:1.25;letter-spacing:-.6px;margin:0}.ds-card p{font-size:14px;color:#795b6d;line-height:1.5;margin:8px 0 0}"},
+    {"name":"Motion preference","kind":"input","description":"Native checkbox controls motion preference.","html":"<label class=\"ds-setting\"><input type=\"checkbox\" checked> Chuyển động</label>","css":".ds-setting{font:400 14px 'Be Vietnam Pro',sans-serif;display:flex;align-items:center;gap:10px;color:#553343;min-height:44px}.ds-setting input{accent-color:#a04773;width:20px;height:20px}.ds-setting input:focus-visible{outline:3px solid #a04773;outline-offset:3px}"}
+  ],
+  "narrative": {
+    "northStar":"Tiệm hồng trong một con hẻm quen",
+    "overview":"Pink pastel is a user requirement for the interface and shop. Real dimensional depth, everyday Vietnamese neighbors and physical service are the other fixed requirements. Procedural stylized 3D supports free movement and service; it does not promise photorealistic people.\n\nThe serving tray and table-number ritual governs the experience: read the order, prepare manually, seal, pick up, walk to the assigned counter or table and complete the handoff. This is a playable shop, not a landing page.",
+    "keyCharacteristics":["Pink counter fluting, pink and cream tiles, rose joinery and striped awning.","Distinct stainless, glass, ceramic, fabric and wood surfaces.","Ordinary neighbors with varied ages, body shapes, clothing and small facial differences.","Readable opaque work panels next to a persistent 3D space."],
+    "rules":[{"name":"The Pink Continuity Rule","body":"The pink identity must survive every room and camera angle.","section":"colors"},{"name":"The Service Location Rule","body":"Show the current guest and counter/table destination through every crafting and carrying step. Seal and pick up before delivery; only enable handoff near the correct place.","section":"layout"}],
+    "dos":["Do preserve version-3 saves and all economy/progression rules.","Do keep pink visible throughout the world and interface.","Do distinguish objects through shape, material and purpose."],
+    "donts":["Don't replace varied neighbors with one idealized chibi face.","Don't use duplicated generic vessels as every tool.","Don't claim measured FPS or low-end performance without device measurements."]
+  }
+}
