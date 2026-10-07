@@ -1,62 +1,40 @@
-import type { CSSProperties } from "react";
-import type { Customer } from "../game/types";
+import { useEffect, useRef, type CSSProperties } from "react";
+import type { Customer, CustomerMood } from "../game/types";
+
+// Explicit atlas order keeps faces stable when the content catalog changes.
+const SPRITES = ["miu", "bo", "nana", "sunny", "chi", "khanh", "lyly", "duc"];
+
+export function ChibiPortrait({ customer, className = "" }: { customer: Customer; className?: string }) {
+  const index = Math.max(0, SPRITES.indexOf(customer.id));
+  const style = { backgroundPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100}%` } as CSSProperties;
+  return <span className={`chibi-portrait ${className}`} style={style} aria-hidden="true" />;
+}
 
 interface Props {
   customer: Customer;
-  talking?: boolean;
+  mood?: CustomerMood;
+  ready?: boolean;
+  celebrating?: boolean;
 }
 
-const ACCESSORIES = ["🌸", "🎀", "⭐", "🍀", "🍓"];
-
-export function ChibiCustomer({ customer, talking = false }: Props) {
-  const style = {
-    "--hair": customer.hair,
-    "--shirt": customer.shirt,
-    "--skin": customer.skin,
-  } as CSSProperties;
-
-  const seed = [...customer.id].reduce((total, char) => total + char.charCodeAt(0), 0);
-  const accessory = ACCESSORIES[seed % ACCESSORIES.length];
-
+export function ChibiCustomer({ customer, mood = "happy", ready = false, celebrating = false }: Props) {
+  const guest = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = guest.current;
+    if (!element) return;
+    let inView = true;
+    const update = () => { element.dataset.animate = String(inView && !document.hidden); };
+    const observer = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; update(); });
+    observer.observe(element);
+    document.addEventListener("visibilitychange", update);
+    update();
+    return () => { observer.disconnect(); document.removeEventListener("visibilitychange", update); };
+  }, []);
   return (
-    <div className={`chibi ${talking ? "is-talking" : ""}`} style={style} aria-label={`Khách hàng ${customer.name}`}>
-      <div className="chibi-shadow" />
-      <span className="chibi-sparkle s1">✦</span>
-      <span className="chibi-sparkle s2">♡</span>
-
-      <div className="chibi-body">
-        <div className="chibi-arm chibi-arm-left" />
-        <div className="chibi-shirt">
-          <span className="chibi-apron-badge">♡</span>
-        </div>
-        <div className="chibi-arm chibi-arm-right" />
-      </div>
-
-      <div className="chibi-head">
-        <div className="chibi-ear chibi-ear-left" />
-        <div className="chibi-ear chibi-ear-right" />
-        <div className="chibi-hair-back" />
-        <div className="chibi-face">
-          <div className="chibi-bangs">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="chibi-eyes">
-            <i />
-            <i />
-          </div>
-          <div className="chibi-cheeks">
-            <i />
-            <i />
-          </div>
-          <div className="chibi-mouth" />
-        </div>
-        <div className="chibi-hair-shine" />
-        <div className="chibi-accessory">{accessory}</div>
-      </div>
-
-      <div className="chibi-name">{customer.name}</div>
+    <div ref={guest} className={`chibi-guest guest-${mood} ${ready ? "guest-ready" : ""} ${celebrating ? "guest-celebrating" : ""}`} role="img" aria-label={`Khách hàng ${customer.name}`}>
+      <div className="guest-arrival"><ChibiPortrait customer={customer} /></div>
+      <span className="guest-affection" aria-hidden="true">{mood === "restless" || mood === "upset" ? "…" : "♡"}</span>
+      <span className="guest-name">{customer.name}</span>
     </div>
   );
 }

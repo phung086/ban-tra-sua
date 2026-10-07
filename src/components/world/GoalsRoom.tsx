@@ -4,6 +4,7 @@ import { ACHIEVEMENTS, CUSTOMERS, DRINKS, TOPPINGS } from "../../game/content";
 import { claimQuest, formatMoney, getRelationshipTier } from "../../game/engine";
 import type { GameState } from "../../game/types";
 import { RoomBackdrop } from "./RoomBackdrop";
+import { ChibiPortrait } from "../ChibiCustomer";
 
 type BoardMode = "quests" | "achievements" | "collection" | "relations";
 
@@ -105,7 +106,7 @@ export function GoalsRoom({ game, onGame }: Props) {
                   return (
                     <article className="v6-customer-photo" key={customer.id} style={{ "--note-index": index } as CSSProperties}>
                       <i />
-                      <span style={{ background: customer.shirt }}>{customer.name.slice(0, 1)}</span>
+                      <ChibiPortrait customer={customer} className="guest-album-portrait" />
                       <b>{customer.name}</b>
                       <small>{tier.emoji} {tier.label} · bond {bond}</small>
                       <p>{customer.archetype}</p>
