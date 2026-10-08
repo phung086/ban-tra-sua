@@ -2,10 +2,16 @@ import * as T from "three";
 import { Workshop } from "./models";
 import type { InventoryKey } from "../game/types";
 import { streetFronts, teaVessels } from "./details";
-import { batchStatic } from "./batching";
+import { batchStatic, mergeRigid } from "./batching";
+import {PARKED_SCOOTER} from '../game/collision';
 
 export function buildShop(w: Workshop) {
   const root = new T.Group();
+  const rear=new T.Group(),awning=new T.Group();root.add(rear,awning);
+  const cutaways=[
+    {root:rear,bounds:new T.Box3(new T.Vector3(-5.1,0,4.7),new T.Vector3(5.1,3.5,5.05))},
+    {root:awning,bounds:new T.Box3(new T.Vector3(-5.1,2.7,-6.1),new T.Vector3(5.1,3.6,-4.5))},
+  ];
   const green = "#b67793",
     cream = "#f2e2e5",
     wood = "#b18a70",
@@ -26,8 +32,8 @@ export function buildShop(w: Workshop) {
   }
   tiles.receiveShadow = true;
   root.add(tiles);
-  w.box(root, cream, [0, 1.7, 4.9], [10.1, 3.5, 0.16]);
-  w.box(root, green, [0, 0.47, 4.79], [10, 0.92, 0.04]);
+  w.box(rear, cream, [0, 1.7, 4.9], [10.1, 3.5, 0.16]);
+  w.box(rear, green, [0, 0.47, 4.79], [10, 0.92, 0.04]);
   for (const side of [-1, 1]) {
     w.box(root, cream, [side * 4.95, 0.73, 0.2], [0.16, 1.5, 9.5]);
     [1.9, -2.8].forEach((z) =>
@@ -43,10 +49,10 @@ export function buildShop(w: Workshop) {
       );
   }
   // Front awning, sign and open doorway.
-  w.box(root, wood, [0, 3.35, -4.75], [10.1, 0.3, 0.27]);
-  w.box(root, "#c584a0", [0, 3.15, -4.72], [4.2, 0.76, 0.13]);
+  w.box(awning, wood, [0, 3.35, -4.75], [10.1, 0.3, 0.27]);
+  w.box(awning, "#c584a0", [0, 3.15, -4.72], [4.2, 0.76, 0.13]);
   w.label(
-    root,
+    awning,
     "TIỆM TRÀ • PHỐ NHỎ",
     [0, 3.15, -4.64],
     3.9,
@@ -57,7 +63,7 @@ export function buildShop(w: Workshop) {
   );
   for (let i = 0; i < 14; i++)
     w.box(
-      root,
+      awning,
       i % 2 ? "#f2dde6" : green,
       [-4.7 + i * 0.72, 3.38, -5.35],
       [0.7, 0.07, 1.3],
@@ -467,8 +473,8 @@ export function buildShop(w: Workshop) {
   w.box(root, "#626d69", [0, -0.22, -8.65], [35, 0.08, 2.2]);
   streetFronts(w, root);
   const bike = new T.Group();
-  bike.position.set(-3.4, 0, -6.4);
-  bike.rotation.y = -0.4;
+  bike.position.set(PARKED_SCOOTER.x, 0, PARKED_SCOOTER.z);
+  bike.rotation.y = PARKED_SCOOTER.yaw!;
   root.add(bike);
   for (const z of [-0.6, 0.6]) {
     const wheel = w.mesh(
@@ -603,7 +609,13 @@ export function buildShop(w: Workshop) {
     machine.add(group);
     return group;
   });
-  const batches = batchStatic(root, [brewer, sealer, shaker, decor, ...jars]);
+  const dynamic=[brewer,sealer,shaker,decor,...jars,rear,awning];
+  for(const [index,part] of [rear,awning].entries()){
+    mergeRigid(part,[],(key,factory)=>w.geometry(key,factory),`shop-cutaway-${index}`,8);
+    batchStatic(part,[]);
+  }
+  mergeRigid(root,dynamic,(key,factory)=>w.geometry(key,factory),'shop',16);
+  const batches = batchStatic(root, dynamic);
   root.updateMatrixWorld(true);
   root.traverse((object) => {
     if (object instanceof T.Mesh && object.parent !== decor) {
@@ -625,5 +637,6 @@ export function buildShop(w: Workshop) {
     jarKeys,
     indicators,
     batches,
+    cutaways,
   };
 }

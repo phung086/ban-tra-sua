@@ -100,7 +100,7 @@ describe("physical service", () => {
       expect(LOOKS[customer.id]).toBeDefined();
       const person = makePerson(workshop, customer);
       expect(person.leftLeg).not.toBe(person.rightLeg);
-      expect(person.hand.parent).toBe(person.rightArm);
+      expect(person.hand.parent).toBe(person.elbows[1]);
       expect(person.root.scale.y).toBeGreaterThan(0.7);
     }
     workshop.geometries.forEach((geometry) => {

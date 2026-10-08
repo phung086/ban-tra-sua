@@ -1,3 +1,4 @@
+import type { CityState } from './city';
 export type Phase = "prep" | "open" | "summary";
 export type Screen = "shop" | "stock" | "upgrades" | "reviews" | "goals";
 export type Size = "M" | "L";
@@ -279,6 +280,7 @@ export interface DaySummary {
 
 export interface GameState {
   saveVersion: 3;
+  city: CityState;
   day: number;
   phase: Phase;
   cash: number;

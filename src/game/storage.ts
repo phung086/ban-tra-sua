@@ -1,5 +1,6 @@
 import { createInitialState, getLevelFromXp } from "./engine";
 import type { GameState, Inventory, Review } from "./types";
+import { hydrateCity } from './city';
 
 const SAVE_KEY = "tiem-tra-chibi-save-v3";
 const LEGACY_V2_KEY = "tiem-tra-chibi-save-v2";
@@ -34,6 +35,7 @@ function hydrate(parsed: StoredGame): GameState {
     ...initial,
     ...parsed,
     saveVersion: 3,
+    city: hydrateCity(parsed.city, parsed.day ?? 1),
     xp,
     level: getLevelFromXp(xp),
     inventory: { ...initial.inventory, ...(parsed.inventory ?? {}) },

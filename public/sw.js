@@ -1,4 +1,4 @@
-const CACHE = "tiem-tra-chibi-shell-v9";
+const CACHE = "tiem-tra-chibi-shell-v15-character-audio";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg"];
 
 self.addEventListener("install", (event) => {

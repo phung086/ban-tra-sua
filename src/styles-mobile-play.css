@@ -1,0 +1,142 @@
+/* Touch-first neighborhood play. The scene owns the viewport; the notebook
+   opens above it only when the player chooses a task, map or recipe. */
+.movement-stick-wrap { display: grid; justify-items: center; gap: 7px; flex: none; }
+.movement-stick { width: 116px; height: 116px; position: relative; display: grid; place-items: center; border-radius: 50%; background: #ffeff8e8; border: 2px solid #cc98b3; box-shadow: inset 0 3px 10px #8f506522, 0 5px 14px #49384124; touch-action: none; user-select: none; -webkit-user-select: none; }
+.movement-stick[aria-disabled="true"] { opacity: 0.4; }
+.movement-stick:focus-visible { outline: 3px solid var(--rose); outline-offset: 3px; }
+.stick-knob { display: block; width: 53px; height: 53px; border-radius: 50%; background: #b3698e; box-shadow: inset 0 2px 3px #dfabc5, 0 4px 9px #5b2d472f; position: relative; will-change: transform; pointer-events: none; }
+.stick-knob::after { content: ''; display: block; width: 27px; height: 27px; border-radius: 50%; border: 1px solid #f2c7df; margin: 12px; }
+.stick-axis { position: absolute; pointer-events: none; background: #cf9eb84d; }
+.stick-horizontal { width: 88px; height: 1px; }
+.stick-vertical { height: 88px; width: 1px; }
+.movement-stick-wrap small { font-size: 10px; color: #694251; }
+.city-world .walk-ui { right: auto; width: auto; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.city-world .movement-row { margin: 0; padding: 0; }
+.city-world .movement-row > small { display: none; }
+.city-scene-caption { top: 80px; bottom: auto; max-width: calc(100% - 44px); }
+.city-context-actions { position: absolute; bottom: 26px; right: 17px; width: min(230px,calc(100% - 162px)); display: grid; gap: 8px; }
+.city-context-actions button { font-size: 12px; padding: 12px; }
+.city-play-notice { position:absolute; top:150px; left:18px; right:18px; max-width:440px; background:#fff9f2f2; color:#5a354b; padding:10px 13px; border-radius:9px; font-size:12px; line-height:1.6; pointer-events:none; }
+.hold-task { --work-progress: 0%; position: relative; display: grid; gap: 4px; overflow: hidden; touch-action: none; background: linear-gradient(90deg,#e7bbd2 var(--work-progress),#fff4f9 var(--work-progress)); min-height: 64px; text-align: left; }
+.hold-task span { font-weight: 600; }
+.hold-task small { font-size: 10px; color: #704956; }
+.hold-task[data-working="true"] { border-color: var(--rose); }
+.neighborhood-sheet-toggle { display: none; }
+.neighborhood-feedback { padding: 12px; margin: 12px 0 16px; background: #f4dce8; color: var(--ink); border-radius: 9px; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.neighborhood-sheet-content > .neighborhood-feedback { position: sticky; top: 0; z-index: 2; }
+.neighborhood-dialogue { position: fixed; inset: auto 0 20px; width: min(560px,calc(100% - 28px)); max-height: min(85dvh,760px); margin: 0 auto; padding: 24px; border: 0; border-radius: 17px; background: #fff9fc; color: var(--ink); box-shadow: 0 10px 35px #3926343d; overscroll-behavior: contain; }
+.neighborhood-dialogue::backdrop { background: #30263065; }
+.neighborhood-dialogue > header { display: flex; gap: 13px; align-items: center; }
+.neighborhood-dialogue header .neighbor-portrait { width: 68px; height: 77px; flex: none; border-radius: 9px; }
+.neighborhood-dialogue header .neighbor-portrait img { width: 100%; height: 100%; object-fit: cover; }
+.neighborhood-dialogue header > div { flex: 1; }
+.neighborhood-dialogue h2 { font-size: 23px; }
+.neighborhood-dialogue header p { font-size: 12px; margin-top: 4px; }
+.neighborhood-dialogue header small { font-size: 11px; }
+.neighborhood-dialogue header button { border: 0; box-shadow: none; background: transparent; font-size: 11px; }
+.dialogue-stage { margin: 16px 0; font-size: 12px; line-height: 1.7; }
+.dialogue-speech { color: #573747; font-size: 16px; line-height: 1.8; padding: 18px 0 22px; border-top: 1px solid var(--line); }
+.dialogue-choices { display: grid; gap: 10px; }
+.dialogue-choices button { display: flex; align-items: center; text-align: left; gap: 12px; min-height: 62px; padding: 12px 14px; }
+.dialogue-choices button > span { color: var(--rose); font-size: 12px; width: 20px; flex: none; }
+.dialogue-choices b { font-size: 13px; font-weight: 600; display: block; line-height: 1.6; }
+.dialogue-choices small { display: block; margin-top: 3px; font-size: 11px; }
+.dialogue-current-task { display: grid; gap: 11px; padding-top: 5px; }
+.dialogue-current-task p { font-size: 13px; }
+.dialogue-current-task button { font-size: 13px; }
+.neighborhood-dialogue footer { margin-top: 20px; font-size: 11px; line-height: 1.7; color: var(--muted); }
+.active-errands { display: grid; gap: 18px; }
+.active-errands article { display: grid; gap: 8px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
+.active-errands header { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.active-errands header h4 { font-size: 16px; }
+.active-errands p { font-size: 13px; }
+.active-errands button { font-size: 13px; margin-top: 4px; }
+.residents-title { margin-top: 26px; }
+.resident-list { display: grid; margin-top: 12px; }
+.resident-list article { display: flex; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.resident-list article > div { flex: 1; }
+.resident-list h4 { font-size: 14px; }
+.resident-list p { font-size: 11px; margin: 4px 0; }
+.resident-list small { font-size: 10px; }
+.resident-list button { font-size: 11px; flex: none; }
+.resident-initial { width: 34px; height: 40px; border-radius: 7px; color: white; display: grid; place-items: center; font-weight: 600; flex: none; }
+.city-leisure fieldset { border:0; padding:0; margin:15px 0; min-width:0; }
+.leisure-sections { display:flex; gap:5px; margin:15px 0; }
+.leisure-sections button { flex:1; padding:8px; font-size:11px; min-height:44px; }
+.leisure-sections button[aria-pressed="true"],.fish-outcome button[aria-pressed="true"] { background:#efd2e1; border-color:var(--rose); }
+.leisure-note { font-size:12px; line-height:1.7; margin:14px 0; }
+.daily-activities { display:grid; gap:18px; }
+.daily-activities article { display:grid; gap:8px; border-bottom:1px solid var(--line); padding-bottom:18px; }
+.daily-activities header { display:flex; justify-content:space-between; gap:12px; }
+.daily-activities header h4 { font-size:15px; }
+.daily-activities p,.daily-activities small { font-size:12px; }
+.daily-activities progress { width:100%; height:6px; accent-color:var(--rose); border:0; }
+.album-heading { display:flex; gap:16px; align-items:center; margin:18px 0; }
+.album-heading strong { font-size:32px; font-weight:600; letter-spacing:-1px; }
+.album-heading p { font-size:12px; line-height:1.7; }
+.stamp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 12px; margin-bottom:20px; }
+.stamp-grid article { display:grid; justify-items:start; gap:10px; padding:14px 0; border-bottom:1px solid var(--line); }
+.place-stamp { border:2px dashed #c4a9b7; border-radius:50%; width:46px; height:46px; display:grid; place-items:center; font-weight:600; color:var(--muted); }
+.collected .place-stamp { border:2px solid var(--rose); color:var(--rose); background:#f4dce8; transform:rotate(-9deg); }
+.stamp-grid h4 { font-size:12px; }
+.stamp-grid button { font-size:11px; min-height:44px; }
+.fishing-scene { height:108px; background:#dce9e4; display:flex; align-items:center; gap:22px; padding:24px; border-radius:9px; margin:18px 0; color:#42655b; }
+.fishing-scene svg { width:64px; height:40px; }
+.fishing-scene span { font-size:18px; font-weight:600; }
+.fishing-attempts { font-size:12px; margin:12px 0; font-weight:600; }
+.fish-outcome { display:flex; gap:8px; margin:16px 0; }
+.fish-outcome button { flex:1; padding:11px 8px; font-size:12px; }
+.fish-outcome small { display:block; margin-top:5px; font-size:10px; }
+.fish-catalog-title { margin-top:25px; font-size:14px; }
+.fish-catalog article { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); }
+.fish-catalog article > span { width:35px; height:18px; border-radius:60% 45% 45% 60%; opacity:.3; }
+.fish-catalog .discovered > span { opacity:1; }
+.fish-catalog h5 { font-size:13px; }
+.fish-catalog p { font-size:11px; margin-top:5px; }
+@media(max-width:900px) {
+  .exploring-city { position: fixed; inset: 0; padding: 0; max-width: none; background: var(--paper); overflow: hidden; }
+  .exploring-city > .v6-hud, .exploring-city > .v6-world-nav, .exploring-city > .v6-toast { display: none; }
+  .exploring-city > .game-settings { display: none; }
+  .exploring-city .street-layout { display: block; height: 100%; }
+  .exploring-city .street-world { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
+  .exploring-city .world-viewport { bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .exploring-city .world-heading { top: max(12px,env(safe-area-inset-top)); max-width: 33%; left: 12px; }
+  .exploring-city .view-controls { top: max(12px,env(safe-area-inset-top)); right: 12px; max-width: 62%; }
+  .exploring-city .view-controls button { font-size: 11px; }
+  .exploring-city .city-scene-caption { top: calc(62px + env(safe-area-inset-top)); left: 12px; padding: 9px 12px; max-width: calc(100% - 24px); }
+  .exploring-city .city-scene-caption h2 { font-size: 18px; }
+  .exploring-city .city-scene-caption p { font-size: 11px; }
+  .exploring-city .walk-ui { left: max(18px,env(safe-area-inset-left)); bottom: calc(109px + env(safe-area-inset-bottom)); right: auto; }
+  .exploring-city .city-context-actions { bottom: calc(136px + env(safe-area-inset-bottom)); right: max(14px,env(safe-area-inset-right)); width: min(230px,calc(100% - 160px)); }
+  .exploring-city #game-content { position: static; }
+  .exploring-city .neighborhood { position: absolute; bottom: 0; left: 0; right: 0; padding: 0 16px calc(6px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; z-index: 5; max-height: 72dvh; box-shadow: 0 -5px 22px #6d3d501c; display: flex; flex-direction: column; }
+  .neighborhood-sheet-toggle { display: flex; align-items: center; justify-content: center; flex-direction: column-reverse; gap: 4px; padding: 7px 8px 2px; border: 0; box-shadow: none; min-height: 44px; background: transparent; font-size: 11px; color: var(--muted); touch-action: manipulation; flex: none; }
+  .sheet-grip { width: 34px; height: 3px; border-radius: 5px; background: #cda2b8; }
+  .exploring-city .neighborhood > .city-title, .exploring-city .neighborhood > .city-almanac, .exploring-city .neighborhood > .city-intro { display: none; }
+  .exploring-city .city-tabs { margin: 0; flex: none; min-height: 46px; }
+  .exploring-city .city-tabs button { font-size:10px; min-height:44px; padding:7px 3px; }
+  .exploring-city .neighborhood-sheet-content { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding-top: 17px; scrollbar-color: #cfa2b7 transparent; }
+  .exploring-city .sheet-closed .neighborhood-sheet-content { display: none; }
+  .exploring-city .sheet-open .neighborhood-sheet-content { max-height: calc(72dvh - 95px - env(safe-area-inset-bottom)); }
+  .exploring-city .city-map { max-width: 430px; margin: 0 auto; }
+  .exploring-city .city-footer { padding: 14px 0; margin-top: 16px; }
+  .neighborhood-dialogue { bottom: 0; left: 0; right: 0; width: 100%; max-height: 86dvh; border-radius: 19px 19px 0 0; padding: 19px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .neighborhood-dialogue .dialogue-speech { font-size: 15px; line-height: 1.8; padding: 15px 0 18px; }
+  .neighborhood-dialogue h2 { font-size: 21px; }
+}
+@media(max-width:580px) {
+  .street-world:not(.city-world) .walk-ui { padding-right: 126px; min-height: 146px; }
+  .street-world:not(.city-world) .place-buttons { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .street-world:not(.city-world) .place-buttons button { min-height: 46px; }
+  .street-world:not(.city-world) .movement-row > small { display: none; }
+  .street-world:not(.city-world) .movement-stick-wrap { position: absolute; right: 10px; bottom: 12px; }
+  .movement-stick { width: 106px; height: 106px; }
+}
+@media(max-height:520px) and (max-width:900px) {
+  .city-play-notice { top:65px; font-size:11px; }
+  .exploring-city .city-scene-caption { display: none; }
+  .exploring-city .walk-ui { bottom: 93px; }
+  .exploring-city .movement-stick { width: 96px; height: 96px; }
+  .exploring-city .city-context-actions { bottom: 105px; width: 210px; }
+  .neighborhood-dialogue { max-height: 94dvh; }
+}

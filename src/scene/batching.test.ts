@@ -1,8 +1,29 @@
 import * as T from "three";
 import { describe, expect, it } from "vitest";
-import { batchStatic } from "./batching";
+import { batchStatic, mergeRigid } from "./batching";
 
 describe("static prop batching", () => {
+  it('merges different geometry in local space without freezing eyes or doubling parent scale',()=>{
+    const root=new T.Group(); root.position.set(5,2,-8); root.scale.set(0.8,1.2,0.9); root.rotation.y=0.4;
+    const material=new T.MeshStandardMaterial(), eye=new T.Mesh(new T.SphereGeometry(0.1),material);
+    root.add(eye);
+    const originals=[new T.Mesh(new T.BoxGeometry(1,2,1),material),new T.Mesh(new T.SphereGeometry(0.5),material)];
+    originals[0].position.set(-1,0,0); originals[1].position.set(1,0,0); root.add(...originals);
+    root.updateMatrixWorld(true);
+    const expected=new T.Box3(); originals.forEach(m=>expected.union(new T.Box3().setFromObject(m,true)));
+    const allocated:T.BufferGeometry[]=[];
+    const merged=mergeRigid(root,[eye],(_,factory)=>{const g=factory();allocated.push(g);return g;},'test');
+    expect(merged).toHaveLength(1);
+    expect(eye.parent).toBe(root);
+    const actual=new T.Box3().setFromObject(merged[0],true);
+    for(const axis of ['x','y','z'] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+    }
+    expect(actual.max.x-actual.min.x).toBeGreaterThan(2);
+    expect(merged[0].geometry.getAttribute('position').count).toBeGreaterThan(100);
+    allocated.forEach(g=>g.dispose()); originals.forEach(m=>m.geometry.dispose());eye.geometry.dispose();material.dispose();
+  });
   it("preserves world transforms while batching repeated geometry", () => {
     const root = new T.Group(),
       group = new T.Group();
