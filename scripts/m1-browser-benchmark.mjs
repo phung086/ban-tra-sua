@@ -16,6 +16,31 @@ const percent = (values, p) => {
 const mean = values => values.length ? values.reduce((a,b)=>a+b,0)/values.length : null;
 const round = number => number === null ? null : Math.round(number*100)/100;
 const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
+
+// Capture the WebGL canvas directly after a completed renderer.render.
+// Canvas-only captures prove scene pixels, not the React HUD.
+async function captureRenderedCanvas(page, filename) {
+  await page.evaluate(()=>{
+    const r=window.__m1Runtime;
+    r.m1ScreenshotDataUrl=null;r.m1ScreenshotError=null;
+    r.m1ScreenshotPending=true;
+  });
+  await page.waitForFunction(()=>{
+    const r=window.__m1Runtime;
+    return !!(r?.m1ScreenshotDataUrl||r?.m1ScreenshotError);
+  },null,{timeout:90000,polling:500});
+  const shot=await page.evaluate(()=>{
+    const r=window.__m1Runtime;
+    const value={dataUrl:r.m1ScreenshotDataUrl,error:r.m1ScreenshotError};
+    r.m1ScreenshotDataUrl=null;
+    return value;
+  });
+  if(shot.error)throw new Error('WebGL capture failed: '+shot.error);
+  if(!shot.dataUrl?.startsWith('data:image/png;base64,'))
+    throw new Error('Missing WebGL PNG');
+  await writeFile(filename,Buffer.from(shot.dataUrl.slice('data:image/png;base64,'.length),'base64'));
+}
+
 const browser = await chromium.launch({headless:true,args:[
   '--no-sandbox','--disable-dev-shm-usage','--enable-webgl',
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'
@@ -83,35 +108,34 @@ try {
             // Headless software WebGL may take >1s for the first complete render.
             // Capture only after warm-up so an empty WebGL buffer is never used for visual approval.
             await sleep(measure ? WARMUP_MS : 3000);
-            let image=null;
+            let image=null, imageCapture=null;
             try {
               if(mode==='overview') {
-                // Capture the canvas immediately after its WebGL render. On software GL,
-                // Playwright's page screenshot can time out while waiting for compositing.
-                // Capture happens before sampling; never include PNG encoding in P95.
-                await page.evaluate(()=>{
-                  const r=window.__m1Runtime;
-                  r.m1ScreenshotDataUrl=null;r.m1ScreenshotError=null;
-                  r.m1ScreenshotPending=true;
-                });
-                await page.waitForFunction(()=>{
-                  const r=window.__m1Runtime;
-                  return !!(r?.m1ScreenshotDataUrl||r?.m1ScreenshotError);
-                },null,{timeout:90000,polling:500});
-                const shot=await page.evaluate(()=>{
-                  const r=window.__m1Runtime;
-                  const value={dataUrl:r.m1ScreenshotDataUrl,error:r.m1ScreenshotError};
-                  r.m1ScreenshotDataUrl=null;
-                  return value;
-                });
-                if(shot.error)throw new Error('WebGL capture failed: '+shot.error);
-                if(!shot.dataUrl?.startsWith('data:image/png;base64,'))throw new Error('Missing WebGL PNG');
-                await writeFile(filename,Buffer.from(shot.dataUrl.slice('data:image/png;base64,'.length),'base64'));
+                await captureRenderedCanvas(page,filename);
+                imageCapture='webgl-canvas';
               } else {
-                await page.screenshot({path:filename,animations:'disabled',timeout:20000});
+                try {
+                  await page.screenshot({path:filename,animations:'disabled',timeout:20000});
+                  imageCapture='full-page';
+                } catch(pageScreenshotError) {
+                  // Headless SwiftShader compositor may time out while WebGL
+                  // continues rendering. Preserve evidence via canvas fallback.
+                  console.warn('M1 PAGE SCREENSHOT FAILED '+JSON.stringify({
+                    id,mode,error:String(pageScreenshotError)
+                  }));
+                  try {
+                    await captureRenderedCanvas(page,filename);
+                  } catch(canvasError) {
+                    throw new Error('Both page and WebGL captures failed: '+
+                      String(pageScreenshotError)+'; '+String(canvasError));
+                  }
+                  imageCapture='webgl-canvas-fallback';
+                }
               }
               image=filename;
+              console.log('M1 IMAGE '+JSON.stringify({id,mode,imageCapture}));
             } catch(error) {
+              console.error('M1 IMAGE FAILED '+JSON.stringify({id,mode,error:String(error)}));
               failures.push({id,mode,phase:'screenshot',error:String(error)});
             }
             if(measure){
@@ -134,7 +158,7 @@ try {
                 drawCallsMean:round(mean(snap.frames.map(f=>f.calls))),
                 trianglesMean:round(mean(snap.frames.map(f=>f.triangles))),
                 memory:snap.memory,skeletons:snap.skeletons,jsHeap:snap.heap,
-                initialResources,errors:[...errors],image};
+                initialResources,errors:[...errors],image,imageCapture};
               results.push(entry);
               console.log('M1 RESULT '+JSON.stringify(entry));
             }

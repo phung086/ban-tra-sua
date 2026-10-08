@@ -1,5 +1,7 @@
-# Next step: M1.1k — verify production vehicle collision smoke
+# Next step: M1.1l — verify resilient production screenshots and balanced/follow regressions
 
-Check latest remote SHA and CI. Inspect the new benchmark logs, results.json, images and `M1 VEHICLE COLLISION OK` for both sector16/32 at 390×844/light. Keep NPC dialogue, wall collision, joystick/camera, city return and 10/10 craft/delivery asserts. If vehicle smoke fails, diagnose and fix or revert without bypassing runtime collision, rerun on the corrected SHA. Record actual before/after draw calls, light/balanced P95 and screenshot evidence.
+Check latest remote SHA and CI (including benchmark script syntax preflight). Inspect the new M1 benchmark run, `results.json.failures`, `M1 IMAGE` capture-source logs, and directly compare before/after overview and follow screenshots at 390×844 light/balanced; confirm 1280×800 follow image that timed out in #37807971947. If the page capture falls back, label it canvas-only (not HUD evidence). If both capture paths fail, fix without hiding the failure.
 
-After verifying, continue moving-camera culling and follow triangles (+39.81% light / +52.77% balanced in #37799114768), repeat balanced/follow P95, and prepare real Android RAM 3–4GB plus iPhone 15-minute multitouch/FPS/thermal testing. M1.1 is not accepted until every roadmap gate is evidenced. No M2, merge or deploy.
+Recheck overview light >=40% draw-call reduction and P95 interval <=+10% under matched production Chromium/viewport. Report balanced overview/follow variance and increased follow triangles (+43.81% light / +50.16% balanced in #37807971947); investigate moving-camera sector culling/pop-in without sacrificing overview. Preserve NPC dialogue, wall and vehicle collision, joystick/camera, 360×800 return and 10/10 craft/delivery smoke. If a regression persists, optimize or revert with measurements. Run tests/build, commit/push and verify CI green on exact SHA.
+
+M1.1 remains unaccepted until all roadmap gates, including 15-minute Android 3–4GB and iPhone real-device multitouch/FPS/P95/thermal/memory checks, are satisfied. No M2, merge or deploy.
