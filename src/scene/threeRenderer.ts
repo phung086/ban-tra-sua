@@ -20,9 +20,17 @@ export class ThreeSceneRenderer implements SceneRenderer {
   get canvas(){return this.renderer.domElement;}
   get info(){return {calls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles};}
   resize(width:number,height:number){this.width=width;this.height=height;this.renderer.setSize(width,height,false);}
-  quality(profile:QualityProfile){this.shadowInterval=profile.id==='high'?70:profile.id==='balanced'?100:150;this.lastShadow=-Infinity;this.renderer.setPixelRatio(Math.min(devicePixelRatio,profile.pixelRatio));this.resize(this.width,this.height);}
+  quality(profile:QualityProfile){
+    this.shadowInterval=profile.id==='high'?70:profile.id==='balanced'?100:150;
+    this.lastShadow=-Infinity;
+    // Low-end mobile keeps contact/blob shadows, but omits costly real-time
+    // directional shadow passes. Balanced/high retain their previous shadows.
+    this.renderer.shadowMap.enabled=profile.id!=='light';
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio,profile.pixelRatio));
+    this.resize(this.width,this.height);
+  }
   render(scene:T.Scene,camera:T.PerspectiveCamera){
-    const now=performance.now();if(now-this.lastShadow>=this.shadowInterval){this.renderer.shadowMap.needsUpdate=true;this.lastShadow=now;}
+    const now=performance.now();if(this.renderer.shadowMap.enabled&&now-this.lastShadow>=this.shadowInterval){this.renderer.shadowMap.needsUpdate=true;this.lastShadow=now;}
     this.renderer.render(scene,camera);
   }
   dispose(){this.environment.dispose();this.renderer.dispose();this.renderer.forceContextLoss();}
