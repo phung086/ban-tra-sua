@@ -157,7 +157,7 @@ for(const quality of ['light','balanced']) {
     const reduction=(a.drawCallsMean-b.drawCallsMean)/a.drawCallsMean*100;
     const p95Delta=(b.intervalP95-a.intervalP95)/a.intervalP95*100;
     console.log('M1 COMPARISON '+JSON.stringify({quality,drawCallReductionPercent:round(reduction),p95IntervalDeltaPercent:round(p95Delta),before:a.drawCallsMean,after:b.drawCallsMean}));
-    if(quality==='light'&&(reduction<40||p95Delta>10)) console.error('M1 GATE UNMET: light overview threshold (do not advance M2)');
+    if(quality==='light'&&(reduction<40||p95Delta>10)) {console.error('M1 GATE UNMET: light overview threshold (do not advance M2)');process.exitCode=1;}
   } else failures.push({quality,error:'Missing comparable overview samples'});
 }
 if(failures.length)process.exitCode=1;
