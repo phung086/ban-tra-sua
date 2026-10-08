@@ -19,7 +19,7 @@ Completed upstream GitHub Actions run: https://github.com/phung086/ban-tra-sua/a
 
 Light overview sector16→32 reduced draw calls by **25.44%** (below 40%) and **increased P95 by 77.9%** (above +10%). The earlier script merely logged this failure but emitted exit code zero; thus upstream benchmark success does **not** imply acceptance. Frames >100ms comprised >95% of light samples on SwiftShader; absolute frame numbers are unsuitable as mobile FPS.
 
-The old run recorded smoke success for joystick, camera, notebook, brew/deliver on all before/after viewports (360×800, 390×844, 844×390 and 1280×800). Archived screenshots available in run artifacts; visual pixel-level review has not been performed in this environment. Collision behavior is covered separately by `src/game/collision.test.ts`.
+The old run recorded smoke success for joystick, camera, notebook, brew/deliver on all before/after viewports (360×800, 390×844, 844×390 and 1280×800). Artifacts from that old run were downloaded and examined: 390×844 light overview images differ in only ~0.01% of pixels at a >8/255 per-channel threshold, but its after-sector-32 **follow** screenshot is empty in the WebGL canvas although smoke reported success. This is a screenshot synchronization failure, not evidence of missing geometry in gameplay. The harness now captures after warm-up / multiple rendered frames and rejects suspiciously tiny 390px captures. Collision behavior is covered separately by `src/game/collision.test.ts`.
 
 ## Code changed on isolated branch
 
@@ -27,6 +27,7 @@ The old run recorded smoke success for joystick, camera, notebook, brew/deliver 
 2. Kept renderer shadows enabled for balanced/high. The low-end **light** preset skips real-time directional shadow-map passes to reduce renderer submission and GPU/software raster workload; scene contact/blob shadows remain. This is an intentional visual trade-off that must be checked in before/after screenshots and on real devices.
 3. Pinned before build's `city.ts`, `batching.ts`, `threeRenderer.ts` to source `79f596d...` (city parameter changed to 16), then restored HEAD for optimized after build. This prevents newly introduced optimizations from silently contaminating the baseline.
 4. Benchmark script verifies light/balanced renderer shadow-map state in both variants. Paired 390×844 follow/overview run 10s warm-up and 30s sample per mode, include P50/P95 simulation/render submission/frame, calls, triangles, skeletons, geometry/texture and heap if supported. Four viewports get production smoke and before/after image capture.
+   UI locators now have a 12s default timeout so an absent control reports a bounded failure instead of blocking for the entire 40-minute job; the benchmark workflow cancels superseded branch runs when supported by concurrency.
 5. Fixed benchmark gate to fail on <40% light overview draw-call reduction or >10% P95 growth, plus missing comparable results and smoke failures; `m1-artifacts/gate.json` is the authoritative machine-readable result.
 
 ## Verification and limits
