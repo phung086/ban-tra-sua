@@ -39,3 +39,27 @@ Workflow: [Mobile orientation and autofit](https://github.com/phung086/ban-tra-s
 - [ ] M1 draw call tổng thể giảm >=40% / frame P95 <=10% theo `m1-01.md`: **độc lập, chưa đủ bằng chứng**.
 
 Không cập nhật trạng thái đạt M1 hay chuyển M2 vì mục tiêu performance chưa được xác nhận và chưa có thiết bị mobile thật.
+
+## Đã kiểm browser production — vòng autofit đầu tiên
+
+Run [Mobile orientation/autofit #37733620657](https://github.com/phung086/ban-tra-sua/actions/runs/37733620657) trên source `7c12eaece5f12f7bacd2d67c445c4b6cbba70756`: **success**. CI `npm ci → npm test → npm run build` trên cùng SHA [#37733620782](https://github.com/phung086/ban-tra-sua/actions/runs/37733620782): **success**.
+
+Ảnh và dữ liệu nguồn: artifact `mobile-autofit-7c12eaece5f12f7bacd2d67c445c4b6cbba70756` trong run layout. Chạy production preview local cổng 5192 với Playwright Chromium emulated touch, software WebGL, DPR 1. Không phải benchmark FPS điện thoại.
+
+| Viewport | Chế độ | Kích thước scene (CSS px) | Rộng bảng thao tác | No document horizontal overflow | Canvas giữ nguyên sau xoay |
+| --- | --- | ---: | ---: | --- | --- |
+| 320×568 | portrait | 302×325 | 302 | Có | Có |
+| 360×800 | portrait | 342×432 | 342 | Có | Có |
+| 390×844 | portrait | 372×456 | 372 | Có | Có |
+| 844×390 | landscape | 432×272 | 383 | Có | Có |
+| 932×430 | landscape | 479×312 | 424 | Có | Có |
+| 667×375 | landscape | 340×257 | 301 | Có | Có |
+| 568×320 | landscape | 288×230 | 255 | Có | Có |
+| 1024×480 | landscape | 527×362 | 468 | Có | Có |
+| 1280×800 | desktop | 782×610 | 430 | Có | Có |
+
+Khu phố: mở/đóng sổ tay tại 390×844, 844×390, 932×430, 667×375; cả 8 lượt open/closed đều nằm trong vùng nhìn. Không có lỗi `pageerror` được ghi trong script. Núm nhả khi đang giữ rồi xoay; panel pha chế ngang có `overflow-y:auto` và tương tác mở ca/dập nắp đã chạy qua. Script mở rộng giao ly xuyên xoay màn mới được bổ sung sau run trên — **chưa được xác nhận đạt** cho đến CI kế tiếp.
+
+Lỗi đã sửa trước vòng success: giao diện 568×320 hiển thị HUD thống kê theo lưới 2 hàng gây chồng nav; CSS đã ép thanh thông tin 1 hàng, nút `Mở cửa tiệm` đã lên gần đầu nội dung; đo rect đã loại lỗi do khung chưa cập nhật kịp sau xoay.
+
+**Giới hạn rõ ràng:** Ảnh và browser emulation chỉ chứng minh layout CSS/DOM trong Chromium headless. Chưa có báo cáo từ Android/iPhone thật, chưa xác minh thermal, GPU time, notch/safe-area vật lý, hai ngón đồng thời hay xoay máy lúc mất focus. Vì vậy cổng nghiệm thu thiết bị thật chưa đạt, và M1 draw-call P95 vẫn theo `m1-01.md`, chưa chuyển M2.
