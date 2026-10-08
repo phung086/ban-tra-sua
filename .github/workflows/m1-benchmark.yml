@@ -12,6 +12,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # required to materialize pinned pre-M1 baseline
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -21,19 +23,27 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Build matched sector-16 and sector-32 production variants
+      - name: Build pinned sector-16 baseline and optimized production variants
         shell: bash
         run: |
           set -euo pipefail
-          cp src/scene/city.ts /tmp/m1-city-after.ts
+          # Pin the original renderer/batching source; otherwise a new
+          # optimization appears in BOTH builds and hides its own improvement.
+          BASE_SHA=79f596d714ea3ebdbcf85878ccdd9e3675d7b562
+          for file in city.ts batching.ts threeRenderer.ts; do
+            cp "src/scene/$file" "/tmp/m1-after-$file"
+            git show "$BASE_SHA:src/scene/$file" > "src/scene/$file"
+          done
           grep -F "register,'city-static',32);" src/scene/city.ts
           sed -i "s/register,'city-static',32);/register,'city-static',16);/" src/scene/city.ts
           grep -F "register,'city-static',16);" src/scene/city.ts
           npm run build
           mkdir -p m1-builds
           mv dist m1-builds/before
-          cp /tmp/m1-city-after.ts src/scene/city.ts
-          git diff --exit-code -- src/scene/city.ts
+          for file in city.ts batching.ts threeRenderer.ts; do
+            cp "/tmp/m1-after-$file" "src/scene/$file"
+          done
+          git diff --exit-code -- src/scene/city.ts src/scene/batching.ts src/scene/threeRenderer.ts
           npm run build
           mv dist m1-builds/after
       - name: Benchmark 10s warm-up + 30s samples and smoke four viewports
