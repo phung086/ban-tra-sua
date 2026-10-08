@@ -2,7 +2,15 @@ name: M1 mobile scene benchmark
 on:
   push:
     branches: [codex/mobile-beta-foundation]
+    paths:
+      - 'src/scene/**'
+      - 'scripts/m1-browser-benchmark.mjs'
+      - '.github/workflows/m1-benchmark.yml'
   workflow_dispatch:
+
+concurrency:
+  group: m1-scene-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   measure:
