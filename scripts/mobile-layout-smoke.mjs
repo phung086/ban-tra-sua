@@ -84,12 +84,13 @@ try{
     await page.waitForFunction(expected=>document.querySelector('main')?.dataset.playLayout===expected,expected,{timeout:12000});
     await sleep(320);
     const info=await layoutSnapshot(page,'shop-prep');
+    console.log('MOBILE_LAYOUT_PROBE '+JSON.stringify(info));
+    await page.screenshot({path:path.join(output,'shop-'+width+'x'+height+'.png'),animations:'disabled',timeout:90000});
     validate(info,expected);
     const same=await page.evaluate(old=>old===document.querySelector('.world-viewport canvas'),canvasHandle);
     assert(same,'WebGL canvas remounted after rotating '+width+'x'+height);
     info.canvasPreserved=same;
     report.sizes.push(info);
-    await page.screenshot({path:path.join(output,'shop-'+width+'x'+height+'.png'),animations:'disabled',timeout:90000});
     console.log('MOBILE_LAYOUT '+JSON.stringify(info));
   }
   await page.setViewportSize({width:844,height:390});
