@@ -1,0 +1,62 @@
+name: M1 mobile scene benchmark
+on:
+  push:
+    branches: [codex/mobile-beta-foundation]
+  workflow_dispatch:
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install headless Chromium (software WebGL)
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build matched sector-16 and sector-32 production variants
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp src/scene/city.ts /tmp/m1-city-after.ts
+          grep -F "register,'city-static',32);" src/scene/city.ts
+          sed -i "s/register,'city-static',32);/register,'city-static',16);/" src/scene/city.ts
+          grep -F "register,'city-static',16);" src/scene/city.ts
+          npm run build
+          mkdir -p m1-builds
+          mv dist m1-builds/before
+          cp /tmp/m1-city-after.ts src/scene/city.ts
+          git diff --exit-code -- src/scene/city.ts
+          npm run build
+          mv dist m1-builds/after
+      - name: Benchmark 10s warm-up + 30s samples and smoke four viewports
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --outDir m1-builds/before --host 127.0.0.1 --port 5189 --strictPort > /tmp/m1-before.log 2>&1 &
+          BEFORE_PID=$!
+          npx vite preview --outDir m1-builds/after --host 127.0.0.1 --port 5190 --strictPort > /tmp/m1-after.log 2>&1 &
+          AFTER_PID=$!
+          trap 'kill "$BEFORE_PID" "$AFTER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5189/ >/dev/null && curl -fsS http://127.0.0.1:5190/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5189/ >/dev/null
+          curl -fsS http://127.0.0.1:5190/ >/dev/null
+          node scripts/m1-browser-benchmark.mjs
+      - name: Upload screenshots and raw measurements (even on regression)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-production-benchmark-${{ github.sha }}
+          path: m1-artifacts/
+          retention-days: 14
+          if-no-files-found: warn
