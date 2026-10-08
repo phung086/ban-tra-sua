@@ -1,7 +1,7 @@
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import type {RendererFactory,SceneRenderer} from './renderDriver';
-import {AdaptiveQuality,type QualityChoice} from './renderQuality';
+import {AdaptiveQuality,constrainedHardware,mobileViewport,type QualityChoice} from './renderQuality';
 import {CITY_BLOCKS} from '../game/cityMap';
 import {contactShadow} from './worldAtmosphere';
 import { getCustomer } from "../game/engine";
@@ -98,7 +98,10 @@ export class StreetRuntime {
   ) {
     this.input = input;
     this.notify = notify;
-    this.qualityController=new AdaptiveQuality(quality,matchMedia('(max-width:700px)').matches);
+    const coarse=matchMedia('(pointer:coarse)').matches;
+    const small=mobileViewport(window.innerWidth,window.innerHeight,coarse);
+    const memory=(navigator as Navigator & {deviceMemory?:number}).deviceMemory;
+    this.qualityController=new AdaptiveQuality(quality,small,constrainedHardware(memory,navigator.hardwareConcurrency));
     this.renderer=factory(this.scene,this.camera,this.qualityController.profile);
     this.canvas=this.renderer.canvas;
     this.canvas.dataset.engine=this.renderer.name;
@@ -163,7 +166,7 @@ export class StreetRuntime {
     this.size = new ResizeObserver(() => {
       const { width, height } = container.getBoundingClientRect();
       if (width && height) {
-        const small=matchMedia('(max-width:700px)').matches;
+        const small=mobileViewport(window.innerWidth,window.innerHeight,matchMedia('(pointer:coarse)').matches);
         this.qualityController.mobile=small;
         if(this.qualityController.choice==='auto'&&small&&this.qualityController.index>1){
           this.qualityController.index=1;this.renderer.quality(this.qualityController.profile);
