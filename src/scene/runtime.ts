@@ -310,6 +310,8 @@ export class StreetRuntime {
       drag = null;
     });
     this.listen(this.canvas,'lostpointercapture',()=>{drag=null;});
+    this.listen(window,'orientationchange',()=>{drag=null;this.keys.clear();this.stick={x:0,y:0};});
+    this.listen(window,'resize',()=>{drag=null;this.stick={x:0,y:0};});
     this.resume();
   }
   listen(target: EventTarget, type: string, fn: EventListener) {
