@@ -26,9 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           cp src/scene/city.ts /tmp/m1-city-after.ts
-          grep -F "register,'city-static',32);" src/scene/city.ts
-          sed -i "s/register,'city-static',32);/register,'city-static',16);/" src/scene/city.ts
-          grep -F "register,'city-static',16);" src/scene/city.ts
+          grep -F "staticMergeSector=32;" src/scene/city.ts
+          sed -i "s/staticMergeSector=32;/staticMergeSector=16;/" src/scene/city.ts
+          grep -F "staticMergeSector=16;" src/scene/city.ts
           npm run build
           mkdir -p m1-builds
           mv dist m1-builds/before
