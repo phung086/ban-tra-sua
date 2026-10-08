@@ -67,6 +67,7 @@ function scooter(w: Workshop, color: string, rider = true) {
 }
 export class CityWorld {
   root = new T.Group(); traffic: T.Group[] = []; residents: Person[] = [];
+  readonly staticMergeSector=32; // light-overview batching experiment; baseline CI substitutes 16
   lamps = new T.Group(); projects = new Map<string, T.Group>();
   storyProps=new Map<string,T.Group>();
   neighbors=new Map<ResidentId,{person:Person;marker:T.Group;label:T.Mesh}>();
@@ -198,7 +199,7 @@ export class CityWorld {
     this.rain = new T.Points(geometry, material); root.add(this.rain);
     const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
     this.traffic.forEach((vehicle,i)=>mergeRigid(vehicle,[],register,`traffic:${i}`));
-    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',32);
+    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
     if (motion) this.clock += dt;
