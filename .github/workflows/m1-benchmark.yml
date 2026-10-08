@@ -1,7 +1,7 @@
 name: M1 mobile scene benchmark
 on:
   push:
-    branches: [codex/mobile-beta-foundation]
+    branches: [codex/mobile-beta-foundation, codex/m1-benchmark-gate-isolated]
   workflow_dispatch:
 
 jobs:
