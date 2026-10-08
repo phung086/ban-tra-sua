@@ -157,7 +157,21 @@ for(const quality of ['light','balanced']) {
     const reduction=(a.drawCallsMean-b.drawCallsMean)/a.drawCallsMean*100;
     const p95Delta=(b.intervalP95-a.intervalP95)/a.intervalP95*100;
     console.log('M1 COMPARISON '+JSON.stringify({quality,drawCallReductionPercent:round(reduction),p95IntervalDeltaPercent:round(p95Delta),before:a.drawCallsMean,after:b.drawCallsMean}));
-    if(quality==='light'&&(reduction<40||p95Delta>10)) console.error('M1 GATE UNMET: light overview threshold (do not advance M2)');
+    if(quality==='light'&&(reduction<40||p95Delta>10)) {
+      failures.push({quality,gate:'overview-light',error:'Draw calls must drop at least 40% and P95 frame interval must not grow more than 10%',drawCallReductionPercent:round(reduction),p95IntervalDeltaPercent:round(p95Delta)});
+      console.error('M1 GATE UNMET: light overview threshold (do not advance M2)');
+    }
   } else failures.push({quality,error:'Missing comparable overview samples'});
 }
+// The workflow must fail closed when evidence is missing or outside the M1 gate.
+await writeFile(path.join(output,'gate.json'),JSON.stringify({
+  passed:failures.length===0,
+  failures,
+  comparisons: ['light','balanced'].map(quality=>{
+    const before=overview(quality);
+    const after=results.find(r=>r.variant==='after-sector-32'&&r.quality===quality&&r.mode==='overview');
+    return {quality,drawCallReductionPercent:before&&after?round((before.drawCallsMean-after.drawCallsMean)/before.drawCallsMean*100):null,
+      p95IntervalDeltaPercent:before&&after?round((after.intervalP95-before.intervalP95)/before.intervalP95*100):null};
+  })
+},null,2));
 if(failures.length)process.exitCode=1;
