@@ -7,7 +7,7 @@ const base = process.env.M1_BASE_URL || 'http://127.0.0.1:5189';
 const changed = process.env.M1_CHANGED_URL || 'http://127.0.0.1:5190';
 const output = process.env.M1_OUTPUT || 'm1-artifacts';
 const WARMUP_MS = 10_000, SAMPLE_MS = 30_000;
-const variants = [{ name: 'before-sector-16', url: base }, {name: 'after-sector-32', url: changed}];
+const variants = [{ name: 'before-sector-16', url: base }, {name: 'after-light-shadow-budget', url: changed}];
 const viewports = [{width:360,height:800}, {width:390,height:844}, {width:844,height:390}, {width:1280,height:800}];
 const percent = (values, p) => {
   const sorted=[...values].sort((a,b)=>a-b);
@@ -41,6 +41,9 @@ try {
         try {
           await page.goto(variant.url+'/?m1bench=1',{waitUntil:'networkidle',timeout:120000});
           await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',null,{timeout:90000});
+          const shadowMapEnabled=await page.evaluate(()=>window.__m1Runtime.renderer.renderer.shadowMap.enabled);
+          const expectedShadows=variant.name==='before-sector-16'||quality!=='light';
+          if(shadowMapEnabled!==expectedShadows)throw new Error('Shadow profile mismatch: '+id+' expected '+expectedShadows+' got '+shadowMapEnabled);
           if (errors.length) console.log('M1 CONSOLE '+id+': '+errors.join('; ').slice(0,500));
           const initialResources=await page.evaluate(()=>{
             const resources=performance.getEntriesByType('resource');
@@ -74,7 +77,7 @@ try {
                 heap:performance.memory?.usedJSHeapSize??null
               }));
               if(!snap.frames.length)throw new Error('No frame samples: '+id+' '+mode);
-              const entry={variant:variant.name,quality,viewport,mode,engine:snap.engine,
+              const entry={variant:variant.name,quality,viewport,mode,engine:snap.engine,shadowMapEnabled,
                 count:snap.frames.length,
                 intervalP50:round(percent(snap.frames.map(f=>f.intervalMs),.5)),
                 intervalP95:round(percent(snap.frames.map(f=>f.intervalMs),.95)),
@@ -146,13 +149,15 @@ try {
   await writeFile(path.join(output,'results.json'),JSON.stringify({results,failures,environment:{
     userAgent:'Chromium Playwright SwiftShader headless CI (not real mobile GPU)',
     warmupMs:WARMUP_MS,sampleMs:SAMPLE_MS,dpr:1,
-    gpuTiming:'unsupported',drawCalls:'Three.js renderer.info.render.calls (main plus refreshed shadow passes)'
+    gpuTiming:'unsupported',drawCalls:'Three.js renderer.info.render.calls (main plus refreshed shadow passes when enabled)',
+    baselineSource:'79f596d714ea3ebdbcf85878ccdd9e3675d7b562 with city sector 16; renderer and batching pinned',
+    afterSource:'HEAD city sector 16 plus light profile no directional shadow map'
   }},null,2));
   await browser.close();
 }
 const overview = q => results.find(r=>r.variant==='before-sector-16'&&r.quality===q&&r.mode==='overview');
 for(const quality of ['light','balanced']) {
-  const a=overview(quality),b=results.find(r=>r.variant==='after-sector-32'&&r.quality===quality&&r.mode==='overview');
+  const a=overview(quality),b=results.find(r=>r.variant==='after-light-shadow-budget'&&r.quality===quality&&r.mode==='overview');
   if(a&&b) {
     const reduction=(a.drawCallsMean-b.drawCallsMean)/a.drawCallsMean*100;
     const p95Delta=(b.intervalP95-a.intervalP95)/a.intervalP95*100;
@@ -169,7 +174,7 @@ await writeFile(path.join(output,'gate.json'),JSON.stringify({
   failures,
   comparisons: ['light','balanced'].map(quality=>{
     const before=overview(quality);
-    const after=results.find(r=>r.variant==='after-sector-32'&&r.quality===quality&&r.mode==='overview');
+    const after=results.find(r=>r.variant==='after-light-shadow-budget'&&r.quality===quality&&r.mode==='overview');
     return {quality,drawCallReductionPercent:before&&after?round((before.drawCallsMean-after.drawCallsMean)/before.drawCallsMean*100):null,
       p95IntervalDeltaPercent:before&&after?round((after.intervalP95-before.intervalP95)/before.intervalP95*100):null};
   })
