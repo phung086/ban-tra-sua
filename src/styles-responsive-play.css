@@ -330,3 +330,27 @@
     gap: 3px; font-size: 10px;
   }
 }
+
+/* Tutorials, settings and feedback must stay reachable on phones shorter than
+   their unscaled dialog content. Scroll the panel, never shrink tap targets. */
+.app-shell[data-play-layout="landscape"] .play-coach-backdrop {
+  padding: max(5px,var(--play-safe-top)) max(8px,var(--play-safe-right))
+           max(5px,var(--play-safe-bottom)) max(8px,var(--play-safe-left));
+  overflow-y: auto; overscroll-behavior: contain; align-items: safe center;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card {
+  width: min(540px,100%); max-height: calc(var(--play-viewport-height,100dvh) - 12px - var(--play-safe-top) - var(--play-safe-bottom));
+  overflow-y: auto; padding: 13px 18px; margin: auto;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card .coach-emoji {
+  font-size: 22px; margin: 2px 0 6px;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card h2 { font-size: 19px; margin: 4px 0 8px; }
+.app-shell[data-play-layout="landscape"] .play-coach-card p { font-size: 12px; line-height: 1.55; }
+.app-shell[data-play-layout="landscape"] .coach-dots { margin: 10px 0; }
+.app-shell[data-play-layout="landscape"] .coach-actions button { min-height: 44px; }
+.app-shell[data-play-layout="landscape"] .serve-celebration {
+  max-width: min(470px,calc(100vw - 28px)); bottom: max(6px,var(--play-safe-bottom));
+  padding: 8px 12px; gap: 7px; font-size: 11px;
+}
+.app-shell[data-play-layout="landscape"] .serve-celebration b { font-size: 16px; }
