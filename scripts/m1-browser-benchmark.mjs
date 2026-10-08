@@ -119,8 +119,16 @@ try {
           if(!opened.includes('sheet-open'))throw new Error('Notebook did not open');
           await page.getByRole('button',{name:/Thu gọn để đi phố/}).click();
           // Complete one genuine React gameplay loop: return -> open -> seal -> carry -> deliver.
-          await page.getByRole('button',{name:/Về tiệm/}).click();
-          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,null,{timeout:45000});
+          try {
+            await page.getByRole('button',{name:/Về tiệm/}).click();
+            await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,null,{timeout:45000});
+          } catch(error) {
+            failures.push({id,phase:'city-return',error:String(error)});
+          }
+          // A reload restores the actual shop spawn for a separate craft smoke.
+          // A city-return failure above remains a benchmark failure.
+          await page.reload({waitUntil:'networkidle',timeout:120000});
+          await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',null,{timeout:90000});
           await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:15000});
           await page.locator('.craft-stations button').nth(3).click();
           await page.locator('.seal-button').click();
