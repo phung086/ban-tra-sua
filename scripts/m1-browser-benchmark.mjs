@@ -41,6 +41,22 @@ try {
         try {
           await page.goto(variant.url+'/?m1bench=1',{waitUntil:'networkidle',timeout:120000});
           await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',null,{timeout:90000});
+          // Assert that batching preserved actual interactive NPC nodes and moving traffic.
+          // This is structural smoke only; interaction and physical collision require separate tests.
+          const sceneIntegrity=await page.evaluate(()=>{
+            const r=window.__m1Runtime, neighbors=[...r.city.neighbors.entries()];
+            return {npcCount:neighbors.length,
+              missingNpc:neighbors.filter(([id,n])=>
+                n.person.root.parent!==r.city.root||
+                n.marker.parent!==r.city.root||
+                n.person.root.userData.resident!==id).map(([id])=>id),
+              trafficCount:r.city.traffic.length,
+              missingTraffic:r.city.traffic.filter(v=>v.parent!==r.city.root).length};
+          });
+          if(sceneIntegrity.npcCount<3||sceneIntegrity.missingNpc.length||
+            sceneIntegrity.trafficCount<6||sceneIntegrity.missingTraffic)
+            throw new Error('Scene NPC/traffic integrity failed: '+JSON.stringify(sceneIntegrity));
+          console.log('M1 SCENE INTEGRITY '+JSON.stringify({id,...sceneIntegrity}));
           if (errors.length) console.log('M1 CONSOLE '+id+': '+errors.join('; ').slice(0,500));
           const initialResources=await page.evaluate(()=>{
             const resources=performance.getEntriesByType('resource');
@@ -152,6 +168,7 @@ try {
           if(viewport.width===360) try {
             await page.getByRole('button',{name:/Về tiệm/}).click();
             await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,null,{timeout:150000});
+            console.log('M1 RETURN OK '+id);
           } catch(error) {
             failures.push({id,phase:'city-return',error:String(error)});
           } else console.log('M1 RETURN NOT CHECKED '+id);
