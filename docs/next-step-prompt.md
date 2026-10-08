@@ -1,4 +1,4 @@
-# Next step: M1.1l — verify resilient production screenshots and balanced/follow regressions
+# Next step: M1.1m — investigate follow-sector culling after benchmark success
 
 Check latest remote SHA and CI (including benchmark script syntax preflight). Inspect the new M1 benchmark run, `results.json.failures`, `M1 IMAGE` capture-source logs, and directly compare before/after overview and follow screenshots at 390×844 light/balanced; confirm 1280×800 follow image that timed out in #37807971947. If the page capture falls back, label it canvas-only (not HUD evidence). If both capture paths fail, fix without hiding the failure.
 
