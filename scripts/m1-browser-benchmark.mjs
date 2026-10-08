@@ -204,6 +204,36 @@ try {
             if(wall.z < -9.94 || wall.z > -9.67 || Math.abs(wall.x) > 0.1)
               throw new Error('City wall collision failed: '+JSON.stringify(wall));
             console.log('M1 WALL COLLISION OK '+JSON.stringify({id,position:wall}));
+
+            // Keep the actual scooter stationary as a reproducible traffic fixture.
+            // Movement still uses the runtime analog input and collision solver.
+            await page.evaluate(()=>{
+              const r=window.__m1Runtime, scooter=r.city.traffic[0];
+              r.motion=false;
+              scooter.userData.roadProgress=38;
+              scooter.position.set(0,0,-22.5);
+              r.player={x:0,z:-20.7};r.path=[];r.yaw=0;r.overview=false;
+              r.notify({...r.player});
+              r.analog({x:0,y:-1});
+            });
+            try {
+              await page.waitForFunction(()=>window.__m1Runtime.player.z < -21.15,
+                null,{timeout:30000,polling:500});
+              await sleep(6000);
+            } finally {
+              await page.evaluate(()=>window.__m1Runtime?.analog({x:0,y:0}));
+            }
+            const traffic=await page.evaluate(()=>{
+              const r=window.__m1Runtime;
+              return {position:{...r.player},vehicle:{...r.city.trafficBodies[0]},stick:{...r.stick}};
+            });
+            // Scooter #0: z=-22.5, yaw=PI/2, width=.64, PLAYER_RADIUS=.38.
+            if(traffic.position.z < -21.86 || traffic.position.z > -21.15 ||
+              Math.abs(traffic.position.x) > .12 ||
+              Math.abs(traffic.vehicle.x) > .01 || Math.abs(traffic.vehicle.z+22.5) > .01 ||
+              traffic.stick.x!==0 || traffic.stick.y!==0)
+              throw new Error('City traffic collision failed: '+JSON.stringify(traffic));
+            console.log('M1 VEHICLE COLLISION OK '+JSON.stringify({id,...traffic}));
           }
           // Complete one genuine React gameplay loop: return -> open -> seal -> carry -> deliver.
           if(viewport.width===360) try {
