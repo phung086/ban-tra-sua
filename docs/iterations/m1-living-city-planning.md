@@ -27,3 +27,8 @@ M1.1 remains **NOT ACCEPTED** until same-config production benchmark, NPC/vehicl
 ## Next active task (unchanged)
 
 The only active implementation prompt remains [`docs/next-step-prompt.md`](../next-step-prompt.md), **M1.1i**: inspect benchmark #37790199266 artifacts/logs, diagnose failures or regression, rerun before/after and complete gameplay smoke. Do not start day engine or LC feature work before the mandated gates.
+
+
+## Follow-up after initial check
+
+Benchmark [#37790199266](https://github.com/phung086/ban-tra-sua/actions/runs/37790199266) subsequently finished **failure** on code SHA `1d664a87`; the specific NPC dialogue close-button lookup `/Để lát nhé/` timed out at `m1-browser-benchmark.mjs:186` for both light variants. No claim of NPC/wall behavioral smoke passing. This remains separate from the docs-only CI status. [Current M1.1 next-step](../next-step-prompt.md) has been refreshed; device blockers remain.
