@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { layoutIsMobile, selectPlayLayout } from "./game/playLayout";
 import { Neighborhood } from './components/Neighborhood';
 import { cityAction, walkCity, type CityAction } from './game/city';
 import { CITY_PLACES, nearCityPlace, type CityPlace } from './game/cityMap';
@@ -51,10 +52,35 @@ function App() {
   useEffect(()=>{duckMusic(!!talking);},[talking]);
   const [sheetOpen,setSheetOpen]=useState(false);
   const [cityPanel,setCityPanel]=useState<'tasks'|'map'|'orders'|'community'|'leisure'>('tasks');
-  const [mobile,setMobile]=useState(()=>matchMedia('(max-width: 900px)').matches);
+  // A landscape phone can be wider than 900 CSS pixels. Keep controls and
+  // notebook mobile-sized across rotation without remounting the 3D renderer.
+  const [playLayout,setPlayLayout]=useState(()=>
+    selectPlayLayout(window.innerWidth,window.innerHeight,matchMedia('(pointer: coarse)').matches));
+  const mobile=layoutIsMobile(playLayout);
   useEffect(()=>{
-    const media=matchMedia('(max-width: 900px)'),change=()=>setMobile(media.matches);
-    media.addEventListener('change',change);return()=>media.removeEventListener('change',change);
+    const coarse=matchMedia('(pointer: coarse)');
+    let raf=0;
+    const sync=()=>{
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{
+        const height=window.visualViewport?.height||window.innerHeight;
+        document.documentElement.style.setProperty('--play-viewport-height',Math.max(200,Math.round(height))+'px');
+        setPlayLayout(selectPlayLayout(window.innerWidth,window.innerHeight,coarse.matches));
+      });
+    };
+    sync();
+    window.addEventListener('resize',sync);
+    window.addEventListener('orientationchange',sync);
+    window.visualViewport?.addEventListener('resize',sync);
+    coarse.addEventListener('change',sync);
+    return()=>{
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize',sync);
+      window.removeEventListener('orientationchange',sync);
+      window.visualViewport?.removeEventListener('resize',sync);
+      coarse.removeEventListener('change',sync);
+      document.documentElement.style.removeProperty('--play-viewport-height');
+    };
   },[]);
   const doStory=(action:StoryAction)=>setGame(state=>storyAction(state,action,position));
   const doLife=(action:LifeAction)=>setGame(state=>lifeAction(state,action,position));
@@ -145,7 +171,7 @@ function App() {
     setTalking(null);setSheetOpen(false);
   };
   return (
-    <main className={`app-shell season-${season.id} ${exploring&&screen==='shop'?'exploring-city':''}`}>
+    <main data-play-layout={playLayout} className={`app-shell season-${season.id} ${exploring&&screen==='shop'?'exploring-city':''}`}>
       {talking&&<NeighborhoodDialogue key={talking} id={talking} game={game} onClose={()=>setTalking(null)} onAction={doStory} onNavigate={navigateCity}/>}
       <PlayCoach />
       <GameSettings />
