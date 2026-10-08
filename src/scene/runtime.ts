@@ -38,6 +38,15 @@ export class StreetRuntime {
   renderer: SceneRenderer;
   qualityController:AdaptiveQuality;
   renderSamples=0;renderMs=0;frameMs=0;
+  // Opt-in, bounded profiling buffer. Never updates React and remains off for normal play.
+  readonly m1Capture = typeof location !== 'undefined' && new URLSearchParams(location.search).has('m1bench');
+  readonly m1Frames: {intervalMs:number;simulationMs:number;submissionMs:number;calls:number;triangles:number}[] = [];
+  m1Snapshot() {
+    let skeletons=0;
+    this.scene.traverse(object=>{if(object instanceof T.SkinnedMesh) skeletons++;});
+    const memory=this.renderer instanceof ThreeSceneRenderer ? this.renderer.renderer.info.memory : null;
+    return {frames:[...this.m1Frames],memory:memory?{geometries:memory.geometries,textures:memory.textures}:null,skeletons,engine:this.renderer.name,quality:this.qualityController.profile.id,overview:this.overview,player:{...this.player}};
+  }
   submissions=0;submittedTriangles=0;
   sceneColor=new T.Color();
   scene = new T.Scene();
@@ -160,6 +169,7 @@ export class StreetRuntime {
     );
     this.scene.add(this.camera);
     container.appendChild(this.canvas);
+    if(this.m1Capture) (window as Window & {__m1Runtime?:StreetRuntime}).__m1Runtime=this;
     this.size = new ResizeObserver(() => {
       const { width, height } = container.getBoundingClientRect();
       if (width && height) {
@@ -578,7 +588,12 @@ export class StreetRuntime {
     this.camera.far=this.overview?300:this.qualityController.profile.distance;
     const fog=this.scene.fog as T.Fog;fog.near=this.overview?135:this.camera.far*.68;fog.far=this.overview?290:this.camera.far*.98;
     this.camera.updateProjectionMatrix();
+    const submitStart= this.m1Capture ? performance.now() : 0;
     this.renderer.render(this.scene, this.camera);
+    if(this.m1Capture){
+      this.m1Frames.push({intervalMs:frameInterval,simulationMs:submitStart-renderStart,submissionMs:performance.now()-submitStart,calls:this.renderer.info.calls,triangles:this.renderer.info.triangles});
+      if(this.m1Frames.length>1500)this.m1Frames.splice(0,this.m1Frames.length-1500);
+    }
     this.submissions+=this.renderer.info.calls;this.submittedTriangles+=this.renderer.info.triangles;
     const cpu=performance.now()-renderStart;
     this.renderMs=this.renderMs?this.renderMs*.95+cpu*.05:cpu;
@@ -602,6 +617,7 @@ export class StreetRuntime {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    if(this.m1Capture){const benchWindow=window as Window & {__m1Runtime?:StreetRuntime};if(benchWindow.__m1Runtime===this)delete benchWindow.__m1Runtime;}
     cancelAnimationFrame(this.raf);
     this.size.disconnect();
     this.intersection.disconnect();
