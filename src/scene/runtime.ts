@@ -1,7 +1,7 @@
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import type {RendererFactory,SceneRenderer} from './renderDriver';
-import {AdaptiveQuality,type QualityChoice} from './renderQuality';
+import {AdaptiveQuality,castCityShadow,type QualityChoice} from './renderQuality';
 import {CITY_BLOCKS} from '../game/cityMap';
 import {contactShadow} from './worldAtmosphere';
 import { getCustomer } from "../game/engine";
@@ -388,6 +388,7 @@ export class StreetRuntime {
     this.sceneColor.set(night?'#38445c':rainy?'#b7c9cf':'#c8dde9');
     (this.scene.fog as T.Fog).color.copy(this.sceneColor);
     this.sun.intensity=night?0.35:rainy?1.15:2.7;
+    this.sun.castShadow=castCityShadow(this.qualityController.profile.id,this.input.exploring,this.overview,this.city.staticMergeSector);
     this.ambient.intensity=night?0.65:rainy?0.85:0.65;
     const focusX=this.input.exploring?(this.overview?0:this.player.x):0;
     const focusZ=this.input.exploring?(this.overview?-47:this.player.z):0;
