@@ -42,10 +42,10 @@ export class StreetRuntime {
   readonly m1Capture = typeof location !== 'undefined' && new URLSearchParams(location.search).has('m1bench');
   readonly m1Frames: {intervalMs:number;simulationMs:number;submissionMs:number;calls:number;triangles:number}[] = [];
   m1Snapshot() {
-    let skeletons=0;
-    this.scene.traverse(object=>{if(object instanceof T.SkinnedMesh) skeletons++;});
+    const skeletons=new Set<T.Skeleton>();
+    this.scene.traverse(object=>{if(object instanceof T.SkinnedMesh)skeletons.add(object.skeleton);});
     const memory=this.renderer instanceof ThreeSceneRenderer ? this.renderer.renderer.info.memory : null;
-    return {frames:[...this.m1Frames],memory:memory?{geometries:memory.geometries,textures:memory.textures}:null,skeletons,engine:this.renderer.name,quality:this.qualityController.profile.id,overview:this.overview,player:{...this.player}};
+    return {frames:[...this.m1Frames],memory:memory?{geometries:memory.geometries,textures:memory.textures}:null,skeletons:skeletons.size,engine:this.renderer.name,quality:this.qualityController.profile.id,overview:this.overview,player:{...this.player}};
   }
   submissions=0;submittedTriangles=0;
   sceneColor=new T.Color();
