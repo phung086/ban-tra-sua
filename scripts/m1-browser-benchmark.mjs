@@ -164,6 +164,47 @@ try {
           const opened=await page.locator('.neighborhood').getAttribute('class');
           if(!opened.includes('sheet-open'))throw new Error('Notebook did not open');
           await page.getByRole('button',{name:/Thu gọn để đi phố/}).click();
+          // Exercise React NPC dialogue and the runtime's actual collision solver.
+          // Only the initial position is a fixture; the UI choice and movement use
+          // real gameplay handlers. A structural NPC count is not sufficient.
+          if(viewport.width===390 && quality==='light') {
+            await page.evaluate(()=>{
+              const r=window.__m1Runtime;
+              r.player={x:-26,z:-9};r.path=[];r.overview=false;
+              r.notify({...r.player});
+            });
+            await page.getByRole('button',{name:/Nói chuyện với Cô Hạnh/}).click({timeout:30000});
+            const dialogue=page.locator('dialog.neighborhood-dialogue[open]');
+            await dialogue.waitFor({state:'visible',timeout:30000});
+            const firstSpeech=await dialogue.locator('.dialogue-speech').textContent();
+            if(!firstSpeech?.trim())throw new Error('NPC dialogue speech empty');
+            await dialogue.locator('.dialogue-choices button').first().click({timeout:30000});
+            await page.waitForFunction(previous=>{
+              const speech=document.querySelector('dialog.neighborhood-dialogue[open] .dialogue-speech');
+              return !!speech?.textContent && speech.textContent!==previous;
+            },firstSpeech,{timeout:30000});
+            await dialogue.getByRole('button',{name:/Để lát nhé/}).click({timeout:30000});
+            await page.waitForFunction(()=>!document.querySelector('dialog.neighborhood-dialogue[open]') &&
+              !window.__m1Runtime?.input.paused,null,{timeout:30000});
+            console.log('M1 NPC DIALOGUE OK '+id);
+            await page.evaluate(()=>{
+              const r=window.__m1Runtime;
+              r.player={x:0,z:-9.6};r.path=[];r.yaw=0;r.overview=false;
+              r.notify({...r.player});
+              r.analog({x:0,y:-1});
+            });
+            try {
+              await page.waitForFunction(()=>window.__m1Runtime.player.z < -9.67,null,{timeout:30000,polling:500});
+              await sleep(6000);
+            } finally {
+              await page.evaluate(()=>window.__m1Runtime?.analog({x:0,y:0}));
+            }
+            const wall=await page.evaluate(()=>({...window.__m1Runtime.player}));
+            // CITY_BLOCKS front edge z=-10.3, PLAYER_RADIUS=.38: center stops near -9.92.
+            if(wall.z < -9.94 || wall.z > -9.67 || Math.abs(wall.x) > 0.1)
+              throw new Error('City wall collision failed: '+JSON.stringify(wall));
+            console.log('M1 WALL COLLISION OK '+JSON.stringify({id,position:wall}));
+          }
           // Complete one genuine React gameplay loop: return -> open -> seal -> carry -> deliver.
           if(viewport.width===360) try {
             await page.getByRole('button',{name:/Về tiệm/}).click();
