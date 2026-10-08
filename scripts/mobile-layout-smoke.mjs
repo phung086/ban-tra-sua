@@ -7,7 +7,7 @@ import path from 'node:path';
 const output = process.env.MOBILE_LAYOUT_OUTPUT || 'mobile-layout-artifacts';
 const base = process.env.MOBILE_LAYOUT_URL || 'http://127.0.0.1:5192';
 const sizes = [
-  [360,800],[390,844],[844,390],[932,430],[667,375],[1024,480],[1280,800]
+  [320,568],[360,800],[390,844],[844,390],[932,430],[667,375],[568,320],[1024,480],[1280,800]
 ];
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const browser=await chromium.launch({headless:true,args:[
@@ -92,6 +92,21 @@ try{
     await page.screenshot({path:path.join(output,'shop-'+width+'x'+height+'.png'),animations:'disabled',timeout:90000});
     console.log('MOBILE_LAYOUT '+JSON.stringify(info));
   }
+  await page.setViewportSize({width:844,height:390});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  await page.waitForFunction(()=>window.__m1Runtime || document.querySelector('.world-viewport canvas'));
+  // Begin dragging, rotate before pointerup, and verify that the controls release.
+  const joystick=page.locator('.movement-stick');
+  const joyRect=await joystick.boundingBox();
+  assert(!!joyRect,'Joystick missing before rotation');
+  await page.mouse.move(joyRect.x+joyRect.width/2,joyRect.y+joyRect.height/2);
+  await page.mouse.down();
+  await page.mouse.move(joyRect.x+joyRect.width*.8,joyRect.y+joyRect.height*.3);
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait');
+  await page.waitForFunction(()=>document.querySelector('.movement-stick')?.dataset.active==='false',null,{timeout:10000});
+  await page.mouse.up();
+  report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
