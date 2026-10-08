@@ -3,6 +3,7 @@ import {ThreeSceneRenderer} from './threeRenderer';
 import type {RendererFactory,SceneRenderer} from './renderDriver';
 import {AdaptiveQuality,castCityShadow,type QualityChoice} from './renderQuality';
 import {CITY_BLOCKS} from '../game/cityMap';
+import { layoutIsMobile, selectPlayLayout } from '../game/playLayout';
 import {contactShadow} from './worldAtmosphere';
 import { getCustomer } from "../game/engine";
 import {
@@ -23,6 +24,12 @@ import { deliveryBag, dressBarista,errandCargo,fishingRod } from './cityDetails'
 import {movementVector,slideMove,type Stick} from '../game/movement';
 import {RESIDENTS,missionDefinition,type ResidentId} from '../game/neighborhoodStories';
 import {nearCityPlace} from '../game/cityMap';
+
+// A wide phone in landscape (e.g. 932px) is still a mobile GPU. Mirror
+// the responsive game layout instead of a hard 700px CSS breakpoint.
+function isMobileSceneViewport() {
+  return layoutIsMobile(selectPlayLayout(window.innerWidth,window.innerHeight,matchMedia('(pointer: coarse)').matches));
+}
 
 type Input = {
   game: GameState;
@@ -107,7 +114,7 @@ export class StreetRuntime {
   ) {
     this.input = input;
     this.notify = notify;
-    this.qualityController=new AdaptiveQuality(quality,matchMedia('(max-width:700px)').matches);
+    this.qualityController=new AdaptiveQuality(quality,isMobileSceneViewport());
     this.renderer=factory(this.scene,this.camera,this.qualityController.profile);
     this.canvas=this.renderer.canvas;
     this.canvas.dataset.engine=this.renderer.name;
@@ -173,7 +180,7 @@ export class StreetRuntime {
     this.size = new ResizeObserver(() => {
       const { width, height } = container.getBoundingClientRect();
       if (width && height) {
-        const small=matchMedia('(max-width:700px)').matches;
+        const small=isMobileSceneViewport();
         this.qualityController.mobile=small;
         if(this.qualityController.choice==='auto'&&small&&this.qualityController.index>1){
           this.qualityController.index=1;this.renderer.quality(this.qualityController.profile);
