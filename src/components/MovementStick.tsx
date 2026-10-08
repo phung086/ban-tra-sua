@@ -12,9 +12,13 @@ export function MovementStick({onMove,disabled=false}:{onMove:(stick:Stick)=>voi
     latest.current({x:0,y:0});
   };
   const update=(x:number,y:number)=>{
-    const dx=x-center.current.x,dy=y-center.current.y,length=Math.hypot(dx,dy),clamp=Math.min(1,42/Math.max(1,length));
+    const dx=x-center.current.x,dy=y-center.current.y,length=Math.hypot(dx,dy);
+    // Fit the travel radius to CSS-controlled joystick dimensions after rotation.
+    // Keep the knob inside the round base on 320px-high landscape displays.
+    const radius=Math.max(12,((base.current?.clientWidth??116)-(knob.current?.offsetWidth??53))/2);
+    const clamp=Math.min(1,radius/Math.max(1,length));
     if(knob.current) knob.current.style.transform=`translate(${dx*clamp}px,${dy*clamp}px)`;
-    latest.current(normalizeStick(dx,dy));
+    latest.current(normalizeStick(dx,dy,radius));
   };
   useEffect(()=>{
     const stop=()=>reset();
