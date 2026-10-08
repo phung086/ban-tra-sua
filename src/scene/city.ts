@@ -199,7 +199,10 @@ export class CityWorld {
     this.rain = new T.Points(geometry, material); root.add(this.rain);
     const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
     this.traffic.forEach((vehicle,i)=>mergeRigid(vehicle,[],register,`traffic:${i}`));
-    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector);
+    // Preserve 16-unit culling granularity around the starting shop in the
+    // optimized sector-32 variant; the sector-16 baseline remains unchanged.
+    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:35,sectorSize:16}:undefined;
+    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector,nearShop);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
     if (motion) this.clock += dt;

@@ -59,6 +59,33 @@ describe("static prop batching", () => {
     expect(merged[0].geometry.getAttribute('position').count).toBeGreaterThan(100);
     allocated.forEach(g=>g.dispose()); originals.forEach(m=>m.geometry.dispose());eye.geometry.dispose();material.dispose();
   });
+  it("keeps smaller batches near the shop while preserving all static geometry", () => {
+    const measure=(nearFocus?:{x:number;z:number;radius:number;sectorSize:number})=>{
+      const root=new T.Group(),material=new T.MeshStandardMaterial(),geometry=new T.BoxGeometry(2,1,2);
+      const pieces=[2,10,18,26,42,50,58,66].map(x=>{
+        const mesh=new T.Mesh(geometry,material);
+        mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+      });
+      root.updateMatrixWorld(true);
+      const expected=new T.Box3();
+      pieces.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+      const allocated:T.BufferGeometry[]=[];
+      const merged=mergeRigid(root,[],(_,factory)=>{
+        const g=factory();allocated.push(g);return g;
+      },'near-test',32,nearFocus);
+      const actual=new T.Box3().setFromObject(root,true);
+      for(const axis of ['x','y','z'] as const) {
+        expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+        expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+      }
+      expect(pieces[7].parent).toBe(root); // single distant prop stays visible
+      const count=merged.length;
+      allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+      return count;
+    };
+    expect(measure()).toBe(2);
+    expect(measure({x:0,z:-7,radius:35,sectorSize:16})).toBe(3);
+  });
   it("preserves world transforms while batching repeated geometry", () => {
     const root = new T.Group(),
       group = new T.Group();
