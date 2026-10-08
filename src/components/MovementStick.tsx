@@ -23,7 +23,10 @@ export function MovementStick({onMove,disabled=false}:{onMove:(stick:Stick)=>voi
   useEffect(()=>{
     const stop=()=>reset();
     window.addEventListener('blur',stop); document.addEventListener('visibilitychange',stop);
-    return ()=>{stop();window.removeEventListener('blur',stop);document.removeEventListener('visibilitychange',stop);};
+    // Browser rotation can preserve a captured pointer without a pointerup.
+    window.addEventListener('resize',stop); window.addEventListener('orientationchange',stop);
+    return ()=>{stop();window.removeEventListener('blur',stop);document.removeEventListener('visibilitychange',stop);
+      window.removeEventListener('resize',stop);window.removeEventListener('orientationchange',stop);};
   },[]);
   useEffect(()=>{if(disabled) reset();},[disabled]);
   return <div className="movement-stick-wrap"><div ref={base} className="movement-stick" role="group" aria-label="Núm tròn di chuyển. Kéo theo hướng muốn đi; thả để dừng. Phím mũi tên cũng dùng được." aria-disabled={disabled} tabIndex={disabled?-1:0}
