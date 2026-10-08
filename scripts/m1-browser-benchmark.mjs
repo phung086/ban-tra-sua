@@ -176,7 +176,19 @@ try {
           // A city-return failure above remains a benchmark failure.
           await page.reload({waitUntil:'networkidle',timeout:120000});
           await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',null,{timeout:90000});
-          await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:15000});
+          // SwiftShader can leave Playwright waiting for a navigation after a
+          // successful React click. Trigger the real enabled button and assert
+          // the shop UI transitions before crafting; do not bypass game rules.
+          await page.evaluate(()=>{
+            const button=document.querySelector('button.prep-open');
+            if(!(button instanceof HTMLButtonElement)||button.disabled)
+              throw new Error('Shop open button unavailable or disabled');
+            button.click();
+          });
+          await page.waitForFunction(() =>
+            !document.querySelector('button.prep-open') &&
+            !!document.querySelector('.craft-stations button'),
+            null,{timeout:30000,polling:250});
           await page.locator('.craft-stations button').nth(3).click();
           await page.locator('.seal-button').click();
           await page.locator('.serve-button').click();
