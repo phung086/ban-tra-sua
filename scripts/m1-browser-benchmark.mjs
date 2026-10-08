@@ -40,7 +40,7 @@ try {
         console.log('M1 START '+id);
         try {
           await page.goto(variant.url+'/?m1bench=1',{waitUntil:'networkidle',timeout:120000});
-          await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',{timeout:90000});
+          await page.waitForFunction(()=>window.__m1Runtime?.renderer?.name==='Three.js',null,{timeout:90000});
           if (errors.length) console.log('M1 CONSOLE '+id+': '+errors.join('; ').slice(0,500));
           const initialResources=await page.evaluate(()=>{
             const resources=performance.getEntriesByType('resource');
@@ -49,7 +49,7 @@ try {
               jsTransferBytes:resources.filter(r=>/\.js(?:$|\?)/.test(r.name)).reduce((sum,r)=>sum+r.transferSize,0)};
           });
           await page.getByRole('button',{name:/Khám phá khu phố/}).click({timeout:10000});
-          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===true,{timeout:20000});
+          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===true,null,{timeout:20000});
           await page.evaluate(()=>{
             const r=window.__m1Runtime;
             r.player={x:0,z:-7};r.path=[];r.overview=false;r.yaw=0;r.pitch=-0.23;
@@ -118,18 +118,18 @@ try {
           await page.getByRole('button',{name:/Thu gọn để đi phố/}).click();
           // Complete one genuine React gameplay loop: return -> open -> seal -> carry -> deliver.
           await page.getByRole('button',{name:/Về tiệm/}).click();
-          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,{timeout:45000});
+          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,null,{timeout:45000});
           await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:15000});
           await page.locator('.craft-stations button').nth(3).click();
           await page.locator('.seal-button').click();
           await page.locator('.serve-button').click();
           await page.screenshot({path:path.join(output,id+'-craft.png'),animations:'disabled'});
           await page.locator('.place-buttons button.destination').click();
-          await page.waitForFunction(()=>!!document.querySelector('.delivery-tag button.primary-button:not([disabled])'),{timeout:45000});
+          await page.waitForFunction(()=>!!document.querySelector('.delivery-tag button.primary-button:not([disabled])'),null,{timeout:45000});
           await page.locator('.delivery-tag button.primary-button').click();
           await page.waitForFunction(()=>{
             try{return JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').served>=1}catch{return false}
-          },{timeout:15000});
+          },null,{timeout:15000});
           const served=await page.evaluate(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')).served);
           await page.screenshot({path:path.join(output,id+'-delivered.png'),animations:'disabled'});
           if(errors.length)failures.push({id,errors});
