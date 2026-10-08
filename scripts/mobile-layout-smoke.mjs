@@ -82,10 +82,17 @@ try{
     await page.setViewportSize({width,height});
     const expected=width>height&&height<=650&&width<=1180?'landscape':width<=900?'portrait':'desktop';
     await page.waitForFunction(expected=>document.querySelector('main')?.dataset.playLayout===expected,expected,{timeout:12000});
-    await sleep(320);
+    // Wait for layout to settle after the Chromium viewport change. The
+    // software-rendered 3D frame may arrive later than DOM resize events.
+    if(expected==='landscape')await page.waitForFunction(()=>{
+      const el=document.querySelector('.street-world');if(!el)return false;
+      const r=el.getBoundingClientRect();
+      return r.top>=-2 && r.left>=-2 && r.right<=innerWidth+2 && r.bottom<=innerHeight+2;
+    },null,{timeout:15000});
+    await sleep(160);
+    await page.screenshot({path:path.join(output,'shop-'+width+'x'+height+'.png'),animations:'disabled',timeout:90000});
     const info=await layoutSnapshot(page,'shop-prep');
     console.log('MOBILE_LAYOUT_PROBE '+JSON.stringify(info));
-    await page.screenshot({path:path.join(output,'shop-'+width+'x'+height+'.png'),animations:'disabled',timeout:90000});
     validate(info,expected);
     const same=await page.evaluate(old=>old===document.querySelector('.world-viewport canvas'),canvasHandle);
     assert(same,'WebGL canvas remounted after rotating '+width+'x'+height);
