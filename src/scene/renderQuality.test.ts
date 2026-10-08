@@ -1,6 +1,28 @@
 import {describe,it,expect} from 'vitest';
-import {AdaptiveQuality} from './renderQuality';
+import {AdaptiveQuality,constrainedHardware,mobileViewport} from './renderQuality';
 describe('adaptive scene quality',()=>{
+  it('detects rotated touch phones without misclassifying wide desktop windows',()=>{
+    expect(mobileViewport(390,844,true)).toBe(true);
+    expect(mobileViewport(844,390,true)).toBe(true);
+    expect(mobileViewport(1280,800,false)).toBe(false);
+    expect(mobileViewport(844,390,false)).toBe(false);
+    expect(mobileViewport(360,800,false)).toBe(true);
+  });
+  it('starts constrained devices at light, retains that ceiling, honors manual overrides',()=>{
+    expect(constrainedHardware(4,8)).toBe(true);
+    expect(constrainedHardware(undefined,4)).toBe(true);
+    expect(constrainedHardware(undefined,undefined)).toBe(false);
+    expect(constrainedHardware(0,0)).toBe(false);
+    expect(constrainedHardware(8,8)).toBe(false);
+    const slowPhone=new AdaptiveQuality('auto',true,true);
+    expect(slowPhone.profile.id).toBe('light');
+    for(let i=0;i<600;i++)slowPhone.sample(34,7);
+    expect(slowPhone.profile.id).toBe('light');
+    const manual=new AdaptiveQuality('high',true,true);
+    expect(manual.profile.id).toBe('high');
+    const unknown=new AdaptiveQuality('auto',true,false);
+    expect(unknown.profile.id).toBe('balanced');
+  });
   it('reduces sustained slow frames and keeps a light floor',()=>{
     const quality=new AdaptiveQuality('auto',false);
     for(let i=0;i<90;i++)quality.sample(65,28);
