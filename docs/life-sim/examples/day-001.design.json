@@ -1,0 +1,201 @@
+{
+  "$comment": "DESIGN EXAMPLE ONLY — not mounted in game runtime; proposed schemaVersion 1.",
+  "schemaVersion": 1,
+  "id": "day-001",
+  "version": 1,
+  "title": "Mở mắt ở An Hòa",
+  "arc": "opening",
+  "priority": 100,
+  "cooldownDays": 0,
+  "eligible": [
+    {
+      "op": "day-eq",
+      "value": 1
+    }
+  ],
+  "places": [
+    "home",
+    "market",
+    "shop"
+  ],
+  "characters": [
+    "hanh",
+    "family-mother-mai"
+  ],
+  "assetBundle": null,
+  "beats": [
+    {
+      "id": "wake-1",
+      "phase": "waking",
+      "timeWindow": [
+        360,
+        600
+      ],
+      "condition": [],
+      "localizedText": "Sáng đầu tiên ở An Hòa. Chuông báo thức reo đúng giờ.",
+      "actions": [
+        "wake"
+      ],
+      "optional": false,
+      "failForward": "wake-late",
+      "exit": "breakfast"
+    },
+    {
+      "id": "breakfast",
+      "phase": "morning",
+      "timeWindow": [
+        390,
+        630
+      ],
+      "condition": [],
+      "localizedText": "Trong bếp còn chút gạo và một quả trứng.",
+      "actions": [
+        "cook",
+        "buyFood"
+      ],
+      "optional": true,
+      "failForward": "morning-tea",
+      "exit": "market-run"
+    },
+    {
+      "id": "market-run",
+      "phase": "morning",
+      "timeWindow": [
+        420,
+        780
+      ],
+      "condition": [],
+      "localizedText": "Cô Hạnh đang sắp những gói trà lên kệ.",
+      "actions": [
+        "talk",
+        "buyGroceries"
+      ],
+      "optional": true,
+      "failForward": "store-open",
+      "exit": "store-open"
+    },
+    {
+      "id": "store-open",
+      "phase": "shop",
+      "timeWindow": [
+        420,
+        1140
+      ],
+      "condition": [],
+      "localizedText": "Vị khách đầu tiên đợi bạn ở quầy.",
+      "actions": [
+        "openShop",
+        "serve"
+      ],
+      "optional": false,
+      "failForward": "store-close",
+      "exit": "store-close"
+    },
+    {
+      "id": "store-close",
+      "phase": "evening",
+      "timeWindow": [
+        1020,
+        1410
+      ],
+      "condition": [],
+      "localizedText": "Tiệm đóng cửa, tối nay sẽ ăn gì?",
+      "actions": [
+        "cook",
+        "eatOut",
+        "rest"
+      ],
+      "optional": false,
+      "failForward": "sleep",
+      "exit": "sleep"
+    },
+    {
+      "id": "sleep",
+      "phase": "sleep",
+      "timeWindow": [
+        1080,
+        1440
+      ],
+      "condition": [],
+      "localizedText": "Ghi lại điều đầu tiên về một ngày tự lập.",
+      "actions": [
+        "sleep"
+      ],
+      "optional": false,
+      "failForward": null,
+      "exit": null
+    }
+  ],
+  "choices": [
+    {
+      "id": "dinner-plan",
+      "beatId": "store-close",
+      "choices": [
+        {
+          "id": "cook-at-home",
+          "text": "Về nhà nấu cơm trứng.",
+          "condition": [],
+          "consequences": [
+            {
+              "type": "need",
+              "key": "satiety",
+              "delta": 35,
+              "ledgerKey": "d1:dinner:satiety"
+            },
+            {
+              "type": "flag",
+              "key": "ate-home-day1",
+              "value": true,
+              "ledgerKey": "d1:dinner:flag"
+            }
+          ],
+          "next": "sleep"
+        },
+        {
+          "id": "eat-at-ha",
+          "text": "Ra quán Hà ăn một bữa.",
+          "condition": [],
+          "consequences": [
+            {
+              "type": "schedule",
+              "key": "visit-ha",
+              "value": true,
+              "ledgerKey": "d1:dinner:ha"
+            },
+            {
+              "type": "flag",
+              "key": "met-ha-day1",
+              "value": true,
+              "ledgerKey": "d1:dinner:met"
+            }
+          ],
+          "next": "sleep"
+        }
+      ]
+    }
+  ],
+  "endings": [
+    "sleep"
+  ],
+  "transitions": [
+    {
+      "type": "flag",
+      "key": "first-day-started",
+      "value": true,
+      "ledgerKey": "d1:started"
+    }
+  ],
+  "fallback": {
+    "id": "calm-day",
+    "reason": "Missing home scene or missing budget must not block shop or sleep"
+  },
+  "qa": {
+    "needsSaveMigration": true,
+    "requiredFixtureNames": [
+      "new-game",
+      "cash-zero",
+      "existing-v3"
+    ],
+    "tested": false
+  }
+}

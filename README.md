@@ -1,5 +1,8 @@
 # 🧋 Tiệm Trà Chibi
 
+> **HƯỚNG PHÁT TRIỂN DÀI HẠN — LIFE SIM / OPEN CITY:** xem [World Bible](docs/life-sim/README.md), [30 ngày cốt truyện dự kiến](docs/life-sim/episode-catalog.md), [bản phân công và backlog cho nhiều AI](docs/life-sim/agents-and-delivery.md), [QA & performance gates](docs/life-sim/qa-and-content-standards.md) và [prompt chuyển giao AI](docs/life-sim/agent-start-prompt.md). **Đây là thiết kế, chưa phải 30 ngày playable.** Vẫn cần đóng M1 hiệu năng trước khi mở rộng scene 3D.
+
+
 Game web/PWA quản lý tiệm trà sữa **3D, tone hồng pastel, bối cảnh phố Việt Nam**, xây theo hướng data-driven. Tên Chibi được giữ trong tên dự án; nhân vật hiện tại là những người hàng xóm đa dạng, có chuyển động.
 
 Tiệm nằm trong **khu An Hòa hư cấu tại Hà Nội**. Bản mở rộng ưu tiên điện thoại: núm tròn analog, vuốt camera, gặp cư dân và làm việc trong xóm. Thành phố có **12 điểm đến**, thêm phố Lò Gốm, quảng trường Đông Phong, đường ven sông và sân đình Hạ. [Hướng dẫn khu phố](docs/hanoi-neighborhood.md).
