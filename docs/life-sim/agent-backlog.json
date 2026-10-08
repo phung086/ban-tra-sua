@@ -1,0 +1,887 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-08",
+  "repo": "phung086/ban-tra-sua",
+  "baselineMain": "ca3ecd794c1d4edf6d6882c10afa0dfe76de036e",
+  "designOnly": true,
+  "gate": {
+    "m1": {
+      "state": "not-accepted",
+      "condition": "overview light >=40% fewer calls, P95 <=+10%, physical Android/iPhone",
+      "blockedTracks": [
+        "render",
+        "world",
+        "art"
+      ]
+    }
+  },
+  "allowedStatuses": [
+    "planned",
+    "in_progress",
+    "blocked",
+    "review",
+    "accepted"
+  ],
+  "owners": [
+    "A00",
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09"
+  ],
+  "tasks": [
+    {
+      "id": "T0-01",
+      "owner": "A00",
+      "title": "Publish master world bible and agent contract",
+      "dependsOn": [],
+      "track": "docs",
+      "status": "in_progress",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T1-01",
+      "owner": "A01",
+      "title": "Deterministic seeded RNG + independent event streams",
+      "dependsOn": [],
+      "track": "core",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T1-02",
+      "owner": "A01",
+      "title": "Day calendar, wake/sleep and pure planner",
+      "dependsOn": [
+        "T1-01"
+      ],
+      "track": "core",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T1-03",
+      "owner": "A01",
+      "title": "Typed content graph schema and validator",
+      "dependsOn": [
+        "T1-01"
+      ],
+      "track": "core",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T1-04",
+      "owner": "A01",
+      "title": "Atomic command reducer and once-only event ledger",
+      "dependsOn": [
+        "T1-02",
+        "T1-03"
+      ],
+      "track": "core",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T1-05",
+      "owner": "A01",
+      "title": "Save v3 to v4 migration and rollback fixtures",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "track": "core",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T3-01",
+      "owner": "A02",
+      "title": "Food satiety + market inventories + home cooking",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "track": "life",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T3-02",
+      "owner": "A02",
+      "title": "Monthly VND bill ledger and affordability fallback",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "track": "life",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T3-03",
+      "owner": "A02",
+      "title": "Health recovery and fictional clinic interactions",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "track": "life",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T4-01",
+      "owner": "A04",
+      "title": "Family NPC schedules and persistent relationship memories",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "track": "social",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T4-02",
+      "owner": "A04",
+      "title": "Friend-group invitations and transparent bill settlement",
+      "dependsOn": [
+        "T1-04",
+        "T3-02"
+      ],
+      "track": "social",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T5-01",
+      "owner": "A06",
+      "title": "M1 benchmark acceptance and physical device gate",
+      "dependsOn": [],
+      "track": "render",
+      "status": "blocked",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T5-02",
+      "owner": "A06",
+      "title": "District streaming / frustum culling / disposal",
+      "dependsOn": [
+        "T5-01"
+      ],
+      "track": "render",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T5-03",
+      "owner": "A05",
+      "title": "Solid navigation, interior doors, tree and traffic collision",
+      "dependsOn": [
+        "T5-02"
+      ],
+      "track": "world",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T5-04",
+      "owner": "A09",
+      "title": "Hero art slice: character + shop + tree + car + cafe",
+      "dependsOn": [
+        "T5-02"
+      ],
+      "track": "art",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T5-05",
+      "owner": "A06",
+      "title": "Rig animation blends, LOD and 3 quality presets",
+      "dependsOn": [
+        "T5-04"
+      ],
+      "track": "art",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T6-01",
+      "owner": "A08",
+      "title": "End-to-end day/multi-touch/mobile testing",
+      "dependsOn": [
+        "T1-05",
+        "T5-03"
+      ],
+      "track": "qa",
+      "status": "planned",
+      "acceptance": "CI SHA green, scope-specific tests, no regressions",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-001",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 1,
+      "episodeId": "day-001",
+      "title": "Mở mắt ở An Hòa",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-001.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-002",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 2,
+      "episodeId": "day-002",
+      "title": "Mùi bánh mì đầu ngõ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-001"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-002.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-003",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 3,
+      "episodeId": "day-003",
+      "title": "Lời mẹ gọi",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-002",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-003.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-004",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 4,
+      "episodeId": "day-004",
+      "title": "Báo thức hỏng",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-003"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-004.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-005",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 5,
+      "episodeId": "day-005",
+      "title": "Người khách kỹ tính",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-004"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-005.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-006",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 6,
+      "episodeId": "day-006",
+      "title": "Mưa trên mái hiên",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-005"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-006.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-007",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 7,
+      "episodeId": "day-007",
+      "title": "Bữa cơm chung",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-006",
+        "T3-01",
+        "T4-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-007.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-008",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 8,
+      "episodeId": "day-008",
+      "title": "Nhóm chat sáng",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-007",
+        "T4-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-008.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-009",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 9,
+      "episodeId": "day-009",
+      "title": "Cửa hàng hết sữa",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-008"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-009.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-010",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 10,
+      "episodeId": "day-010",
+      "title": "Quán bún đông khách",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-009",
+        "T4-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-010.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-011",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 11,
+      "episodeId": "day-011",
+      "title": "Bạn im lặng",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-010"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-011.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-012",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 12,
+      "episodeId": "day-012",
+      "title": "Cơn mưa và lời hứa",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-011",
+        "T4-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-012.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-013",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 13,
+      "episodeId": "day-013",
+      "title": "Hàng xóm ốm nhẹ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-012",
+        "T4-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-013.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-014",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 14,
+      "episodeId": "day-014",
+      "title": "Ngày thanh toán",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-013",
+        "T4-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-014.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-015",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 15,
+      "episodeId": "day-015",
+      "title": "Cơn mỏi vai",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-014",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-015.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-016",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 16,
+      "episodeId": "day-016",
+      "title": "Một lời cảm ơn muộn",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-015",
+        "T4-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-016.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-017",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 17,
+      "episodeId": "day-017",
+      "title": "Xe quệt sát đầu ngõ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-016",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-017.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-018",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 18,
+      "episodeId": "day-018",
+      "title": "Nghỉ hay cố",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-017",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-018.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-019",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 19,
+      "episodeId": "day-019",
+      "title": "Khách đến rồi khóc",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-018"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-019.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-020",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 20,
+      "episodeId": "day-020",
+      "title": "Mất điện một giờ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-019",
+        "T3-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-020.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-021",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 21,
+      "episodeId": "day-021",
+      "title": "Bữa tiệc xóm nhỏ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-020",
+        "T4-01"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-021.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-022",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 22,
+      "episodeId": "day-022",
+      "title": "Con đường ra ngoại ô",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-021",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-022.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-023",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 23,
+      "episodeId": "day-023",
+      "title": "Hóa đơn không đợi",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-022",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-023.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-024",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 24,
+      "episodeId": "day-024",
+      "title": "Chợ sớm và món canh",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-023",
+        "T3-01",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-024.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-025",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 25,
+      "episodeId": "day-025",
+      "title": "Bạn đã có hẹn khác",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-024",
+        "T4-02",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-025.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-026",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 26,
+      "episodeId": "day-026",
+      "title": "Chuyến xe lạc đường",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-025",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-026.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-027",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 27,
+      "episodeId": "day-027",
+      "title": "Quà sinh nhật nhỏ",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-026",
+        "T4-01",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-027.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-028",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 28,
+      "episodeId": "day-028",
+      "title": "Một ngày buồn",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-027",
+        "T4-01",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-028.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-029",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 29,
+      "episodeId": "day-029",
+      "title": "Gió từ phương xa",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-028",
+        "T4-02",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-029.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    },
+    {
+      "id": "T2-030",
+      "owner": "A03",
+      "track": "day-content",
+      "day": 30,
+      "episodeId": "day-030",
+      "title": "Tiệm còn sáng đèn",
+      "dependsOn": [
+        "T1-02",
+        "T1-03",
+        "T1-04",
+        "T1-05",
+        "T2-029",
+        "T4-01",
+        "T5-02"
+      ],
+      "status": "planned",
+      "contentPath": "src/content/days/day-030.json",
+      "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
+      "branch": null,
+      "pr": null
+    }
+  ],
+  "rule": "Only mark accepted with linked head SHA, passing tests, evidence and merge result; one new validated playable day per cycle when dependencies are green"
+}
