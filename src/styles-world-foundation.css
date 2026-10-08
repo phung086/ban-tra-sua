@@ -1,0 +1,137 @@
+/* A single scene-led foundation. Rose controls, warm paper, open street view. */
+.v6-hud { min-height:72px; padding-top:12px; padding-bottom:10px; }
+.street-world { min-height:510px; height:calc(100dvh - 190px); }
+.prep-foundation { background:var(--paper); padding:20px; border-radius:12px; box-shadow:var(--shadow); }
+.prep-foundation header { display:flex; align-items:start; gap:12px; }
+.prep-foundation header > div { flex:1; }
+.prep-foundation header p { margin-top:9px; font-size:13px; line-height:1.7; }
+.prep-day { color:var(--rose); white-space:nowrap; font-size:11px; padding:5px 0; }
+.prep-service-plan { margin:18px 0 16px; display:flex; align-items:center; gap:12px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.prep-service-plan > .game-icon { width:34px; height:34px; color:var(--rose); }
+.prep-service-plan h3 { font-size:17px; }
+.prep-service-plan p { margin-top:4px; font-size:13px; }
+.prep-numbers { display:grid; grid-template-columns:1fr 1fr; gap:14px 15px; margin:0 0 18px; }
+.prep-numbers dt { font-size:11px; display:flex; gap:5px; align-items:center; color:var(--muted); }
+.prep-numbers .game-icon { width:16px; height:16px; }
+.prep-numbers dd { margin:5px 0 0 21px; font-size:21px; font-weight:600; font-variant-numeric:tabular-nums; }
+.prep-level p { display:flex; align-items:center; justify-content:space-between; font-size:11px; }
+.prep-level b { font-size:13px; color:var(--ink); }
+.prep-level progress { width:100%; height:6px; display:block; margin:9px 0; border:0; border-radius:3px; background:var(--line); }
+.prep-level progress::-webkit-progress-bar { background:var(--line); border-radius:3px; }
+.prep-level progress::-webkit-progress-value { background:var(--rose); border-radius:3px; }
+.daily-activities progress::-webkit-progress-bar { background:var(--line); }
+.daily-activities progress::-webkit-progress-value { background:var(--rose); }
+.prep-level small { font-size:11px; }
+.prep-operator { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:16px 0; font-size:12px; }
+.prep-operator .game-icon { width:17px; height:17px; }
+.prep-operator span { margin-left:auto; font-size:11px; }
+.prep-stock-alert { display:flex; gap:10px; align-items:center; width:100%; margin-bottom:14px; text-align:left; }
+.prep-stock-alert b,.prep-stock-alert small { display:block; font-size:12px; }
+.prep-open { display:flex; gap:13px; align-items:center; justify-content:center; min-height:60px; width:100%; font-size:18px; }
+.prep-open span { text-align:left; }
+.prep-open small { display:block; color:var(--paper); font-size:11px; margin-top:4px; font-weight:400; }
+.prep-footnote { margin-top:15px; font-size:11px; line-height:1.7; }
+.view-controls button { display:flex; align-items:center; gap:8px; }
+.view-controls .game-icon { width:18px; height:18px; }
+.street-world:not(.city-world) .walk-ui { background:transparent; border:0; box-shadow:none; padding:0; left:18px; right:18px; bottom:16px; min-height:120px; }
+.street-world:not(.city-world) .place-buttons { max-width:calc(100% - 138px); position:absolute; bottom:0; left:0; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.street-world:not(.city-world) .place-buttons button { background:var(--paper); }
+.street-world:not(.city-world) .movement-row > small { display:none; }
+.street-world:not(.city-world) .movement-stick-wrap { position:absolute; right:0; bottom:0; }
+.movement-stick { background:#fff9fce6; border-color:#bc83a4; box-shadow:inset 0 2px 10px #795b6d17,0 8px 20px #55334329; }
+.stick-knob { background:var(--rose); box-shadow:inset 0 2px 3px #cf89ae,0 5px 11px #55334330; }
+.city-world .movement-stick-wrap > small { max-width:none; white-space:nowrap; font-size:10px; line-height:1.3; color:var(--ink); background:var(--paper); border-radius:6px; padding:4px 6px; }
+.graphics-choice { display:grid; gap:8px; margin:18px 0; font-size:13px; }
+.music-settings { margin-bottom:12px; }
+.music-settings > button { display:flex; width:100%; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; min-height:44px; }
+.music-settings > button > b { font-size:11px; }
+.music-settings label { display:grid; grid-template-columns:1fr auto; gap:6px; margin:12px 0 4px; font-size:12px; }
+.music-settings input { grid-column:1/-1; width:100%; min-height:44px; accent-color:var(--rose); cursor:pointer; }
+.music-settings input:disabled { cursor:default; opacity:.45; }
+.music-settings output { color:var(--ink); font-variant-numeric:tabular-nums; }
+.music-settings > small { color:var(--muted); font-size:12px; line-height:1.5; }
+.graphics-choice select,.graphics-advanced select { min-height:44px; width:100%; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:var(--ink); padding:9px; }
+.graphics-choice small,.graphics-advanced p { font-size:12px; line-height:1.65; }
+.graphics-advanced { border-top:1px solid var(--line); padding-top:8px; }
+.graphics-advanced summary { cursor:pointer; min-height:44px; display:list-item; padding:12px 0; line-height:20px; font-size:13px; }
+.graphics-advanced label { display:grid; gap:8px; font-size:13px; }
+.graphics-advanced p { margin-top:10px; }
+.settings-popover { max-height:calc(100dvh - 90px); overflow:auto; overscroll-behavior:contain; }
+.settings-popover button > span { display:flex; align-items:center; gap:9px; }
+.settings-popover button .game-icon { width:18px; height:18px; }
+.settings-trigger { width:44px; min-width:44px; height:44px; padding:10px; }
+.map-scale-controls { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.map-scale-controls button { min-height:44px; font-size:12px; }
+.neighborhood .map-scale-controls button[aria-pressed="true"] { background:var(--rose); color:var(--paper); }
+.dialogue-choices .game-icon { width:18px; height:18px; }
+.dialogue-choices button[class^="tone-"] > span { background:var(--paper); color:var(--rose); }
+.exploring-city { position:fixed; inset:0; padding:0; max-width:none; overflow:hidden; background:var(--paper); }
+.exploring-city > .v6-hud,.exploring-city > .v6-world-nav,.exploring-city > .v6-toast { display:none; }
+.exploring-city .street-layout { display:block; height:100%; }
+.exploring-city .street-world { position:absolute; inset:0; width:100%; height:100%; min-height:0; max-height:none; border:0; border-radius:0; box-shadow:none; }
+.exploring-city .world-viewport { inset:0; }
+.exploring-city .world-heading { display:none; }
+.exploring-city > .game-settings { display:block; position:fixed; top:max(18px,env(safe-area-inset-top)); right:max(18px,env(safe-area-inset-right)); z-index:20; }
+.exploring-city .view-controls { top:max(18px,env(safe-area-inset-top)); right:74px; max-width:none; gap:8px; }
+.exploring-city .view-controls button { width:44px; height:44px; padding:12px; justify-content:center; background:var(--paper); }
+.exploring-city .view-controls button span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.exploring-city .view-controls .game-icon { width:22px; height:22px; }
+.exploring-city .city-scene-caption { top:max(18px,env(safe-area-inset-top)); left:max(18px,env(safe-area-inset-left)); padding:13px 16px 10px; max-width:190px; min-width:165px; border-radius:12px; background:var(--paper); box-shadow:0 6px 18px #5533431b; }
+.city-scene-caption h2 { font-size:22px; }
+.city-scene-caption p { margin-top:3px; font-size:11px; }
+.city-vitals { display:flex; align-items:center; gap:16px; margin-top:10px; font-size:12px; font-variant-numeric:tabular-nums; }
+.city-vitals > span { display:flex; align-items:center; gap:5px; }
+.city-vitals .game-icon { width:16px; height:16px; color:var(--rose); }
+.city-vitals small { font-size:10px; }
+.city-scene-caption meter { width:100%; height:5px; display:block; margin:8px 0 5px; border:0; background:#e5c7d5; border-radius:3px; }
+.city-scene-caption meter::-webkit-meter-bar { background:#e5c7d5; border:0; }
+.city-scene-caption meter::-webkit-meter-optimum-value { background:var(--rose); }
+.city-scene-caption > small { display:block; font-size:10px; }
+.city-compass { position:absolute; right:18px; top:78px; width:144px; padding:7px; border:0; background:var(--paper); border-radius:12px; box-shadow:0 6px 18px #5533431b; }
+.city-compass svg { width:100%; display:block; border-radius:6px; }
+.city-compass span { display:block; margin-top:5px; font-size:10px; }
+.exploring-city .walk-ui { left:max(22px,env(safe-area-inset-left)); bottom:max(25px,env(safe-area-inset-bottom)); }
+.exploring-city .city-context-actions { left:162px; right:auto; bottom:46px; width:230px; }
+.exploring-city #game-content { position:static; }
+.exploring-city .neighborhood { position:absolute; right:18px; bottom:18px; width:390px; padding:0 18px 10px; max-height:calc(100dvh - 205px); border:0; box-shadow:0 8px 28px #55334326; border-radius:16px; display:flex; flex-direction:column; z-index:5; }
+.exploring-city .neighborhood-sheet-toggle { display:flex; align-items:center; justify-content:space-between; min-height:48px; background:transparent; border:0; box-shadow:none; flex:none; font-size:12px; padding:8px 0; }
+.exploring-city .sheet-grip { width:23px; height:3px; background:#bc83a4; border-radius:2px; }
+.exploring-city .neighborhood > .city-title,.exploring-city .neighborhood > .city-intro { display:none; }
+.exploring-city .sheet-closed .city-almanac { display:none; }
+.exploring-city .city-almanac { margin:0 0 16px; }
+.exploring-city .city-tabs { margin:0; gap:3px; flex:none; }
+.exploring-city .city-tabs button { display:grid; gap:5px; justify-items:center; align-content:center; min-height:65px; font-size:10px; padding:8px 3px; flex:1; }
+.exploring-city .city-tabs .game-icon { width:20px; height:20px; }
+.exploring-city .city-tabs [aria-selected="true"] { background:#f4dce8; color:var(--rose); border-radius:9px 9px 0 0; }
+.exploring-city .neighborhood-sheet-content { overflow:auto; overscroll-behavior:contain; padding-top:12px; min-height:0; scrollbar-color:#bc83a4 transparent; }
+.exploring-city .sheet-closed .neighborhood-sheet-content { display:none; }
+.exploring-city .sheet-open .neighborhood-sheet-content { max-height:calc(100dvh - 405px); }
+.exploring-city .city-play-notice { top:190px; left:18px; max-width:360px; background:var(--paper); box-shadow:0 5px 14px #5533431b; font-size:12px; }
+.neighborhood-dialogue { box-shadow:0 16px 44px #30232950; }
+@media(max-width:900px) {
+  .exploring-city .city-scene-caption { left:max(12px,env(safe-area-inset-left)); top:max(12px,env(safe-area-inset-top)); padding:10px 12px; min-width:146px; max-width:155px; }
+  .city-scene-caption h2 { font-size:20px; }
+  .city-scene-caption > small { display:none; }
+  .exploring-city > .game-settings { top:max(12px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); }
+  .exploring-city .view-controls { top:max(12px,env(safe-area-inset-top)); right:66px; }
+  .city-compass { top:68px; right:12px; width:118px; padding:5px; }
+  .exploring-city .neighborhood { left:0; right:0; bottom:0; width:100%; padding:0 12px calc(8px + env(safe-area-inset-bottom)); border-radius:18px 18px 0 0; max-height:74dvh; }
+  .exploring-city .neighborhood-sheet-toggle { min-height:44px; flex-direction:column-reverse; gap:5px; justify-content:center; padding:5px; font-size:11px; }
+  .exploring-city .city-tabs button { min-height:60px; font-size:10px; }
+  .exploring-city .city-almanac { display:none; }
+  .exploring-city .sheet-open .neighborhood-sheet-content { max-height:calc(74dvh - 112px - env(safe-area-inset-bottom)); }
+  .exploring-city .walk-ui { left:max(18px,env(safe-area-inset-left)); bottom:calc(127px + env(safe-area-inset-bottom)); }
+  .exploring-city .city-context-actions { left:auto; right:max(14px,env(safe-area-inset-right)); bottom:calc(150px + env(safe-area-inset-bottom)); width:calc(100% - 155px); max-width:230px; }
+  .exploring-city .city-play-notice { top:170px; right:12px; left:12px; max-width:none; }
+  .exploring-city .settings-popover { position:fixed; top:66px; right:12px; width:min(340px,calc(100vw - 24px)); }
+}
+@media(max-height:520px) {
+  .exploring-city .city-scene-caption { display:none; }
+  .exploring-city .city-compass { width:90px; top:70px; }
+  .exploring-city .neighborhood { width:340px; left:auto; right:12px; bottom:12px; max-height:calc(100dvh - 72px); }
+  .exploring-city .walk-ui { bottom:16px; }
+  .exploring-city .city-context-actions { bottom:36px; left:135px; right:auto; max-width:180px; }
+  .exploring-city .sheet-open .neighborhood-sheet-content { max-height:calc(100dvh - 190px); }
+  .exploring-city .city-play-notice { top:80px; max-width:300px; }
+}
+@media(prefers-reduced-motion:reduce) { .neighborhood,.city-compass { transition:none; } }

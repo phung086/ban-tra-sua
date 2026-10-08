@@ -1,5 +1,9 @@
 export interface UiPreferences {
+  renderEngine:'three'|'babylon';
+  graphics:'auto'|'light'|'balanced'|'high';
   sound: boolean;
+  music:boolean;
+  musicVolume:number;
   haptics: boolean;
   motion: boolean;
   oneHand: boolean;
@@ -11,7 +15,11 @@ export interface UiPreferences {
 const KEY = "tiem-tra-chibi-ui-v1";
 
 const defaults: UiPreferences = {
+  renderEngine:'three',
+  graphics:'auto',
   sound: true,
+  music:true,
+  musicVolume:.45,
   haptics: true,
   motion: true,
   oneHand: false,
@@ -25,7 +33,7 @@ export function getUiPreferences(): UiPreferences {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { ...defaults };
     const parsed = JSON.parse(raw) as Partial<UiPreferences>;
-    return { ...defaults, ...parsed };
+    return { ...defaults, ...parsed,music:typeof parsed.music==='boolean'?parsed.music:defaults.music,musicVolume:typeof parsed.musicVolume==='number'&&Number.isFinite(parsed.musicVolume)?Math.min(1,Math.max(0,parsed.musicVolume)):defaults.musicVolume,renderEngine:parsed.renderEngine==='babylon'?'babylon':'three',graphics:['auto','light','balanced','high'].includes(parsed.graphics??'')?parsed.graphics!:defaults.graphics };
   } catch {
     return { ...defaults };
   }
@@ -42,6 +50,7 @@ export function updateUiPreferences(patch: Partial<UiPreferences>): UiPreference
   document.documentElement.dataset.oneHand = next.oneHand ? "on" : "off";
   document.documentElement.dataset.contrast = next.highContrast ? "high" : "normal";
   document.documentElement.dataset.focus = next.focusMode ? "on" : "off";
+  window.dispatchEvent(new CustomEvent('tea-graphics-change',{detail:next}));
   return next;
 }
 

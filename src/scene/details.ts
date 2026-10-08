@@ -203,7 +203,8 @@ export function streetFronts(w: Workshop, root: T.Group) {
     const facade = new T.Group();
     facade.position.set((i - 2) * 4.6, 0, -11.3);
     root.add(facade);
-    w.box(facade, colors[i], [0, 2.85, 0], [4.5, 5.9, 2]);
+    w.box(facade, colors[i], [0, 2.85, 0], [4.5, 5.9, 2]).material=w.surface('plaster',colors[i]);
+    w.box(facade,'#a99885',[0,.24,1.03],[4.5,.46,.07]).material=w.surface('stone','#a99885');
     const face = -0 + 1.08;
     // Open grocery shelving; metal repair shutter; glazed bakery; salon double doors; laundry grille.
     if (i === 0) {
@@ -321,8 +322,8 @@ export function streetFronts(w: Workshop, root: T.Group) {
     w.label(
       facade,
       [
-        "TẠP HÓA CÔ BA",
-        "SỬA XE • CHÚ TƯ",
+        "TẠP HÓA CÔ HẠNH",
+        "SỬA XE • BÁC HÙNG",
         "BÁNH MÌ NÓNG",
         "CẮT TÓC",
         "GIẶT ỦI",

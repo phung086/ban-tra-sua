@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Neighborhood } from './components/Neighborhood';
+import { cityAction, walkCity, type CityAction } from './game/city';
+import { CITY_PLACES, nearCityPlace, type CityPlace } from './game/cityMap';
+import {storyAction,nearbyTask,type ResidentId,type StoryAction} from './game/neighborhoodStories';
+import {NeighborhoodDialogue} from './components/NeighborhoodDialogue';
+import {lifeAction,type LifeAction} from './game/cityLife';
 import { CraftWorkbench } from "./components/CraftWorkbench";
 import { CustomerScene } from "./components/CustomerScene";
 import { OrderExperience } from "./components/OrderExperience";
@@ -28,6 +34,7 @@ import { feedbackForScore } from "./game/feedback";
 import { recordCraftPerformance } from "./game/performance";
 import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
+import {installGameAudio,duckMusic} from './game/audio';
 import type { GameState, Screen } from "./game/types";
 
 function App() {
@@ -36,9 +43,63 @@ function App() {
   const [station, setStation] = useState(0);
   const [carrying, setCarrying] = useState(false);
   const [position, setPosition] = useState<Position>({ x: 0, z: 3.15 });
+  const [exploring, setExploring] = useState(false);
+  const [cityNavigation, setCityNavigation] = useState<{place: CityPlace; serial: number; ride?: boolean} | null>(null);
+  const [returning, setReturning] = useState(false);
+  const [talking,setTalking]=useState<ResidentId|null>(null);
+  useEffect(installGameAudio,[]);
+  useEffect(()=>{duckMusic(!!talking);},[talking]);
+  const [sheetOpen,setSheetOpen]=useState(false);
+  const [cityPanel,setCityPanel]=useState<'tasks'|'map'|'orders'|'community'|'leisure'>('tasks');
+  const [mobile,setMobile]=useState(()=>matchMedia('(max-width: 900px)').matches);
+  useEffect(()=>{
+    const media=matchMedia('(max-width: 900px)'),change=()=>setMobile(media.matches);
+    media.addEventListener('change',change);return()=>media.removeEventListener('change',change);
+  },[]);
+  const doStory=(action:StoryAction)=>setGame(state=>storyAction(state,action,position));
+  const doLife=(action:LifeAction)=>setGame(state=>lifeAction(state,action,position));
+  const openTalk=(id:ResidentId)=>{setTalking(id);setSheetOpen(false);};
+  const walked = useRef(0), previousPosition = useRef(position), riding = useRef(false);
+  const navigateCity = (place: CityPlace) => {
+    setSheetOpen(false);setTalking(null);
+    setReturning(false);
+    setCityNavigation(previous => ({place, serial:(previous?.serial ?? 0)+1}));
+  };
+  const updatePosition = (p: Position) => {
+    if (exploring && !riding.current) {
+      walked.current += Math.hypot(p.x-previousPosition.current.x, p.z-previousPosition.current.z);
+      if (walked.current >= 1 || Object.keys(CITY_PLACES).some(id=>nearCityPlace(p,id as CityPlace))) {
+        const distance = walked.current; walked.current = 0;
+        if (distance > 0) setGame(state => walkCity(state, distance, p));
+      }
+    }
+    riding.current = false;
+    previousPosition.current = p;
+    setPosition(p);
+  };
+  const returnToShop = () => {
+    setSheetOpen(false);setTalking(null);
+    if (nearCityPlace(position,'shop')) { setExploring(false); setReturning(false); }
+    else { navigateCity('shop'); setReturning(true); }
+  };
+  useEffect(() => {
+    if (returning && nearCityPlace(position,'shop')) { setExploring(false); setReturning(false); }
+  }, [returning, position]);
+  const actInCity = (action: CityAction) => setGame(state => cityAction(state, action, position));
+  const rideHome = () => {
+    const next = cityAction(game, {type:'bus'}, position);
+    setGame(next);
+    if (next.cash < game.cash) {
+      riding.current = true;
+      setCityNavigation(previous => ({place:'shop',serial:(previous?.serial ?? 0)+1,ride:true}));
+    }
+  };
   const season = getSeasonForDay(game.day);
   useEffect(() => {
-    saveGame(game);
+    const timer=setTimeout(()=>saveGame(game),400);
+    const saveOnExit=()=>saveGame(game);
+    window.addEventListener('pagehide',saveOnExit);
+    return()=>{clearTimeout(timer);window.removeEventListener('pagehide',saveOnExit);};
   }, [game]);
   useEffect(() => {
     setStation(0);
@@ -79,9 +140,13 @@ function App() {
     setGame(createInitialState());
     setScreen("shop");
     setCarrying(false);
+    setExploring(false);
+    setReturning(false);
+    setTalking(null);setSheetOpen(false);
   };
   return (
-    <main className={`app-shell season-${season.id}`}>
+    <main className={`app-shell season-${season.id} ${exploring&&screen==='shop'?'exploring-city':''}`}>
+      {talking&&<NeighborhoodDialogue key={talking} id={talking} game={game} onClose={()=>setTalking(null)} onAction={doStory} onNavigate={navigateCity}/>}
       <PlayCoach />
       <GameSettings />
       <ServeCelebration
@@ -101,7 +166,7 @@ function App() {
         score={game.lastScore}
         reviewBadge={unreplied}
         goalBadge={claimable}
-        onNavigate={setScreen}
+        onNavigate={(next) => {setScreen(next);setTalking(null);setSheetOpen(false); if (next !== 'shop') {setExploring(false); setReturning(false);}}}
       />
       <div className="street-layout">
         <StreetWorld
@@ -110,8 +175,18 @@ function App() {
           station={station}
           carrying={carrying}
           position={position}
-          onPosition={setPosition}
+          onPosition={updatePosition}
           onDeliver={deliver}
+          exploring={exploring}
+          cityNavigation={cityNavigation}
+          onExplore={() => {setExploring(true);setSheetOpen(false);setCityPanel('tasks'); setScreen('shop');}}
+          onReturn={returnToShop}
+          paused={!!talking||(exploring&&mobile&&sheetOpen)}
+          onTalk={openTalk}
+          onStory={doStory}
+          onOpenTasks={()=>{setCityPanel('orders');setSheetOpen(true);}}
+          onOpenMap={()=>{setCityPanel('map');setSheetOpen(true);}}
+          nearbyTask={nearbyTask(game.city.stories,position)}
         />
         <section
           id="game-content"
@@ -126,10 +201,11 @@ function App() {
               ← Về phục vụ · {customer.name} đang chờ
             </button>
           )}
-          {screen === "shop" && game.phase === "prep" && (
+          {screen === 'shop' && exploring && <Neighborhood game={game} position={position} onNavigate={navigateCity} onAction={actInCity} onReturn={returnToShop} onRide={rideHome} onTalk={openTalk} onStory={doStory} expanded={sheetOpen} onExpand={setSheetOpen} tab={cityPanel} onTab={setCityPanel} onLife={doLife}/>}
+          {screen === "shop" && !exploring && game.phase === "prep" && (
             <PrepWorld game={game} onGame={setGame} onNavigate={setScreen} />
           )}
-          {screen === "shop" && game.phase === "summary" && game.summary && (
+          {screen === "shop" && !exploring && game.phase === "summary" && game.summary && (
             <div className="panel summary-card">
               <span className="eyebrow">HẾT CA · NGÀY {game.day}</span>
               <h2>Cảm ơn một ngày bận rộn.</h2>
@@ -183,7 +259,7 @@ function App() {
                     Mang đến {PLACES[deliveryFor(order)].label.toLowerCase()}
                   </h2>
                   <p>
-                    Chọn địa điểm trong tiệm hoặc tự đi bằng phím / nút mũi tên.
+                    Chọn địa điểm trong tiệm hoặc kéo núm tròn để đi.
                     Đến gần đúng khách, nút giao ly sẽ mở.
                   </p>
                   <button

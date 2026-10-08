@@ -1,7 +1,7 @@
 import { DRINKS, RESTOCK_ITEMS, STAFF } from "../../game/content";
 import { startDay } from "../../game/engine";
 import type { GameState, Screen } from "../../game/types";
-import { RoomBackdrop } from "./RoomBackdrop";
+import {GameIcon} from '../GameIcon';
 
 
 interface Props {
@@ -19,59 +19,14 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
     .filter((drink) => drink.unlockLevel > game.level)
     .sort((a, b) => a.unlockLevel - b.unlockLevel)[0];
 
-  return (
-    <section className="v6-room v6-prep-room">
-      <RoomBackdrop kind="prep">
-        <div className="v6-room-title">
-          <small>CHUẨN BỊ CA · NGÀY {game.day}</small>
-          <h2>{game.event.emoji} {game.event.name}</h2>
-          <p>{game.event.description}</p>
-        </div>
-
-        <div className="v6-prep-clipboard">
-          <div className="v6-clipboard-pin">✦</div>
-          <div className="v6-clipboard-head">
-            <span>CA HÔM NAY</span>
-            <b>Lv.{game.level}</b>
-          </div>
-          <div className="v6-xp-line">
-            <i style={{ width: `${(xpInLevel / 160) * 100}%` }} />
-          </div>
-          <small>{nextDrink ? `Lv.${nextDrink.unlockLevel} mở ${nextDrink.name}` : "Menu đã mở toàn bộ."}</small>
-
-          <div className="v6-prep-stats">
-            <div><span>🎯</span><b>{game.targetOrders}</b><small>đơn</small></div>
-            <div><span>📱</span><b>{game.fans}</b><small>fan</small></div>
-            <div><span>🔥</span><b>{game.viral}</b><small>viral</small></div>
-            <div><span>🧠</span><b>{game.researchPoints}</b><small>RP</small></div>
-          </div>
-
-          <div className="v6-prep-meta">
-            <p><span>👩🏻‍🍳</span>{activeStaff ? `${activeStaff.name} · ${activeStaff.role}` : "Chủ tiệm tự vận hành"}</p>
-            <p><span>🍹</span>{game.unlockedBaseIds.length} món · {game.unlockedToppingIds.length} topping</p>
-          </div>
-        </div>
-
-        {lowStock.length > 0 && (
-          <button className="v6-stock-crate-alert" onClick={() => onNavigate("stock")}>
-            <span>🧺</span>
-            <div><b>Kho sắp cạn</b><small>{lowStock.map((item) => item.label).join(" · ")}</small></div>
-            <i>→</i>
-          </button>
-        )}
-
-        <div className="prep-greeting">
-
-          <button className="v6-open-sign" onClick={() => onGame(startDay(game))}>
-          <span className="v6-open-rope" />
-          <small>SẴN SÀNG RỒI?</small>
-          <b>MỞ TIỆM</b>
-          <em>{game.targetOrders} đơn trong ca hôm nay</em>
-          </button>
-        </div>
-
-
-      </RoomBackdrop>
-    </section>
-  );
+  return <section className="prep-foundation">
+    <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
+    <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
+    <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
+    <div className="prep-level"><p><b>Cấp {game.level}</b><span>{xpInLevel}/160 kinh nghiệm</span></p><progress value={xpInLevel} max="160" aria-label="Tiến độ cấp độ"/><small>{nextDrink?`Cấp ${nextDrink.unlockLevel} mở ${nextDrink.name}`:'Menu đã mở toàn bộ.'}</small></div>
+    <p className="prep-operator"><GameIcon name="person"/>{activeStaff?`${activeStaff.name} · ${activeStaff.role}`:'Bạn trực quầy hôm nay'}<span>{game.unlockedToppingIds.length} loại topping</span></p>
+    {lowStock.length>0&&<button className="prep-stock-alert" onClick={()=>onNavigate('stock')}><GameIcon name="box"/><span><b>Kiểm tra kho trước khi mở</b><small>{lowStock.map(item=>item.label).join(' · ')}</small></span></button>}
+    <button className="primary-button prep-open" onClick={()=>onGame(startDay(game))}><GameIcon name="home"/><span>Mở cửa tiệm<small>Bắt đầu ca · {game.targetOrders} đơn</small></span></button>
+    <p className="prep-footnote">Trước ca bán, bạn có thể đi phố, nhập nguyên liệu hoặc giúp hàng xóm.</p>
+  </section>;
 }

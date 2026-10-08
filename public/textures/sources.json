@@ -1,0 +1,74 @@
+[
+  {
+    "sourceMd5": "9fa4072c602f2092eaf5a750f65658b5",
+    "asset": "brick_pavement_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "paving-albedo.jpg",
+    "packagedMd5": "acb35a8e527d3f21b2693a97860ce478",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brick_pavement_02/brick_pavement_02_diff_1k.jpg"
+  },
+  {
+    "sourceMd5": "60bc2108e8191c55cb940953ae0d3beb",
+    "asset": "brick_pavement_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "paving-normal.jpg",
+    "packagedMd5": "5979ccc6938eef34de18a645d8e2e553",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brick_pavement_02/brick_pavement_02_nor_gl_1k.jpg"
+  },
+  {
+    "sourceMd5": "6669cca520594bdca19f94084984ab72",
+    "asset": "bark_brown_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "bark-albedo.jpg",
+    "packagedMd5": "e07d84d0b2664f4cce7aba939e34c9ef",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_02/bark_brown_02_diff_1k.jpg"
+  },
+  {
+    "sourceMd5": "1cad3fe0349a44df2d4d1c2859c79920",
+    "asset": "bark_brown_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "bark-normal.jpg",
+    "packagedMd5": "5f957b2eb4f6fe7dccaeea2a955d0080",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_02/bark_brown_02_nor_gl_1k.jpg"
+  },
+  {
+    "sourceMd5": "fa19772d4817754c3efab708c651f5a8",
+    "asset": "asphalt_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "asphalt-albedo.jpg",
+    "packagedMd5": "08d8227cdd0751f297813b2cc5ad19f0",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_diff_1k.jpg"
+  },
+  {
+    "sourceMd5": "338da8de636ea36133170578cac82e8e",
+    "asset": "asphalt_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "asphalt-normal.jpg",
+    "packagedMd5": "70eb763bf2a978e1bc72176830b60f91",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_nor_gl_1k.jpg"
+  },
+  {
+    "sourceMd5": "43c45fa3ac4c68ffb28aa813cec32608",
+    "asset": "clay_roof_tiles_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "roof-albedo.jpg",
+    "packagedMd5": "1692215a2750fa2e6491766a5fbff7ce",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/clay_roof_tiles_02/clay_roof_tiles_02_diff_1k.jpg"
+  },
+  {
+    "sourceMd5": "9e24ddc6fbf048291f8e24bfb1f16e6d",
+    "asset": "clay_roof_tiles_02",
+    "modification": "JPEG COM origin metadata; image pixels unchanged",
+    "file": "roof-normal.jpg",
+    "packagedMd5": "cfccfe8321fac2dc0ef12b7b123121b0",
+    "license": "CC0-1.0",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/clay_roof_tiles_02/clay_roof_tiles_02_nor_gl_1k.jpg"
+  }
+]

@@ -1,0 +1,84 @@
+/* Hanoi neighborhood extends the established rose and warm-paper game system. */
+.view-controls { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; max-width: 55%; }
+.view-controls button { min-height: 44px; }
+.world-heading { max-width: 42%; flex-wrap: wrap; letter-spacing: 0; }
+.world-heading small { display: none; }
+.city-scene-caption { position: absolute; bottom: 100px; left: 22px; padding: 13px 17px; background: #fff9fcf5; border-radius: 9px; max-width: calc(100% - 44px); pointer-events: none; }
+.city-scene-caption h2 { font-size: 23px; }
+.city-scene-caption p { margin-top: 4px; font-size: 12px; }
+.city-scene-caption small { display: block; margin-top: 5px; }
+.neighborhood { padding: 22px; background: var(--paper); border-radius: 15px; }
+.city-title { display: flex; align-items: start; gap: 14px; justify-content: space-between; }
+.city-title h2 { font-size: 24px; }
+.city-title p { font-size: 12px; margin-top: 5px; }
+.city-title button { font-size: 12px; white-space: nowrap; padding: 8px 10px; }
+.city-almanac { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 13px; padding: 17px 0 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.city-almanac strong { font-size: 23px; color: var(--rose); }
+.city-almanac span { color: var(--muted); }
+.city-intro { font-size: 13px; line-height: 1.7; margin: 8px 0 20px; }
+.city-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.city-tabs button { border: 0; background: transparent; box-shadow: none; border-radius: 6px 6px 0 0; padding: 10px; font-size: 12px; flex: 1; }
+.city-tabs button[aria-selected="true"] { background: #f2dce7; color: #833359; font-weight: 600; }
+.city-map { position: relative; aspect-ratio: 80 / 54; margin-top: 4px; border-radius: 9px; overflow: hidden; }
+.city-map > svg { width: 100%; height: 100%; display: block; }
+.map-road-label { font-size: 2.1px; fill: #514b43; font-family: inherit; }
+.map-pin { position: absolute; transform: translate(-50%,-50%); width: 44px; height: 44px; min-height: 44px; border-radius: 50%; padding: 0; font-size: 12px; font-weight: 600; background: #fff9fc; border: 1px solid #9b5d77; box-shadow: none; }
+.map-pin:hover:not(:disabled), .map-pin:active:not(:disabled) { transform: translate(-50%,-50%); }
+.map-pin.selected { background: var(--rose); color: white; }
+.map-legend { font-size: 11px; color: var(--muted); margin: 9px 0 12px; }
+.city-place-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 13px; }
+.city-place-list button { display: flex; gap: 8px; align-items: center; border: 0; border-radius: 5px; background: transparent; box-shadow: none; padding: 7px 2px; text-align: left; font-size: 11px; line-height: 1.5; }
+.city-place-list button > span { color: var(--rose); min-width: 17px; font-weight: 600; }
+.city-place-list button[aria-pressed="true"] { background: #f5e3ec; }
+.city-place-list small { display: none; }
+.city-location { display: grid; gap: 10px; padding-top: 22px; margin-top: 13px; border-top: 1px solid var(--line); }
+.city-location h3 { font-size: 19px; }
+.city-location p { font-size: 13px; }
+.city-location button { display: flex; gap: 9px; align-items: center; justify-content: center; font-size: 12px; }
+.city-location .market-offer { margin-top: 7px; line-height: 1.7; }
+.city-trip { display: flex; align-items: center; gap: 10px; padding: 12px 0 20px; }
+.city-trip > svg { color: var(--rose); }
+.city-trip > div { flex: 1; }
+.city-trip b { font-size: 13px; }
+.city-trip p { font-size: 11px; margin-top: 4px; }
+.city-trip button { flex: none; font-size: 12px; }
+.city-section-copy { margin: 9px 0 20px; font-size: 13px; line-height: 1.7; }
+.city-contract-list article { padding: 15px 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+.city-contract-list article > div { flex: 1; }
+.city-contract-list h4 { font-size: 14px; }
+.city-contract-list p { margin: 5px 0; font-size: 12px; }
+.city-contract-list button { font-size: 12px; }
+.city-unlock { font-size: 12px; margin-top: 15px; }
+.city-brew { padding-top: 12px; }
+.city-brew > p { font-size: 13px; margin-top: 9px; }
+.city-brew > button { margin-top: 15px; }
+.city-brew fieldset { padding: 0; border: 0; display: grid; gap: 16px; margin: 20px 0 0; min-width: 0; }
+.city-brew fieldset:disabled { opacity: 0.6; }
+.city-brew label { display: grid; gap: 7px; font-size: 13px; }
+.city-brew select { width: 100%; min-height: 44px; padding: 9px 11px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 7px; }
+.city-assisted { color: var(--muted); font-size: 12px !important; }
+.city-assisted input { width: 100%; min-height: 44px; accent-color: var(--rose); }
+.city-cancel { margin-top: 18px; font-size: 12px; }
+.community-stats { display: grid; gap: 6px; padding-bottom: 23px; font-size: 13px; }
+.community-stats b { color: var(--rose); font-size: 18px; }
+.city-projects article { padding: 19px 0; border-bottom: 1px solid var(--line); }
+.city-projects p { font-size: 13px; margin: 8px 0 12px; }
+.city-projects button { font-size: 12px; }
+.city-journal-title { margin-top: 27px; }
+.city-journal { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 13px; font-size: 12px; color: var(--muted); line-height: 1.7; }
+.city-footer { padding-top: 24px; margin-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.8; }
+.city-brew select:focus-visible, .city-assisted input:focus-visible { outline: 3px solid var(--rose); outline-offset: 3px; }
+@media (max-width: 1150px) { .city-title { flex-wrap: wrap; } }
+@media (max-width: 580px) {
+  .view-controls { top: 12px; right: 10px; max-width: 65%; gap: 5px; }
+  .view-controls button { font-size: 10px; padding: 7px; }
+  .world-heading { max-width: 30%; left: 10px; top: 12px; padding: 7px; font-size: 9px; }
+  .city-scene-caption { bottom: 85px; left: 12px; max-width: calc(100% - 24px); padding: 9px 12px; }
+  .city-scene-caption h2 { font-size: 18px; }
+  .city-scene-caption p { font-size: 11px; }
+  .city-scene-caption small { display: none; }
+  .neighborhood { padding: 18px; }
+  .city-place-list button { font-size: 12px; }
+  .city-title { flex-wrap: nowrap; }
+  .city-title h2 { font-size: 21px; }
+}

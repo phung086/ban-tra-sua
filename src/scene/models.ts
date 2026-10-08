@@ -1,42 +1,19 @@
 import * as T from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Customer, DrinkDraft } from "../game/types";
+import { mergeRigid } from './batching';
+import {makeSurface,type SurfaceKind} from './materials';
+import {continuousTorso,continuousHips,continuousLimb,faceGeometry} from './actorGeometry';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
   materials = new Map<string, T.MeshStandardMaterial>();
   textures: T.Texture[] = [];
-  surface(kind: "wood" | "stone" | "fabric", color: string) {
+  skeletons=new Set<T.Skeleton>();
+  surface(kind: SurfaceKind, color: string) {
     const key = `surface:${kind}:${color}`;
-    if (this.materials.has(key)) return this.materials.get(key)!;
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 256;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 550; i++) {
-      const x = (i * 137.508) % 256,
-        y = (i * 71.73) % 256;
-      ctx.fillStyle = i % 2 ? "#ffffff16" : "#392b3d12";
-      if (kind === "wood") ctx.fillRect(x, y, 1 + (i % 2), 9 + (i % 41));
-      else if (kind === "stone") {
-        ctx.beginPath();
-        ctx.ellipse(x, y, 1 + (i % 3), 1 + (i % 4) / 2, i, 0, Math.PI * 2);
-        ctx.fill();
-      } else ctx.fillRect(x, y, 1, 4);
-    }
-    const texture = new T.CanvasTexture(canvas);
-    texture.colorSpace = T.SRGBColorSpace;
-    texture.wrapS = texture.wrapT = T.RepeatWrapping;
-    texture.repeat.set(kind === "fabric" ? 3 : 1, 1);
-    texture.anisotropy = 4;
-    this.textures.push(texture);
-    const mat = new T.MeshStandardMaterial({
-      map: texture,
-      roughness: kind === "stone" ? 0.46 : 0.85,
-    });
-    this.materials.set(key, mat);
-    return mat;
+    if (!this.materials.has(key)) this.materials.set(key,makeSurface(kind,color,this.textures));
+    return this.materials.get(key)!;
   }
   capsule(
     parent: T.Object3D,
@@ -96,9 +73,10 @@ export class Workshop {
     scale: number[],
     metal = 0,
   ) {
+    const simple = Math.max(...scale)>=8 || Math.min(...scale)<0.075;
     return this.mesh(
       parent,
-      this.geometry("box", () => new RoundedBoxGeometry(1, 1, 1, 2, 0.065)),
+      this.geometry(simple?'plain-box':"box", () => simple?new T.BoxGeometry(1,1,1):new RoundedBoxGeometry(1, 1, 1, 2, 0.065)),
       color,
       position,
       scale,
@@ -142,7 +120,7 @@ export class Workshop {
         () =>
           new T.TubeGeometry(
             new T.CatmullRomCurve3(points.map((p) => new T.Vector3(...p))),
-            12,
+            points.length===2?1:8,
             radius,
             5,
             false,
@@ -215,10 +193,15 @@ export class Workshop {
     parent.add(mesh);
     return mesh;
   }
+  releaseSkeletons(root:T.Object3D){
+    root.traverse(object=>{if(object instanceof T.SkinnedMesh&&this.skeletons.delete(object.skeleton))object.skeleton.dispose();});
+  }
   dispose() {
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
     this.textures.forEach((t) => t.dispose());
+    this.skeletons.forEach(s=>s.dispose());
+    this.skeletons.clear();
   }
 }
 
@@ -419,6 +402,9 @@ export interface Person {
   leftLeg: T.Group;
   rightLeg: T.Group;
   hand: T.Group;
+  eyes: T.Mesh[];
+  knees: T.Bone[];
+  elbows:T.Bone[];
 }
 
 export function makePerson(w: Workshop, customer: Customer): Person {
@@ -426,25 +412,10 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   const root = new T.Group();
   root.scale.set(l.build, l.height / 2.1, 1);
   const body = new T.Group();
+  const eyes: T.Mesh[] = [], knees:T.Bone[]=[],elbows:T.Bone[]=[];
   root.add(body);
-  const torso = w.capsule(body, l.shirt, [0, 1.12, 0], [0.265, 0.225, 0.163]);
-  if (typeof document !== "undefined")
-    torso.material = w.surface("fabric", l.shirt);
-  [-1, 1].forEach((side) => {
-    w.line(
-      body,
-      "#776961",
-      [
-        [side * 0.19, 0.94, 0.155],
-        [side * 0.22, 1.04, 0.157],
-        [side * 0.2, 1.16, 0.16],
-      ],
-      0.004,
-    );
-    w.ball(body, l.shirt, [side * 0.235, 1.35, 0], [0.12, 0.095, 0.14]);
-  });
-  w.ball(body, l.shirt, [0, 0.91, 0], [0.29, 0.2, 0.17]);
-  w.cylinder(body, l.skin, [0, 1.58, 0], 0.11, 0.19);
+  continuousTorso(w,body,l.shirt,l.skin);
+  if(!l.skirt)continuousHips(w,body,l.pants);
   w.line(
     body,
     l.pattern === "pocket" ? "#d6c7b6" : l.pants,
@@ -472,6 +443,12 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     collar.rotation.z = -0.45;
     w.box(body, l.shirt, [0.07, 1.44, 0.125], [0.11, 0.1, 0.03]).rotation.z =
       0.45;
+  }
+  // Belt, hem stitching and small creases belong to clothing, rather than skin.
+  w.line(body, l.pants, [[-0.24, 0.91, 0.14], [0, 0.9, 0.183], [0.24, 0.91, 0.14]], 0.012);
+  if (!l.skirt) {
+    w.box(body, '#8b7967', [0, 0.88, 0.177], [0.07, 0.05, 0.018], 0.5);
+    for (const side of [-1, 1]) w.line(body, '#ffffff', [[side*0.14,0.87,0.14],[side*0.22,0.79,0.11]], 0.003);
   }
   if (l.skirt)
     w.mesh(
@@ -511,25 +488,29 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   // Natural face proportions: small separate eyes, projecting nose, imperfect smile.
   const head = new T.Group();
   head.position.y = 1.82;
-  head.scale.set(0.88, 0.72, 0.88);
+  head.scale.setScalar(.92);
   body.add(head);
-  w.ball(head, l.skin, [0, 0, 0], [0.235, 0.3, 0.215]);
-  w.ball(head, l.skin, [0, -0.163, 0.022], [0.16, 0.115, 0.154]);
-  w.ball(head, l.skin, [0, -0.058, 0.216], [0.05, 0.068, 0.058]);
+  w.mesh(head,w.geometry('continuous-face',faceGeometry),l.skin,[0,0,0]);
   [-1, 1].forEach((side) => {
     w.ball(head, l.skin, [side * 0.231, -0.018, 0], [0.049, 0.074, 0.038]);
-    w.ball(
+    const white = w.ball(
       head,
       "#efe1d4",
       [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.203],
       [0.025, 0.016, 0.009],
     );
-    w.ball(
+    const pupil = w.ball(
       head,
       "#332e28",
       [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.211],
       [0.014, 0.014, 0.008],
     );
+    eyes.push(white, pupil);
+    white.userData.blinkHeight = 0.016; pupil.userData.blinkHeight = 0.014;
+    w.ball(head, '#ffffff', [side * 0.086 - 0.004, 0.028 + (side === 1 ? 0.008 : 0), 0.218], [0.004, 0.004, 0.002]);
+    w.line(head, '#8b6650', [[side*0.055,0.042,0.204],[side*0.086,0.05,0.206],[side*0.115,0.039,0.198]],0.0035);
+    w.ball(head, '#ad7962', [side * 0.235, -0.018, 0.023], [0.023, 0.04, 0.018]);
+    w.ball(head, '#997058', [side * 0.022, -0.081, 0.258], [0.009, 0.006, 0.003]);
     w.line(
       head,
       l.hair,
@@ -578,16 +559,12 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     hair.rotation.x = -0.5;
   }
   if (l.style === "bob" || l.style === "long") {
-    w.box(
-      head,
-      l.hair,
-      [0, l.style === "long" ? -0.18 : -0.08, -0.13],
-      [0.45, l.style === "long" ? 0.63 : 0.37, 0.2],
-    );
-    w.ball(head, l.hair, [-0.19, -0.09, 0.025], [0.06, 0.24, 0.13]);
+    w.ball(head,l.hair,[0,l.style==='long'?-.16:-.08,-.12],[.224,l.style==='long'?.35:.23,.125]);
+    for(const side of [-1,1])w.ball(head,l.hair,[side*.18,-.08,-.015],[.054,.22,.12]);
   }
   if (l.style === "bun")
     w.ball(head, l.hair, [0, 0.12, -0.245], [0.12, 0.12, 0.105]);
+  if (l.style === 'bun') w.cylinder(head, '#a1768b', [0, 0.1, -0.245], 0.107, 0.035).rotation.x = Math.PI / 2;
   if (l.style !== "bald")
     for (let i = 0; i < 5; i++) {
       const lock = w.capsule(
@@ -676,55 +653,56 @@ export function makePerson(w: Workshop, customer: Customer): Person {
       [0, 0.115, 0.22],
       [0.4, 0.035, 0.22],
     );
+    if (l.accessory === 'helmet') w.line(head, '#4a4941', [[-0.23,-0.02,0.01],[-0.13,-0.24,0.07],[0,-0.27,0.08],[0.13,-0.24,0.07],[0.23,-0.02,0.01]],0.011);
   }
   const arm = (side: number) => {
     const pivot = new T.Group();
     pivot.position.set(side * 0.32, 1.42, 0);
     body.add(pivot);
-    w.capsule(pivot, l.shirt, [side * 0.02, -0.15, 0], [0.087, 0.113, 0.09]);
-    w.capsule(pivot, l.skin, [side * 0.04, -0.43, 0.025], [0.058, 0.096, 0.06]);
-    w.ball(pivot, l.skin, [side * 0.04, -0.6, 0.04], [0.074, 0.09, 0.05]);
-    w.ball(pivot, l.skin, [side * 0.002, -0.57, 0.074], [0.029, 0.045, 0.023]);
+    const limb=continuousLimb(w,pivot,'arm',l.shirt,l.skin,side);elbows.push(limb.joint);
+    const forearm=new T.Group();forearm.position.y=.30;limb.joint.add(forearm);
+    w.ball(forearm, l.skin, [side * 0.04, -0.6, 0.04], [0.074, 0.09, 0.05]);
+    w.ball(forearm, l.skin, [side * 0.002, -0.57, 0.074], [0.029, 0.045, 0.023]);
+    for (let finger=0;finger<3;finger++) w.line(forearm,'#a77d61',[[side*0.04-0.035+finger*0.025,-0.6,0.086],[side*0.04-0.035+finger*0.025,-0.65,0.075]],0.0025);
+    if (side===-1 && !l.old) {
+      w.cylinder(forearm, '#4d5450', [side*0.04,-0.48,0.025],0.066,0.035);
+      w.box(forearm,'#bcc3bb',[side*0.04,-0.48,0.088],[0.046,0.032,0.012],0.6);
+    }
     return pivot;
   };
   const leg = (side: number) => {
     const pivot = new T.Group();
     pivot.position.set(side * 0.14, 0.83, 0);
     root.add(pivot);
-    w.capsule(pivot, l.pants, [0, -0.23, 0], [0.095, 0.16, 0.1]);
-    w.capsule(
-      pivot,
-      l.skirt ? l.skin : l.pants,
-      [0, -0.58, 0],
-      [0.072, 0.108, 0.075],
-    );
+    const limb=continuousLimb(w,pivot,'leg',l.pants,l.skirt?l.skin:l.pants,side);
+    const knee=limb.joint;knees.push(knee);
     w.box(
-      pivot,
+      knee,
       l.old ? "#6f553f" : "#dedacc",
-      [0, -0.76, 0.075],
+      [0, -0.34, 0.075],
       [0.19, 0.12, 0.3],
     );
     if (l.old) {
-      w.box(pivot, l.skin, [0, -0.705, 0.07], [0.14, 0.027, 0.19]);
+      w.box(knee, l.skin, [0, -0.285, 0.07], [0.14, 0.027, 0.19]);
       w.line(
-        pivot,
+        knee,
         "#684c38",
         [
-          [-0.073, -0.69, 0.11],
-          [0, -0.67, 0.14],
-          [0.073, -0.69, 0.11],
+          [-0.073, -0.27, 0.11],
+          [0, -0.25, 0.14],
+          [0.073, -0.27, 0.11],
         ],
         0.014,
       );
     } else {
-      w.box(pivot, "#b3b2a8", [0, -0.815, 0.075], [0.19, 0.02, 0.29]);
+      w.box(knee, "#b3b2a8", [0, -0.395, 0.075], [0.19, 0.02, 0.29]);
       for (let i = 0; i < 3; i++)
         w.line(
-          pivot,
+          knee,
           "#716e64",
           [
-            [-0.04, -0.693, 0.1 + i * 0.035],
-            [0.04, -0.693, 0.1 + i * 0.035],
+            [-0.04, -0.273, 0.1 + i * 0.035],
+            [0.04, -0.273, 0.1 + i * 0.035],
           ],
           0.004,
         );
@@ -736,10 +714,22 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     leftLeg = leg(-1),
     rightLeg = leg(1);
   const hand = new T.Group();
-  hand.position.set(0.04, -0.57, 0.11);
-  rightArm.add(hand);
+  hand.position.set(0.018, -0.27, 0.11);
+  elbows[1].add(hand);
   if (l.old) body.rotation.x = 0.09;
-  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand };
+  // Hair strands, skin folds and woven garments read at conversation distance.
+  if(l.style!=='bald')for(let i=0;i<20;i++){
+    const x=(i/19-.5)*.38;
+    w.line(head,i%3===0?'#635346':l.hair,[[x,.25,.08],[x*.94,.3,-.05],[x*.9,.19,-.19]],.0025);
+  }
+  root.traverse(object=>{if(object instanceof T.Mesh&&!Array.isArray(object.material)){
+    if(object.material===w.material(l.shirt))object.material=w.surface('fabric',l.shirt);
+    else if(object.material===w.material(l.pants))object.material=w.surface('fabric',l.pants);
+  }});
+  const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
+  const parts=[body,head,leftArm,rightArm,leftLeg,rightLeg];
+  parts.forEach((part,i)=>mergeRigid(part,[head,leftArm,rightArm,...knees,...elbows,...eyes].filter(p=>p!==part),register,`person:${customer.id}:${i}`));
+  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows };
 }
 
 export function pose(
@@ -749,14 +739,19 @@ export function pose(
   gesture: number,
   sitting: boolean,
   motion: boolean,
+  gaitPhase=time*7,
 ) {
-  const swing = motion && walking ? Math.sin(time * 9) * 0.45 : 0;
+  const swing = motion && walking ? Math.sin(gaitPhase) * 0.34 : 0;
   person.leftLeg.rotation.x = sitting ? -1.35 : swing;
   person.rightLeg.rotation.x = sitting ? -1.35 : -swing;
-  person.leftArm.rotation.x = -swing * 0.75;
-  person.rightArm.rotation.x = gesture ? -gesture : swing * 0.75;
+  person.knees.forEach((knee,i) => { knee.rotation.x = sitting ? 1.35 : motion && walking ? Math.max(0, Math.sin(gaitPhase + i*Math.PI))*0.38 : 0; });
+  const blinking = motion && (time + person.root.scale.y*3) % 4.7 > 4.55;
+  person.eyes.forEach(eye => { eye.scale.y = blinking ? 0.002 : eye.userData.blinkHeight; });
+  person.elbows.forEach((elbow,i)=>{elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):-.12-(motion&&walking?Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.12:0);});
+  person.leftArm.rotation.x = -swing * 0.55;
+  person.rightArm.rotation.x = gesture ? -gesture : swing * 0.55;
   person.body.position.y =
-    motion && walking ? Math.abs(Math.sin(time * 9)) * 0.035 : 0;
+    motion && walking ? Math.abs(Math.sin(gaitPhase)) * 0.014 : motion ? Math.sin(time*1.8)*0.006 : 0;
   person.head.rotation.y =
     motion && !walking ? Math.sin(time * 0.65) * 0.075 : 0;
 }

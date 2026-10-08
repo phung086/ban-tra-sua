@@ -1,3 +1,4 @@
+import { initialCity, newCityDay } from './city';
 import {
   ACHIEVEMENTS,
   BASE_IDS,
@@ -195,6 +196,7 @@ export function createInitialState(): GameState {
   const event = getEventForDay(1);
   return {
     saveVersion: 3,
+    city: initialCity(),
     day: 1,
     phase: "prep",
     cash: 220000,
@@ -317,6 +319,7 @@ function refillCustomerQueue(
 }
 
 export function startDay(state: GameState, now = Date.now()): GameState {
+  if (state.city.contract) return { ...state, notice: 'Hoàn tất hoặc hủy đơn giao trà trong khu phố trước khi mở tiệm.' };
   const prepared = syncProgression(state);
   const currentOrder = generateOrder(prepared, 0);
   return {
@@ -913,6 +916,8 @@ export function nextDay(state: GameState): GameState {
     ...state,
     day,
     phase: "prep",
+    city: newCityDay(state.city, day),
+    fans: state.fans + (state.city.projects.includes('club') ? 3 : 0),
     served: 0,
     combo: 0,
     bestCombo: 0,

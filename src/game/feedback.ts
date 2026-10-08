@@ -1,4 +1,5 @@
 import { getUiPreferences } from "./preferences";
+import {gameAudio} from './audio';
 
 export type FeedbackKind = "tap" | "good" | "perfect" | "bad";
 
@@ -30,10 +31,8 @@ export function pulseFeedback(kind: FeedbackKind) {
   if (!preferences.sound) return;
 
   try {
-    const AudioCtor = window.AudioContext;
-    if (!AudioCtor) return;
-
-    const context = new AudioCtor();
+    const audio=gameAudio();if(!audio)return;
+    const {context}=audio;void context.resume().catch(()=>{});
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     const config = tone[kind];
@@ -45,12 +44,12 @@ export function pulseFeedback(kind: FeedbackKind) {
     gain.gain.exponentialRampToValueAtTime(0.0001, now + config.duration);
 
     oscillator.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(audio.sfx);
     oscillator.start(now);
     oscillator.stop(now + config.duration);
 
     oscillator.addEventListener("ended", () => {
-      void context.close();
+      oscillator.disconnect();gain.disconnect();
     });
   } catch {
     // Audio can be blocked by browser policy. Gameplay still works.
