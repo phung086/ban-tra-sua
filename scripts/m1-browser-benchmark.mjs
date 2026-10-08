@@ -27,6 +27,8 @@ try {
       const modes=viewport.width===390 ? ['light','balanced'] : ['light'];
       for(const quality of modes) {
         const context = await browser.newContext({viewport,deviceScaleFactor:1,reducedMotion:'reduce'});
+        // Never let a missing React control hang the benchmark until job timeout.
+        context.setDefaultTimeout(12000);
         const page = await context.newPage();
         const errors=[];
         page.on('pageerror',error=>errors.push(error.message));
