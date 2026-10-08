@@ -116,8 +116,24 @@ try {
           const opened=await page.locator('.neighborhood').getAttribute('class');
           if(!opened.includes('sheet-open'))throw new Error('Notebook did not open');
           await page.getByRole('button',{name:/Thu gọn để đi phố/}).click();
+          // Complete one genuine React gameplay loop: return -> open -> seal -> carry -> deliver.
+          await page.getByRole('button',{name:/Về tiệm/}).click();
+          await page.waitForFunction(()=>window.__m1Runtime?.input.exploring===false,{timeout:45000});
+          await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:15000});
+          await page.locator('.craft-stations button').nth(3).click();
+          await page.locator('.seal-button').click();
+          await page.locator('.serve-button').click();
+          await page.screenshot({path:path.join(output,id+'-craft.png'),animations:'disabled'});
+          await page.locator('.place-buttons button.destination').click();
+          await page.waitForFunction(()=>!!document.querySelector('.delivery-tag button.primary-button:not([disabled])'),{timeout:45000});
+          await page.locator('.delivery-tag button.primary-button').click();
+          await page.waitForFunction(()=>{
+            try{return JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').served>=1}catch{return false}
+          },{timeout:15000});
+          const served=await page.evaluate(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')).served);
+          await page.screenshot({path:path.join(output,id+'-delivered.png'),animations:'disabled'});
           if(errors.length)failures.push({id,errors});
-          console.log('M1 SMOKE '+JSON.stringify({id,moved:round(moved),yawChanged:round(yaw-before.yaw),notebook:'ok',errors}));
+          console.log('M1 SMOKE '+JSON.stringify({id,moved:round(moved),yawChanged:round(yaw-before.yaw),notebook:'ok',served,errors}));
         } catch(error){
           console.error('M1 FAIL '+id+' '+String(error.stack||error));
           failures.push({id,error:String(error.stack||error)});
