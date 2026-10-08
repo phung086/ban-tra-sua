@@ -183,7 +183,7 @@ try {
               const speech=document.querySelector('dialog.neighborhood-dialogue[open] .dialogue-speech');
               return !!speech?.textContent && speech.textContent!==previous;
             },firstSpeech,{timeout:30000});
-            await dialogue.getByRole('button',{name:/Để lát nhé/}).click({timeout:30000});
+            await dialogue.getByRole('button',{name:'Khép cuộc trò chuyện'}).click({timeout:30000});
             await page.waitForFunction(()=>!document.querySelector('dialog.neighborhood-dialogue[open]') &&
               !window.__m1Runtime?.input.paused,null,{timeout:30000});
             console.log('M1 NPC DIALOGUE OK '+id);
