@@ -48,6 +48,11 @@ export class StreetRuntime {
   // Opt-in, bounded profiling buffer. Never updates React and remains off for normal play.
   readonly m1Capture = typeof location !== 'undefined' && new URLSearchParams(location.search).has('m1bench');
   readonly m1Frames: {intervalMs:number;simulationMs:number;submissionMs:number;calls:number;triangles:number}[] = [];
+  // One-shot diagnostic capture in the same animation frame as WebGL render.
+  // Avoid Playwright's stalled full-page compositor capture on CI SwiftShader.
+  m1ScreenshotPending = false;
+  m1ScreenshotDataUrl: string | null = null;
+  m1ScreenshotError: string | null = null;
   m1Snapshot() {
     const skeletons=new Set<T.Skeleton>();
     this.scene.traverse(object=>{if(object instanceof T.SkinnedMesh)skeletons.add(object.skeleton);});
@@ -603,6 +608,14 @@ export class StreetRuntime {
     if(this.m1Capture){
       this.m1Frames.push({intervalMs:frameInterval,simulationMs:submitStart-renderStart,submissionMs:performance.now()-submitStart,calls:this.renderer.info.calls,triangles:this.renderer.info.triangles});
       if(this.m1Frames.length>1500)this.m1Frames.splice(0,this.m1Frames.length-1500);
+      if(this.m1ScreenshotPending){
+        this.m1ScreenshotPending=false;
+        try {
+          const png=this.canvas.toDataURL('image/png');
+          if(!png.startsWith('data:image/png;base64,')||png.length<5000)throw new Error('Empty WebGL screenshot');
+          this.m1ScreenshotDataUrl=png;
+        } catch(error) {this.m1ScreenshotError=String(error);}
+      }
     }
     this.submissions+=this.renderer.info.calls;this.submittedTriangles+=this.renderer.info.triangles;
     const cpu=performance.now()-renderStart;

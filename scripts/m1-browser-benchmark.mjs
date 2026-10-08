@@ -69,7 +69,31 @@ try {
             await sleep(measure ? WARMUP_MS : 3000);
             let image=null;
             try {
-              await page.screenshot({path:filename,animations:'disabled',timeout:20000});
+              if(mode==='overview') {
+                // Capture the canvas immediately after its WebGL render. On software GL,
+                // Playwright's page screenshot can time out while waiting for compositing.
+                // Capture happens before sampling; never include PNG encoding in P95.
+                await page.evaluate(()=>{
+                  const r=window.__m1Runtime;
+                  r.m1ScreenshotDataUrl=null;r.m1ScreenshotError=null;
+                  r.m1ScreenshotPending=true;
+                });
+                await page.waitForFunction(()=>{
+                  const r=window.__m1Runtime;
+                  return !!(r?.m1ScreenshotDataUrl||r?.m1ScreenshotError);
+                },null,{timeout:90000,polling:500});
+                const shot=await page.evaluate(()=>{
+                  const r=window.__m1Runtime;
+                  const value={dataUrl:r.m1ScreenshotDataUrl,error:r.m1ScreenshotError};
+                  r.m1ScreenshotDataUrl=null;
+                  return value;
+                });
+                if(shot.error)throw new Error('WebGL capture failed: '+shot.error);
+                if(!shot.dataUrl?.startsWith('data:image/png;base64,'))throw new Error('Missing WebGL PNG');
+                await writeFile(filename,Buffer.from(shot.dataUrl.slice('data:image/png;base64,'.length),'base64'));
+              } else {
+                await page.screenshot({path:filename,animations:'disabled',timeout:20000});
+              }
               image=filename;
             } catch(error) {
               failures.push({id,mode,phase:'screenshot',error:String(error)});
