@@ -148,3 +148,8 @@ Nhánh này cố ý tách biệt khỏi các nhánh v4 khác và không thay đ�
 - thứ tự decor được lưu bằng mảng equipped hiện có, không đổi save schema;
 - seasonal ambience suy ra trực tiếp từ ngày chơi, không thêm state mới;
 - CSS nằm riêng trong `styles-v4-sol.css` để giảm xung đột merge.
+
+
+## Tầm nhìn dài hạn: từng ngày sống trong thành phố
+
+Định hướng kế hoạch (chưa phải các tính năng đã code): người chơi sống qua những **ngày/màn khác nhau** với cốt truyện, gia đình, bạn bè, chợ/bếp/bữa cơm, vận hành tiệm, khách có cá tính và tip, hóa đơn, sức khỏe, va chạm thật và khu phố/thành phố biển có thể mở rộng. Lịch/NPC/state/kinh tế tồn tại xuyên ngày; nội dung và assets chia pack để tiếp tục tối ưu thiết bị yếu. **Đọc bộ [Game Design Bible và playbook cho mọi AI](docs/game-design/README.md)** để hiểu target, 30 ngày đầu, schema, backlog/gates. Phần beta M1–M10 và [prompt M1.1 hiện hành](docs/next-step-prompt.md) vẫn ưu tiên; tuyệt đối không nhầm tầm nhìn với tính năng đã nghiệm thu.

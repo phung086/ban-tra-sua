@@ -107,3 +107,14 @@ Giá và phần thưởng phải nối về quỹ, nguyên liệu, thời gian h
 Sửa lỗi chặn và hiệu năng trước, rồi chọn tối đa ba vấn đề trải nghiệm lớn nhất mỗi vòng. Kiểm chứng lại cùng thiết bị và save trước/sau. Khi core ổn định, mở rộng các khu còn lại bằng bộ asset đã đạt ngân sách; thêm chương với liên hệ giữa sáu cư dân, sự kiện thay đổi tiệm và kết thúc có hậu quả kéo dài.
 
 Production cần nội dung từ đầu tới cuối, cân bằng kinh tế, asset thống nhất, hướng dẫn/hỗ trợ người chơi, kiểm thử cập nhật dữ liệu dài hạn, kiểm tra dependency/giấy phép và bảo mật theo chức năng thực tế. Nghiệm thu lại toàn bộ ngân sách trên release candidate. Theo dõi lỗi sau phát hành và có bản phục hồi đã diễn tập.
+
+
+## Định hướng dài hạn sau beta: Living City / vòng lặp mỗi ngày một màn (LC)
+
+**Chỉ là kế hoạch, không thay đổi thứ tự M0–M10 hoặc cổng M1.1.** Theo định hướng sản phẩm bổ sung 08/10/2026, tiệm trà dần trở thành life-sim kể chuyện: thức dậy/mở cửa đúng giờ hoặc ngủ quên, khách khó tính/tip, chợ và nấu ăn, người thân và nhóm bạn, ăn chung/chia tiền, sức khỏe–phòng khám, hóa đơn–chi phí, tình huống giao thông và những ngày vui/buồn; các lựa chọn có hệ quả qua ngày. Thành phố mở rộng theo zone/chapter đến khu lân cận và biển, **không render hoặc tải mọi khu cùng lúc**. Mỗi ngày là day content pack + state/seed/lịch, không phải một bản build độc lập; cần tác giả và QA, không thể tuyên bố vô hạn nội dung độc đáo chỉ từ random.
+
+**Bộ thiết kế chính thức để các AI cùng đọc:** [Game Design Bible](game-design/README.md) · [Needs/economy/friends](game-design/life-systems.md) · [Cốt truyện 30 ngày & event director](game-design/story-and-days.md) · [World/mobile/render/animation](game-design/world-and-performance.md) · [Typed content/save](game-design/data-and-save-contract.md) · [AI handoff & backlog](game-design/ai-delivery-playbook.md). Các tài liệu mô tả **future design**, không khẳng định đã code.
+
+**Mở theo dependency, không theo mong muốn ngày mới:** sau core beta M1–M10, thực hiện `LC-00` (contract, validator) → `LC-01` (clock/day director/seed/save) → `LC-02` (nhà/chợ/ăn) → `LC-03/04` (social + kinh tế) → `LC-05/06` (sức khỏe + lịch cư dân/traffic) → `LC-07` (day packs/30 ngày) → `LC-08` (liên vùng/biển) → `LC-09` (tooling và các batch ngày tiếp theo). Vòng bổ sung ngày `LC-DNN` chỉ được mở sau content engine + cần zones/assets/QA đã đạt; một ngày cần ít nhất hook, hành động, lựa chọn có hậu quả và closure, test seed/reload/save/perf/device; nếu không đạt tiếp tục ngày đang làm, không chuyển N+1.
+
+Những thành phần nền như data contracts, story outline, validator design hoặc asset budget có thể được nghiên cứu song song **chỉ khi không làm chệch cổng hiện tại**. Mục tiêu mobile và ngưỡng kiểm thử giữ nguyên bảng ngân sách ở trên; không coi số đo software Chromium là nghiệm thu thiết bị thật.

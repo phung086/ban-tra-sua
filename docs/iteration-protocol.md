@@ -26,3 +26,8 @@
 Lưu tại `docs/iterations/<moc>-<vong>.md`: source SHA đầu vòng; vấn đề và tiêu chí; thay đổi; lệnh/cách chạy; bảng trước/sau; ảnh cùng góc; test/CI; thiết bị thực tế; giới hạn; bước tiếp. Báo cáo nằm trong commit được kiểm chứng nên không tự ghi SHA commit chứa chính nó; tham chiếu source baseline và link CI được trả ở cuối vòng.
 
 Chỉ gọi một tiêu chí “đạt” khi có bằng chứng. Chưa có điện thoại yếu thì đánh dấu cổng thiết bị thật chưa đạt, tiếp tục công việc độc lập có ích và chuẩn bị bản kiểm thử cho người dùng. Không tự kết luận production hoàn tất vì build xanh.
+
+
+## Bổ sung cho kế hoạch Living City dài hạn (không thay đổi M1.1)
+
+Mỗi AI tham gia phải đọc [Game Design Bible](game-design/README.md) và [AI delivery playbook](game-design/ai-delivery-playbook.md) **sau khi** đọc roadmap/protocol/next-step. `docs/game-design/` là đặc tả mục tiêu tương lai, **không phải bằng chứng gameplay đã triển khai**. Từ chối tiến hành một day pack `LC-DNN` nếu day director, save migration, zone và gates trước chưa đạt. Cần phân biệt status `PLAN` / `IMPLEMENTED_UNVERIFIED` / `MEASURED` / `BLOCKED` / `ACCEPTED`, giữ seed và content hashes khi đo. Không xóa hoặc ghi đè `next-step-prompt.md` bằng prompt LC khi M1.1 chưa nghiệm thu.
