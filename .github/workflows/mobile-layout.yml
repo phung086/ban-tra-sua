@@ -8,6 +8,12 @@ on:
       - 'src/App.tsx'
       - 'src/game/playLayout*'
       - 'src/components/MovementStick.tsx'
+      - 'src/components/StreetWorld.tsx'
+      - 'src/components/world/PrepWorld.tsx'
+      - 'src/scene/runtime.ts'
+      - 'src/styles-mobile-play.css'
+      - 'src/styles-world-foundation.css'
+      - 'src/styles-street.css'
       - 'scripts/mobile-layout-smoke.mjs'
       - '.github/workflows/mobile-layout.yml'
   workflow_dispatch:
