@@ -19,7 +19,10 @@ Mỗi lần ngủ và thức dậy mở ra một **ngày chơi riêng** gồm bu
 7. [ECONOMY & NEEDS](economy-needs.md) → quỹ, bữa ăn, sức khỏe, hóa đơn.
 8. [CITY & RENDERING](city-rendering.md) → phân khu, xe cộ, collider, animation, hiệu năng.
 9. [AGENTS & DELIVERY](agents-and-delivery.md) → chia ownership, vòng lặp, kiểm thử, PR.
-10. [AGENT START PROMPT](agent-start-prompt.md) → ngữ cảnh chuyển giao nguyên vẹn.
+10. [QA & ACCEPTANCE](qa-and-content-standards.md) → day playable, save, collider, 3D/mobile gates.
+11. [AGENT BACKLOG](agent-backlog.json) → 47 nhiệm vụ có dependency + owner + trạng thái.
+12. [DAY 001 EXAMPLE](examples/day-001.design.json) → manifest mẫu để agent thiết kế, **chưa thực thi**.
+13. [AGENT START PROMPT](agent-start-prompt.md) → ngữ cảnh chuyển giao nguyên vẹn.
 
 ## Mã nguồn thực tế cần hiểu
 
