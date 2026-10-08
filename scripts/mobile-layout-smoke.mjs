@@ -156,8 +156,17 @@ try{
     await city.setViewportSize({width,height});
     const expected=height>width?'portrait':'landscape';
     await city.waitForFunction(expected=>document.querySelector('main')?.dataset.playLayout===expected,expected,{timeout:12000});
+    await city.evaluate(()=>window.scrollTo(0,0));
+    await city.waitForFunction(()=>{
+      const r=document.querySelector('.street-world')?.getBoundingClientRect();
+      return !!r&&r.left>=-2&&r.top>=-2&&r.right<=innerWidth+2&&r.bottom<=innerHeight+2;
+    },null,{timeout:30000}).catch(async error=>{
+      console.error('MOBILE_CITY_BOUNDS '+JSON.stringify(await layoutSnapshot(city,'city-bounds-timeout')));
+      throw error;
+    });
     await sleep(350);
     let snap=await layoutSnapshot(city,'city-closed');
+    console.log('MOBILE_CITY_PROBE '+JSON.stringify(snap));
     validate(snap,expected);
     assert(inside(snap.notebook,width,height),'Closed notebook outside screen');
     report.city.push(snap);
