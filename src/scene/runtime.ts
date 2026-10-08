@@ -1,5 +1,6 @@
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
+import {FramePacer} from './framePacing';
 import type {RendererFactory,SceneRenderer} from './renderDriver';
 import {AdaptiveQuality,constrainedHardware,mobileViewport,type QualityChoice} from './renderQuality';
 import {CITY_BLOCKS} from '../game/cityMap';
@@ -68,7 +69,7 @@ export class StreetRuntime {
   input: Input;
   raf = 0;
   previous = 0;
-  lastDraw = 0;
+  framePacer = new FramePacer(30);
   lastPosition = 0;
   motion = true;
   disposed = false;
@@ -346,6 +347,7 @@ export class StreetRuntime {
   resume() {
     cancelAnimationFrame(this.raf);
     this.previous = 0;
+    this.framePacer.reset();
     if (!document.hidden && this.visible && !this.disposed)
       this.raf = requestAnimationFrame(this.tick);
   }
@@ -368,12 +370,11 @@ export class StreetRuntime {
   tick = (now: number) => {
     if (this.disposed) return;
     this.raf = requestAnimationFrame(this.tick);
-    if (now - this.lastDraw < 1000 / 30) return;
+    if (!this.framePacer.shouldRender(now)) return;
     const frameInterval=now-(this.previous||now);
     const renderStart=performance.now();
     const dt = Math.min(0.05, frameInterval/1000);
     this.previous = now;
-    this.lastDraw = now;
     const { game, screen, carrying } = this.input;
     this.city.update(game, dt, this.motion, this.player);
     const night = game.city.minutes >= 1080;
