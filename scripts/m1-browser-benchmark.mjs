@@ -45,7 +45,7 @@ const browser = await chromium.launch({headless:true,args:[
   '--no-sandbox','--disable-dev-shm-usage','--enable-webgl',
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'
 ]});
-let failures = [], results = [], browsers = [];
+let failures = [], results = [], cameraSweeps = [];
 try {
   for(const variant of variants) {
     for(const viewport of viewports) {
@@ -184,6 +184,61 @@ try {
           await page.mouse.move(px,py);await page.mouse.down();await page.mouse.move(px+28,py+16,{steps:3});await page.mouse.up();
           const yaw=await page.evaluate(()=>window.__m1Runtime.yaw);
           if(Math.abs(yaw-before.yaw)<.01)throw new Error('Camera yaw did not change');
+
+          // Actual pointer-driven camera turns, rendered in the production scene.
+          // A passing trace does NOT prove the absence of visual pop-in.
+          if(viewport.width===390 && quality==='light') {
+            await page.evaluate(()=>{
+              const r=window.__m1Runtime;
+              r.player={x:0,z:-7};r.path=[];r.overview=false;
+              r.yaw=0;r.pitch=-0.23;r.cameraFocus.set(0,0,-7);
+            });
+            for(const pose of [
+              {name:'left',deltaX:90},
+              {name:'right',deltaX:-180},
+              {name:'center',deltaX:90}
+            ]) {
+              const rect=await canvas.boundingBox();
+              if(!rect)throw new Error('Camera sweep canvas missing');
+              const sx=rect.x+rect.width/2,sy=rect.y+rect.height/2;
+              const previousYaw=await page.evaluate(()=>{
+                const r=window.__m1Runtime;
+                r.m1Frames.length=0;
+                return r.yaw;
+              });
+              await page.mouse.move(sx,sy);
+              await page.mouse.down();
+              await page.mouse.move(sx+pose.deltaX,sy,{steps:6});
+              await page.mouse.up();
+              await page.waitForFunction(({previousYaw})=>{
+                const r=window.__m1Runtime;
+                return Math.abs(r.yaw-previousYaw)>0.25 && r.m1Frames.length>=2;
+              },{previousYaw},{timeout:90000,polling:500});
+              const trace=await page.evaluate(()=>{
+                const r=window.__m1Runtime;
+                return {
+                  yaw:r.yaw,
+                  camera:{x:r.camera.position.x,y:r.camera.position.y,z:r.camera.position.z},
+                  player:{...r.player},
+                  frames:r.m1Frames.slice(-4).map(f=>({
+                    calls:f.calls,triangles:f.triangles,intervalMs:f.intervalMs
+                  }))
+                };
+              });
+              if(!trace.frames.length || trace.frames.some(f=>f.calls<=0||f.triangles<=0))
+                throw new Error('Camera sweep empty render: '+JSON.stringify(trace));
+              const sweepImage=path.join(output,id+'-camera-'+pose.name+'.png');
+              await captureRenderedCanvas(page,sweepImage);
+              const record={id,pose:pose.name,image:sweepImage,capture:'webgl-canvas',
+                yaw:round(trace.yaw),camera:trace.camera,player:trace.player,
+                drawCallsMean:round(mean(trace.frames.map(f=>f.calls))),
+                trianglesMean:round(mean(trace.frames.map(f=>f.triangles))),
+                intervalP95:round(percent(trace.frames.map(f=>f.intervalMs),.95)),
+                frameCount:trace.frames.length};
+              cameraSweeps.push(record);
+              console.log('M1 CAMERA SWEEP OK '+JSON.stringify(record));
+            }
+          }
           await page.getByRole('button',{name:/Mở sổ tay khu phố/}).click();
           const opened=await page.locator('.neighborhood').getAttribute('class');
           if(!opened.includes('sheet-open'))throw new Error('Notebook did not open');
@@ -307,7 +362,7 @@ try {
   }
 } finally {
   await mkdir(output,{recursive:true});
-  await writeFile(path.join(output,'results.json'),JSON.stringify({results,failures,environment:{
+  await writeFile(path.join(output,'results.json'),JSON.stringify({results,cameraSweeps,failures,environment:{
     userAgent:'Chromium Playwright SwiftShader headless CI (not real mobile GPU)',
     warmupMs:WARMUP_MS,sampleMs:SAMPLE_MS,dpr:1,
     gpuTiming:'unsupported',drawCalls:'Three.js renderer.info.render.calls (main plus refreshed shadow passes)'
