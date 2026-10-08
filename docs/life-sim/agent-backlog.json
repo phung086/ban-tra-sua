@@ -41,10 +41,14 @@
       "title": "Publish master world bible and agent contract",
       "dependsOn": [],
       "track": "docs",
-      "status": "in_progress",
+      "status": "accepted",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": null,
-      "pr": null
+      "branch": "codex/life-sim-world-bible-v1",
+      "pr": 16,
+      "evidence": {
+        "mainSha": "feabcfa6bb859ce11a3f4b061e3956ac2e06f2b7",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37796350697"
+      }
     },
     {
       "id": "T1-01",
@@ -52,9 +56,9 @@
       "title": "Deterministic seeded RNG + independent event streams",
       "dependsOn": [],
       "track": "core",
-      "status": "planned",
+      "status": "review",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": null,
+      "branch": "codex/life-t1-01-seeded-rng",
       "pr": null
     },
     {
