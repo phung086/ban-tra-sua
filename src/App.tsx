@@ -61,12 +61,13 @@ function App() {
     const coarse=matchMedia('(pointer: coarse)');
     let raf=0;
     const sync=()=>{
+      // Update viewport height before the next animation frame: software WebGL,
+      // browser chrome and orientation transitions can delay requestAnimationFrame.
+      const height=window.visualViewport?.height||window.innerHeight;
+      document.documentElement.style.setProperty('--play-viewport-height',Math.max(200,Math.round(height))+'px');
       cancelAnimationFrame(raf);
-      raf=requestAnimationFrame(()=>{
-        const height=window.visualViewport?.height||window.innerHeight;
-        document.documentElement.style.setProperty('--play-viewport-height',Math.max(200,Math.round(height))+'px');
-        setPlayLayout(selectPlayLayout(window.innerWidth,window.innerHeight,coarse.matches));
-      });
+      raf=requestAnimationFrame(()=>
+        setPlayLayout(selectPlayLayout(window.innerWidth,window.innerHeight,coarse.matches)));
     };
     sync();
     window.addEventListener('resize',sync);
