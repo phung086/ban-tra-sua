@@ -1,7 +1,9 @@
-# Next step: M1.1n — reproduce follow-culling regression
+# Next step: M1.1o — verify near-shop culling
 
-Read roadmap, iteration protocol, and [M1.1m benchmark](iterations/m1-01m.md). Check remote SHA and CI before edits. On d2e7f6a, overview light passed relative gate (-58.07% calls, -52.90% P95); follow triangles increased +41.42% light/+42.46% balanced and follow P95 increased +10.87%/+51.35%.
+Read docs/production-roadmap.md, docs/iteration-protocol.md, docs/iterations/m1-01m.md and docs/iterations/m1-01n.md. Check remote SHA and CI first.
 
-Try controlled sector24 or finer near-camera batching, measure before/after production Chromium 390x844 DPR1 light/balanced, inspect moving-camera images/pop-in. Keep overview light calls reduction >=40% and P95 <=+10%; otherwise optimize or revert. Preserve joystick/camera, NPC, wall/vehicle collision, city return and 10/10 craft/delivery. Run tests/build and verify CI/benchmark on exact pushed SHA. Code writes were blocked this turn; do not claim unpushed work.
+Code SHA ff2b811e2c6381f1023e164c09d1d9e071eb1900 adds near-shop sector16 batching within radius35 to sector32. CI #37829826681 passed. Benchmark #37829826752 was in progress at handoff. Inspect completed workflow, results.json, 34 images and gameplay logs before making any performance claims.
 
-M1.1 NOT ACCEPTED: real Android 3-4GB and iPhone 15-minute FPS/P95, multitouch, memory and thermal tests missing. No M2/merge/deploy.
+Compare same-run production Chromium SwiftShader 390x844 DPR1, light/balanced, warm-up 10s, sample 30s. Gate: overview light draw calls decrease >=40%, interval P95 increase <=10%. Inspect follow triangles/P95 and moving-camera culling, joystick/camera, wall/scooter collision, NPC and craft/delivery. If regressions occur, optimize or revert and remeasure. Add moving-camera screenshot/trace smoke after evaluating this run.
+
+Run tests/build and verify CI green on exact pushed SHA; document local execution limits. M1.1 NOT ACCEPTED without 15-minute Android 3-4GB and iPhone FPS/P95, thermal, memory and multitouch evidence. No M2, merge or deploy. Preserve main and other AI branches.
