@@ -3,6 +3,41 @@ import { describe, expect, it } from "vitest";
 import { batchStatic, mergeRigid } from "./batching";
 
 describe("static prop batching", () => {
+  it("merges more rigid props at sector 32 while preserving bounds and moving subtrees", () => {
+    function measure(sector: number) {
+      const root=new T.Group(), moving=new T.Group();
+      const material=new T.MeshStandardMaterial();
+      const geometry=new T.BoxGeometry(2,1,2);
+      root.add(moving);
+      const live=new T.Mesh(geometry,material);
+      live.position.set(5,0,-12);
+      moving.add(live);
+      const positions=[2,10,18,26];
+      const pieces=positions.map(x=>{
+        const mesh=new T.Mesh(geometry,material);
+        mesh.position.set(x,0,-12); root.add(mesh);return mesh;
+      });
+      root.updateMatrixWorld(true);
+      const expected=new T.Box3();
+      pieces.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+      const allocated:T.BufferGeometry[]=[];
+      const batches=mergeRigid(root,[moving],(_,factory)=>{
+        const result=factory();allocated.push(result);return result;
+      },'test',sector);
+      const actual=new T.Box3();
+      batches.forEach(mesh=>actual.union(new T.Box3().setFromObject(mesh,true)));
+      expect(moving.children).toContain(live);
+      for(const axis of ['x','y','z'] as const) {
+        expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+        expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+      }
+      expect(positions.every(x=>x>=actual.min.x-1&&x<=actual.max.x+1)).toBe(true);
+      allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+      return batches.length;
+    }
+    expect(measure(16)).toBe(2);
+    expect(measure(32)).toBe(1);
+  });
   it('merges different geometry in local space without freezing eyes or doubling parent scale',()=>{
     const root=new T.Group(); root.position.set(5,2,-8); root.scale.set(0.8,1.2,0.9); root.rotation.y=0.4;
     const material=new T.MeshStandardMaterial(), eye=new T.Mesh(new T.SphereGeometry(0.1),material);
