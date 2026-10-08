@@ -128,6 +128,24 @@ try{
   }));
   assert(craft.hasSeal&&craft.hasJoystick&&craft.scrollContainer==='auto','Craft/joystick not independently accessible');
   report.passes.push('landscape craft workflow and independent panel scrolling');
+  // Rotate with a prepared cup in hand. Serving must stay possible afterwards;
+  // the game state must not reset because the responsive UI changed.
+  await page.locator('.serve-button').click({timeout:15000});
+  await page.waitForSelector('.delivery-tag.carrying',{timeout:15000});
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait',null,{timeout:10000});
+  await page.waitForSelector('.delivery-tag.carrying',{timeout:10000});
+  await page.screenshot({path:path.join(output,'carrying-after-rotate-390x844.png'),animations:'disabled'});
+  await page.setViewportSize({width:844,height:390});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape',null,{timeout:10000});
+  await page.locator('.place-buttons button.destination').click({timeout:20000});
+  await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])',{timeout:90000});
+  await page.locator('.delivery-tag button.primary-button').click({timeout:15000});
+  await page.waitForFunction(()=>{
+    try{return JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').served>=1}catch{return false}
+  },null,{timeout:20000});
+  await page.screenshot({path:path.join(output,'delivered-after-rotate-844x390.png'),animations:'disabled'});
+  report.passes.push('open shop, seal cup, carry through portrait rotation, return to landscape and deliver');
   await ctx.close();
 
   const cityCtx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
