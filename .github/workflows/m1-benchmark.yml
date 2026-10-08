@@ -4,6 +4,11 @@ on:
     branches: [codex/mobile-beta-foundation, codex/m1-benchmark-gate-isolated]
   workflow_dispatch:
 
+# Do not waste runner minutes benchmarking superseded commits on this branch.
+concurrency:
+  group: m1-production-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   measure:
     runs-on: ubuntu-latest
