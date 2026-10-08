@@ -64,9 +64,11 @@ try {
             },mode);
             const filename=path.join(output,id+'-'+mode+'.png');
             await mkdir(path.dirname(filename),{recursive:true});
+            // Headless software WebGL may take >1s for the first complete render.
+            // Capture only after warm-up so an empty WebGL buffer is never used for visual approval.
+            await sleep(measure ? WARMUP_MS : 3000);
             await page.screenshot({path:filename,animations:'disabled'});
             if(measure){
-              await sleep(WARMUP_MS);
               await page.evaluate(()=>{window.__m1Runtime.m1Frames.length=0});
               await sleep(SAMPLE_MS);
               const snap=await page.evaluate(()=>({
