@@ -67,9 +67,19 @@ try {
             },mode);
             const filename=path.join(output,id+'-'+mode+'.png');
             await mkdir(path.dirname(filename),{recursive:true});
-            await page.screenshot({path:filename,animations:'disabled'});
+            const initialRenders=await page.evaluate(()=>window.__m1Runtime.renderSamples);
+            // SwiftShader can take >1 second to present a frame: capture after the
+            // requested view has rendered, not immediately after switching mode.
+            if(measure)await sleep(WARMUP_MS);
+            else await page.waitForFunction(n=>window.__m1Runtime.renderSamples>=n+2,initialRenders,{timeout:60000});
+            let screenshot=await page.screenshot({path:filename,animations:'disabled'});
+            if(viewport.width===390&&screenshot.length<60000){
+              const previous=await page.evaluate(()=>window.__m1Runtime.renderSamples);
+              await page.waitForFunction(n=>window.__m1Runtime.renderSamples>=n+2,previous,{timeout:60000});
+              screenshot=await page.screenshot({path:filename,animations:'disabled'});
+              if(screenshot.length<60000)throw new Error('3D screenshot likely blank: '+filename+' ('+screenshot.length+' bytes)');
+            }
             if(measure){
-              await sleep(WARMUP_MS);
               await page.evaluate(()=>{window.__m1Runtime.m1Frames.length=0});
               await sleep(SAMPLE_MS);
               const snap=await page.evaluate(()=>({
