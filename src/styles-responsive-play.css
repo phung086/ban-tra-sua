@@ -300,3 +300,33 @@
   .app-shell[data-play-layout="landscape"] .delivery-tag:not(.carrying) { display: none; }
   .app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .place-buttons button i { display: none; }
 }
+
+/* Avoid legacy 2-row badges at <=580px: they formerly overflowed the 40px
+   game header and overlapped the navigation while rotating. */
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster {
+  display: flex; grid-template-columns: none; flex-wrap: nowrap;
+  align-items: center; height: 100%; max-height: 40px;
+}
+.app-shell[data-play-layout="landscape"] .v6-world-nav button {
+  display: flex; flex-direction: row; align-items: center; justify-items: initial;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-open {
+  display: flex; flex-shrink: 0; width: 100%;
+  min-height: 48px; margin: 8px 0 11px;
+  padding: 8px 12px; font-size: 15px;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-open small {
+  font-size: 10px; margin-top: 1px;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-service-plan {
+  margin-top: 8px;
+}
+@media (max-width: 650px) and (orientation: landscape) {
+  .app-shell[data-play-layout="landscape"] .v6-hud-cluster > span {
+    font-size: 8px; padding: 2px 4px;
+  }
+  .app-shell[data-play-layout="landscape"] .v6-brand b { font-size: 14px; }
+  .app-shell[data-play-layout="landscape"] .v6-world-nav button {
+    gap: 3px; font-size: 10px;
+  }
+}
