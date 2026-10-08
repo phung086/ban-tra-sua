@@ -1,7 +1,7 @@
-# Next step: M1.1m — investigate follow-sector culling after benchmark success
+# Next step: M1.1n — reproduce follow-culling regression
 
-Check latest remote SHA and CI (including benchmark script syntax preflight). Inspect the new M1 benchmark run, `results.json.failures`, `M1 IMAGE` capture-source logs, and directly compare before/after overview and follow screenshots at 390×844 light/balanced; confirm 1280×800 follow image that timed out in #37807971947. If the page capture falls back, label it canvas-only (not HUD evidence). If both capture paths fail, fix without hiding the failure.
+Read roadmap, iteration protocol, and [M1.1m benchmark](iterations/m1-01m.md). Check remote SHA and CI before edits. On d2e7f6a, overview light passed relative gate (-58.07% calls, -52.90% P95); follow triangles increased +41.42% light/+42.46% balanced and follow P95 increased +10.87%/+51.35%.
 
-Recheck overview light >=40% draw-call reduction and P95 interval <=+10% under matched production Chromium/viewport. Report balanced overview/follow variance and increased follow triangles (+43.81% light / +50.16% balanced in #37807971947); investigate moving-camera sector culling/pop-in without sacrificing overview. Preserve NPC dialogue, wall and vehicle collision, joystick/camera, 360×800 return and 10/10 craft/delivery smoke. If a regression persists, optimize or revert with measurements. Run tests/build, commit/push and verify CI green on exact SHA.
+Try controlled sector24 or finer near-camera batching, measure before/after production Chromium 390x844 DPR1 light/balanced, inspect moving-camera images/pop-in. Keep overview light calls reduction >=40% and P95 <=+10%; otherwise optimize or revert. Preserve joystick/camera, NPC, wall/vehicle collision, city return and 10/10 craft/delivery. Run tests/build and verify CI/benchmark on exact pushed SHA. Code writes were blocked this turn; do not claim unpushed work.
 
-M1.1 remains unaccepted until all roadmap gates, including 15-minute Android 3–4GB and iPhone real-device multitouch/FPS/P95/thermal/memory checks, are satisfied. No M2, merge or deploy.
+M1.1 NOT ACCEPTED: real Android 3-4GB and iPhone 15-minute FPS/P95, multitouch, memory and thermal tests missing. No M2/merge/deploy.
