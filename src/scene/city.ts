@@ -201,9 +201,10 @@ export class CityWorld {
     this.traffic.forEach((vehicle,i)=>mergeRigid(vehicle,[],register,`traffic:${i}`));
     // Keep the near-shop and adjacent storefronts in smaller culling cells
     // when distant streets use sector 32. Extending the near radius from 35
-    // to 48 is an M1.1 experiment; benchmark before accepting it.
+    // to 48 reduced follow triangles but raised balanced overview calls; M1.1u
+    // retunes to 42 pending fresh matched production benchmark.
     // The sector-16 baseline remains unchanged.
-    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:48,sectorSize:16}:undefined;
+    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:42,sectorSize:16}:undefined;
     mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector,nearShop);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
