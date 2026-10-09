@@ -30,6 +30,7 @@ describe('T1-03 safety and deterministic validation', () => {
   it('rejects an episode with no unconditional free dinner route', () => {
     const episode = copy();
     episode.choices[0].choices[0].condition = [{ op: 'min-cash', value: 1000 }];
+    episode.choices[0].choices[1].condition = [{ op: 'min-cash', value: 1000 }];
     expect(errors(episode)).toContain('cash-zero softlock');
   });
 
