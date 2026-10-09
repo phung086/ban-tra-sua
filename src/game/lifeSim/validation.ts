@@ -52,6 +52,25 @@ export function validateEpisode(raw: unknown): EpisodeValidation {
   predicates(raw.eligible,'eligible');
   ids(raw.places,'places');
   ids(raw.characters,'characters',true);
+  const ledger = new Set<string>();
+  const effects = (input: unknown, path: string) => {
+    if (!Array.isArray(input) || input.length > 128) { fail(path,'invalid effects list'); return; }
+    input.forEach((e: unknown, n: number) => {
+      const at = path + '[' + n + ']';
+      if (!obj(e) || !oneOf(e.type,effectTypes)) { fail(at,'unknown effect'); return; }
+      if (!stableId(e.key)) fail(at,'invalid effect key');
+      if (!stableId(e.ledgerKey)) fail(at,'invalid ledger key');
+      else if (ledger.has(e.ledgerKey)) fail(at,'duplicate ledgerKey ' + e.ledgerKey);
+      else ledger.add(e.ledgerKey);
+      if (['money','inventory','need','mood','health','trust'].includes(e.type) && !integer(e.delta,-1_000_000_000,1_000_000_000))
+        fail(at,'invalid effect delta');
+      if (e.type === 'money' && e.key !== 'cash') fail(at,'money must target cash');
+      if (e.type === 'need' && !oneOf(e.key,needs)) fail(at,'unknown need');
+      if (['flag','schedule','bill','unlock'].includes(e.type) && typeof e.value !== 'boolean') fail(at,'effect requires boolean');
+      if (e.type === 'location' && !stableId(e.value)) fail(at,'effect requires location ID');
+    });
+  };
+  effects(raw.transitions,'transitions');
   // VALIDATOR_NEXT
   return errors.length ? { ok: false, errors } : { ok: true, errors: [], episode: raw };
 }
