@@ -37,7 +37,7 @@
         "wake"
       ],
       "optional": false,
-      "failForward": "wake-late",
+      "failForward": "breakfast",
       "exit": "breakfast"
     },
     {
@@ -54,7 +54,7 @@
         "buyFood"
       ],
       "optional": true,
-      "failForward": "morning-tea",
+      "failForward": "market-run",
       "exit": "market-run"
     },
     {
