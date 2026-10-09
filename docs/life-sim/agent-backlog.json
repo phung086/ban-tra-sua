@@ -101,16 +101,16 @@
       "track": "core",
       "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": "codex/life-t1-03-delta-guards-complete-20261010",
+      "branch": "codex/life-t1-03-predicate-windows-20261010",
       "pr": null,
       "evidence": {
-        "headSha": "5514f79e21c838bab72472968d330cacfa110841",
-        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37970114955",
-        "ciTests": "120/120 passed across 26 files; TypeScript/build passed",
-        "scope": "Pure validator delta guards + six static fallback/resource tests; no runtime/3D/save change",
+        "headSha": "dbdfa4aaf748a9cde15fad3102d744b47bb3e0dc",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37977336057",
+        "ciTests": "pending on code SHA dbdfa4a; previous 120/120 PASS on 4bf5762",
+        "scope": "Reject contradictory day predicates for episode/beat/choice; 5 Vitest regressions; no runtime/render/save changes",
         "pr": "pending: draft PR creation blocked by safety checks",
         "device": "not tested; pure validator",
-        "note": "Prior T1-03 source was integrated into main externally; keep in_progress until scope review/PR and acceptance.",
+        "note": "No acceptance until CI on final branch head + review. Main unchanged.",
         "mainSha": "a4aeec3746a1fec7c9cf7222530280f6f820cc83",
         "mainCi": "https://github.com/phung086/ban-tra-sua/actions/runs/37964739574"
       }
