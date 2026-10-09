@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import day001 from '../../../docs/life-sim/examples/day-001.design.json';
-import { validateEpisode } from './validation';
+import { validateEpisode, type EpisodeDefinition } from './validation';
 
-const copy = () => JSON.parse(JSON.stringify(day001)) as typeof day001;
+const copy = (): EpisodeDefinition => JSON.parse(JSON.stringify(day001)) as EpisodeDefinition;
 const errors = (episode: unknown) => validateEpisode(episode).errors.join(' ');
 
 describe('T1-03 safety and deterministic validation', () => {
