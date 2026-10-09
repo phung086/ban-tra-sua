@@ -1,0 +1,131 @@
+{
+  "clientDate": "2026-10-10",
+  "sourceHead": "aaff126b40a21bf65ecf087704b0a0b8396847f9",
+  "baselineMain": "ac5adbb00f19b28226efa62e15f6ee1f77aa6364",
+  "branches": [
+    {
+      "branch": "origin/codex/frame-pacing-30fps-20261008",
+      "sha": "69d72a1050ad1da4ad4637d21d604bea29a20cba"
+    },
+    {
+      "branch": "origin/codex/integrate-game-20261009",
+      "sha": "aaff126b40a21bf65ecf087704b0a0b8396847f9"
+    },
+    {
+      "branch": "origin/codex/life-sim-world-bible-20261008",
+      "sha": "528a55e84d8ee28540e87696efedb1f8baf6550c"
+    },
+    {
+      "branch": "origin/codex/life-sim-world-bible-v1",
+      "sha": "a78e1210944e1b434ac6ceb51f8c0ace7368056c"
+    },
+    {
+      "branch": "origin/codex/life-t1-01-seeded-rng",
+      "sha": "c760efffa919f7442198cc2fa41278c491cd877c"
+    },
+    {
+      "branch": "origin/codex/life-t1-02-acceptance-20261009",
+      "sha": "b7a484085d1a16213e6f654a019437081c5945a7"
+    },
+    {
+      "branch": "origin/codex/life-t1-02-calendar-planner-20261008",
+      "sha": "647c69ad18ff4ee90a7c1e1f2277a2d80698ae45"
+    },
+    {
+      "branch": "origin/codex/life-t1-03-boundary-tests-20261009",
+      "sha": "77cfa17d2d5835c8f1adf7d9b821f54634274ff7"
+    },
+    {
+      "branch": "origin/codex/life-t1-03-content-validator-20261009",
+      "sha": "f7a23de84c7f9b87c925d112b2b20dd76d1a036a"
+    },
+    {
+      "branch": "origin/codex/life-t1-03-delta-guards-20261009",
+      "sha": "77cfa17d2d5835c8f1adf7d9b821f54634274ff7"
+    },
+    {
+      "branch": "origin/codex/life-t1-03-evidence-20261009",
+      "sha": "576e209e0e552a2e7ddf3e867ed6d92252980114"
+    },
+    {
+      "branch": "origin/codex/life-t1-03-guarded-transitions-20261009",
+      "sha": "ac5adbb00f19b28226efa62e15f6ee1f77aa6364"
+    },
+    {
+      "branch": "origin/codex/m1-benchmark-gate-isolated",
+      "sha": "edd0085d6d52235263bd86728eef16620111caf0"
+    },
+    {
+      "branch": "origin/codex/mobile-auto-quality-cycle-01",
+      "sha": "97f26b65e269c61d84c53f5d3982546eb95c5d08"
+    },
+    {
+      "branch": "origin/codex/mobile-beta-foundation",
+      "sha": "1124fa38994c6dab215404b0c7356bce73a1abfe"
+    },
+    {
+      "branch": "origin/codex/pastel-chibi-v8",
+      "sha": "1b22cd29d0e793e0b710cd66fcf89b05c7711402"
+    },
+    {
+      "branch": "origin/codex/release-verified-foundation-20261008",
+      "sha": "c18c87e238bc5e335c40c96c48e90ad8625ab3ef"
+    },
+    {
+      "branch": "origin/codex/system-ui-ux-v7",
+      "sha": "13515df9afc25a8ebf8bc77a95456ea432122aaa"
+    },
+    {
+      "branch": "origin/codex/vietnamese-street-3d",
+      "sha": "86b345f9e6d688bccbec4b84dc2a47f9a9023e31"
+    },
+    {
+      "branch": "origin/feat/chibi-playable-base",
+      "sha": "efdca73c1c6c1b863fe103d85309e3e290590147"
+    },
+    {
+      "branch": "origin/feat/customer-ai-patience-queue-v7-sol",
+      "sha": "b3f923242058d1f8d76a88d107bc7bd7980aebad"
+    },
+    {
+      "branch": "origin/feat/dev-port-ui-layout-v5-isolated",
+      "sha": "8fd2dd5b88ad9d7ac832b5996ad4111b5a57c1ae"
+    },
+    {
+      "branch": "origin/feat/gameplay-feel-v3",
+      "sha": "194d01a0744b59645d87ef5b1060318e97d97987"
+    },
+    {
+      "branch": "origin/feat/gameplay-progression-v2",
+      "sha": "d7f27ad57290daa5fee6065d52f33936f3e5db97"
+    },
+    {
+      "branch": "origin/feat/immersive-tea-counter-v6",
+      "sha": "f673302bcea4b2a1f0db796c1b05b7a90dae86fe"
+    },
+    {
+      "branch": "origin/feat/order-service-flow-v4",
+      "sha": "5c0cf4a40239710cf8961ca6cb38a32e01dcc5eb"
+    },
+    {
+      "branch": "origin/feat/order-service-flow-v4-sync",
+      "sha": "efd70136b2a8295fcb697d4ca620b5a0bd5cfe4d"
+    },
+    {
+      "branch": "origin/feat/spatial-interactions-v4-sol",
+      "sha": "a47f9caeb3b21ef5263a657133bdc4790c5d49b2"
+    },
+    {
+      "branch": "origin/feat/ui-art-direction-v5-sol",
+      "sha": "5de04f55c9d64504889ddd91b64ec16e19c0843a"
+    },
+    {
+      "branch": "origin/feat/world-first-ui-v6-sol",
+      "sha": "f334e21c04f492019befb7048e9bc46249e1f626"
+    },
+    {
+      "branch": "origin/main",
+      "sha": "ac5adbb00f19b28226efa62e15f6ee1f77aa6364"
+    }
+  ]
+}
