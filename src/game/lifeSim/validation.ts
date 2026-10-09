@@ -71,6 +71,10 @@ export function validateEpisode(raw: unknown): EpisodeValidation {
     });
   };
   effects(raw.transitions,'transitions');
+  const beats = new Map<string, Obj>();
+  const edges = new Map<string, Set<string>>();
+  if (!Array.isArray(raw.beats) || raw.beats.length < 3 || raw.beats.length > 128)
+    fail('beats','requires 3..128 beats');
   // VALIDATOR_NEXT
   return errors.length ? { ok: false, errors } : { ok: true, errors: [], episode: raw };
 }
