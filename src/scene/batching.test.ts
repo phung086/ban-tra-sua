@@ -113,6 +113,38 @@ describe("static prop batching", () => {
     }
     allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
   });
+  it("keeps 12-unit near-shop sectors tightly bounded without dropping geometry or moving props", () => {
+    const root=new T.Group(), moving=new T.Group();
+    const material=new T.MeshStandardMaterial(), geometry=new T.BoxGeometry(2,1,2);
+    root.add(moving);
+    const live=new T.Mesh(geometry,material);
+    live.position.set(5,0,-12);moving.add(live);
+    const positions=[2,10,14,22,26,34];
+    const originals=positions.map(x=>{
+      const mesh=new T.Mesh(geometry,material);
+      mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+    });
+    root.updateMatrixWorld(true);
+    const expected=new T.Box3();
+    originals.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+    const allocated:T.BufferGeometry[]=[];
+    const batches=mergeRigid(root,[moving],(_,factory)=>{
+      const result=factory();allocated.push(result);return result;
+    },'near-twelve',32,{x:0,z:-7,radius:42,sectorSize:12});
+    expect(batches).toHaveLength(3);
+    const bounds=batches.map(mesh=>new T.Box3().setFromObject(mesh,true))
+      .sort((a,b)=>a.min.x-b.min.x);
+    expect(bounds.map(box=>[box.min.x,box.max.x])).toEqual([[1,11],[13,23],[25,35]]);
+    const actual=new T.Box3();
+    bounds.forEach(box=>actual.union(box));
+    for(const axis of ['x','y','z'] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+    }
+    expect(live.parent).toBe(moving);
+    expect(moving.parent).toBe(root);
+    allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+  });
   it("preserves world transforms while batching repeated geometry", () => {
     const root = new T.Group(),
       group = new T.Group();

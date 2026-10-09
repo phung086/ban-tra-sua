@@ -204,7 +204,9 @@ export class CityWorld {
     // to 48 reduced follow triangles but raised balanced overview calls; M1.1u
     // retunes to 42 pending fresh matched production benchmark.
     // The sector-16 baseline remains unchanged.
-    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:42,sectorSize:16}:undefined;
+    // Narrower near-shop batches trade some calls for tighter follow-camera culling.
+    // Distant streets retain 32-unit batches for overview-light draw-call savings.
+    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:42,sectorSize:12}:undefined;
     mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector,nearShop);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
