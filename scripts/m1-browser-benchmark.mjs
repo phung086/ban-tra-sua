@@ -45,7 +45,7 @@ const browser = await chromium.launch({headless:true,args:[
   '--no-sandbox','--disable-dev-shm-usage','--enable-webgl',
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'
 ]});
-let failures = [], results = [], cameraSweeps = [];
+let failures = [], results = [], cameraSweeps = [], motionSweeps = [];
 try {
   for(const variant of variants) {
     for(const viewport of viewports) {
@@ -258,6 +258,63 @@ try {
               console.log('M1 CAMERA SWEEP OK '+JSON.stringify(record));
             }
           }
+          // Keep the pointer held while rotating through eight intermediate
+          // camera positions. A settled end-pose alone can hide skipped
+          // renders and frustum-culling discontinuities during movement.
+          // Capture two intermediate frames for later visual comparison.
+          if(viewport.width===390 && quality==='light') {
+            const rect=await canvas.boundingBox();
+            if(!rect)throw new Error('Motion-sweep canvas missing');
+            const sx=rect.x+rect.width/2,sy=rect.y+rect.height/2;
+            const offsets=[22.5,45,67.5,90,67.5,45,22.5,0];
+            const samples=[],images=[];
+            await page.mouse.move(sx,sy);
+            await page.mouse.down();
+            try {
+              for(const [index,offset] of offsets.entries()) {
+                await page.evaluate(()=>{window.__m1Runtime.m1Frames.length=0});
+                await page.mouse.move(sx+offset,sy,{steps:2});
+                await page.waitForFunction(({offset})=>{
+                  const r=window.__m1Runtime;
+                  if(!r?.input.exploring||r.overview||r.m1Frames.length<2)return false;
+                  const elevation=Math.max(.28,Math.min(.85,.48-r.pitch*.6));
+                  const distance=7.2*Math.cos(elevation);
+                  const dx=r.camera.position.x-r.cameraFocus.x-Math.sin(r.yaw)*distance;
+                  const dz=r.camera.position.z-r.cameraFocus.z-Math.cos(r.yaw)*distance;
+                  return Math.abs(r.yaw+offset*.005)<.04 && Math.hypot(dx,dz)<.035;
+                },{offset},{timeout:90000,polling:250});
+                const sample=await page.evaluate(()=>{
+                  const r=window.__m1Runtime;
+                  const frames=r.m1Frames.slice(-2);
+                  return {yaw:r.yaw,camera:{x:r.camera.position.x,z:r.camera.position.z},
+                    frames:frames.map(f=>({calls:f.calls,triangles:f.triangles,intervalMs:f.intervalMs})),
+                    npcCount:r.city.neighbors.size,trafficCount:r.city.traffic.length};
+                });
+                if(sample.frames.length<2||sample.frames.some(f=>f.calls<=0||f.triangles<=0)||
+                  sample.npcCount<3||sample.trafficCount<6)
+                  throw new Error('Motion sweep lost rendered geometry or actors: '+JSON.stringify({index,sample}));
+                samples.push({offset,...sample});
+                if(index===1||index===2) {
+                  const filename=path.join(output,id+'-motion-'+index+'.png');
+                  await captureRenderedCanvas(page,filename);
+                  images.push(filename);
+                }
+              }
+            } finally {
+              await page.mouse.up();
+            }
+            for(let i=1;i<4;i++)
+              if(samples[i].yaw>=samples[i-1].yaw-.06)
+                throw new Error('Motion sweep yaw failed to turn left: '+JSON.stringify(samples));
+            for(let i=4;i<8;i++)
+              if(samples[i].yaw<=samples[i-1].yaw+.06)
+                throw new Error('Motion sweep yaw failed to return: '+JSON.stringify(samples));
+            if(Math.abs(samples.at(-1).yaw)>.04)
+              throw new Error('Motion sweep camera stuck after return: '+JSON.stringify(samples.at(-1)));
+            const record={id,kind:'pointer-held',samples,images};
+            motionSweeps.push(record);
+            console.log('M1 MOTION SWEEP OK '+JSON.stringify(record));
+          }
           await page.getByRole('button',{name:/Mở sổ tay khu phố/}).click();
           const opened=await page.locator('.neighborhood').getAttribute('class');
           if(!opened.includes('sheet-open'))throw new Error('Notebook did not open');
@@ -403,7 +460,7 @@ try {
   }
 } finally {
   await mkdir(output,{recursive:true});
-  await writeFile(path.join(output,'results.json'),JSON.stringify({results,cameraSweeps,failures,environment:{
+  await writeFile(path.join(output,'results.json'),JSON.stringify({results,cameraSweeps,motionSweeps,failures,environment:{
     userAgent:'Chromium Playwright SwiftShader headless CI (not real mobile GPU)',
     warmupMs:WARMUP_MS,sampleMs:SAMPLE_MS,dpr:1,
     gpuTiming:'unsupported',drawCalls:'Three.js renderer.info.render.calls (main plus refreshed shadow passes)'
