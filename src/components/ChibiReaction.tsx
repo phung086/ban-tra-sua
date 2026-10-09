@@ -14,7 +14,7 @@ export function ChibiReaction({
   customer, mood, celebrating,
 }: { customer: Customer; mood: CustomerMood; celebrating: boolean }) {
   return (
-    <div className={`chibi-reaction ${celebrating ? "is-celebrating" : ""}`}>
+    <div className={`chibi-reaction ${celebrating ? "is-celebrating" : ""}`} data-mood={mood}>
       <ChibiCustomer customer={customer} />
       <span className="chibi-reaction-expression" role="img" aria-label={expression[mood].label}>
         {expression[mood].emoji}
