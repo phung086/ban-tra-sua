@@ -1,13 +1,10 @@
-# Next step: M1.1aa — verify radius35 full production gameplay
+# Next step: M1.1ad — verify QI-05 ABBA/BAAB artifacts and CI
 
-Read docs/production-roadmap.md, docs/iteration-protocol.md, docs/iterations/m1-01.md, docs/iterations/m1-01z.md and this file. Check newest remote SHA, exact-SHA CI and branch state before edits. Preserve main and other branches.
+Read docs/production-roadmap.md, docs/iteration-protocol.md, docs/iterations/m1-01.md, docs/experience-quality/README.md, backlog.md, quality-gates.md and ai-handoff.md. Verify remote HEAD and exact-SHA CI before changes. The prior production #37928850991 and A/B #37928851001/#37928851125 were on SHA 1124fa3, not the new QI-05 patch.
 
-Same-SHA A/B #37922144148 showed radius42 vs35: follow triangles -9.10% light/-11.45% balanced, overview light calls +6.80%, P95 +94.65%. A/B #37922144131 showed near12 vs16 overview light P95 +89.38%, and a follow-light screenshot had different player orientation. Both are noisy single-run SwiftShader data, not real-device FPS. The branch provisionally changes radius42 to radius35, keeping near sector12 and distant sector32, and updates both A/B workflows.
+QI-05 changes A/B instrumentation only: two matched rounds per variant in light/balanced, ABBA/BAAB, 16 rows and 16 WebGL PNGs per workflow, median/min/max and sample counts with fail-closed statistics. Verify both workflows on **the same new SHA**: all 16 rows, 16 PNGs, four comparisons with two pairs each, zero failures, no blank/cropped frames or camera-pose mismatch. Investigate any CI/workflow failures; do not weaken asserts or label noisy SwiftShader P95 as GPU phone FPS.
 
-First verify new exact-SHA CI, full M1 production benchmark and both A/B workflows. Inspect results.json, matched screenshots, six camera poses, motion sweep, NPC dialogue, joystick, wall/scooter collision, return-to-shop and all ten craft/delivery cases. Require overview light calls decrease >=40%, P95 interval increase <=10%, no failures and valid screenshots. If regression or workflow failure occurs, diagnose and fix/revert; do not weaken assertions or claim mobile FPS from software renderer.
-
-M1.1 remains BLOCKED until absolute budgets and physical Android RAM 3-4GB and iPhone 15-minute FPS/P95, memory, thermal, two-finger and gameplay checks. No M2, merge or deploy.
-
+Then continue M1.1 QI-03: full production benchmark before/after same Chromium/390×844/DPR1/light-balanced with >=40% overview-light draw-call reduction and <=10% P95 regression, matched images/camera motion and joystick/NPC/wall/scooter/10/10 craft-delivery. If regression, optimize or revert. M1.1 remains blocked by absolute mobile budgets and 15-minute Android RAM3–4GB + iPhone FPS/P95, memory, thermal and two-finger gameplay; no M2, merge or deploy.
 
 ## Quality initiative handoff (not a second active technical milestone)
 

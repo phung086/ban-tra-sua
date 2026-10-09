@@ -22,6 +22,11 @@ jobs:
       - name: Gameplay tests
         run: npm test
       - name: Benchmark script syntax preflight
-        run: node --check scripts/m1-browser-benchmark.mjs
+        run: |
+          node --check scripts/m1-browser-benchmark.mjs
+          node --check scripts/m1-near-ab-benchmark.mjs
+          node --check scripts/m1-ab-statistics.mjs
+      - name: Paired A/B statistics tests
+        run: node --test scripts/m1-ab-statistics.test.mjs
       - name: Typecheck and build
         run: npm run build
