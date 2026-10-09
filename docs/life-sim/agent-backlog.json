@@ -74,18 +74,21 @@
         "T1-01"
       ],
       "track": "core",
-      "status": "review",
+      "status": "accepted",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
       "branch": "codex/life-t1-02-calendar-planner-20261008",
       "pr": 18,
       "evidence": {
-        "headSha": "2ba5e6cfaf4c607f6e5b3574bd03a03ac0815cce",
+        "headSha": "647c69ad18ff4ee90a7c1e1f2277a2d80698ae45",
         "change": "Guard against sleep during waking + regression test",
-        "ci": "pending exact head SHA; no merge",
-        "integration": "pure calendar, not in active gameplay",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37880474398",
+        "integration": "pure calendar only; no playable new day",
         "device": "not tested",
         "pr": "https://github.com/phung086/ban-tra-sua/pull/18",
-        "note": "pure core module; not a playable day"
+        "note": "pure core module; not a playable day",
+        "ciTests": "73 passed",
+        "mainSha": "acc46774e23e55e383def560bb9e587e2e8af8aa",
+        "mainCi": "https://github.com/phung086/ban-tra-sua/actions/runs/37880608422"
       }
     },
     {
