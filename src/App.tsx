@@ -23,6 +23,7 @@ import {
   createInitialState,
   formatMoney,
   getCustomer,
+  getDrinkCoachingTip,
   nextDay,
 } from "./game/engine";
 import {
@@ -43,6 +44,8 @@ function App() {
   const [screen, setScreen] = useState<Screen>("shop");
   const [station, setStation] = useState(0);
   const [carrying, setCarrying] = useState(false);
+  // Transient post-delivery guidance: do not modify persisted save schema.
+  const [lastServeTip, setLastServeTip] = useState<string | null>(null);
   const [position, setPosition] = useState<Position>({ x: 0, z: 3.15 });
   const [exploring, setExploring] = useState(false);
   const [cityNavigation, setCityNavigation] = useState<{place: CityPlace; serial: number; ride?: boolean} | null>(null);
@@ -147,6 +150,7 @@ function App() {
     if (!order) return;
     const next = deliverDrink(game, carrying, position, order.id);
     if (next.served > game.served && next.lastScore !== null) {
+      setLastServeTip(getDrinkCoachingTip(order, game.draft));
       setCarrying(false);
       feedbackForScore(next.lastScore);
       recordCraftPerformance(next.lastScore, next.combo);
@@ -164,6 +168,7 @@ function App() {
     if (!window.confirm("Xóa toàn bộ tiến trình và mở lại tiệm từ ngày 1?"))
       return;
     clearSave();
+    setLastServeTip(null);
     setGame(createInitialState());
     setScreen("shop");
     setCarrying(false);
@@ -181,6 +186,7 @@ function App() {
         score={game.lastScore}
         combo={game.combo}
         customerId={game.lastService?.customerId}
+        tip={lastServeTip ?? undefined}
       />
       <WorldChrome
         screen={screen}
