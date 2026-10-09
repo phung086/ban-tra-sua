@@ -101,16 +101,18 @@
       "track": "core",
       "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": "codex/life-t1-03-content-validator-20261009",
+      "branch": "codex/life-t1-03-delta-guards-complete-20261010",
       "pr": null,
       "evidence": {
-        "headSha": "f7a23de84c7f9b87c925d112b2b20dd76d1a036a",
-        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37947537946",
-        "ciTests": "92/92 passed across 21 files; typecheck and production build passed",
-        "scope": "Pure content validator, no runtime day or 3D change",
-        "pr": "pending: connector safety check blocked draft PR creation",
-        "device": "not tested",
-        "note": "Do not mark accepted until review/PR and exact-head CI"
+        "headSha": "5514f79e21c838bab72472968d330cacfa110841",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37970114955",
+        "ciTests": "120/120 passed across 26 files; TypeScript/build passed",
+        "scope": "Pure validator delta guards + six static fallback/resource tests; no runtime/3D/save change",
+        "pr": "pending: draft PR creation blocked by safety checks",
+        "device": "not tested; pure validator",
+        "note": "Prior T1-03 source was integrated into main externally; keep in_progress until scope review/PR and acceptance.",
+        "mainSha": "a4aeec3746a1fec7c9cf7222530280f6f820cc83",
+        "mainCi": "https://github.com/phung086/ban-tra-sua/actions/runs/37964739574"
       }
     },
     {
