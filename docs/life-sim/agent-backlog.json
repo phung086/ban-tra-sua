@@ -56,10 +56,15 @@
       "title": "Deterministic seeded RNG + independent event streams",
       "dependsOn": [],
       "track": "core",
-      "status": "review",
+      "status": "accepted",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
       "branch": "codex/life-t1-01-seeded-rng",
-      "pr": null
+      "pr": 17,
+      "evidence": {
+        "mergedMainSha": "f66b13fcefa42dd284aa9a521b8ac5d5c2964552",
+        "pr": "https://github.com/phung086/ban-tra-sua/pull/17",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37797128016"
+      }
     },
     {
       "id": "T1-02",
@@ -69,10 +74,17 @@
         "T1-01"
       ],
       "track": "core",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": null,
-      "pr": null
+      "branch": "codex/life-t1-02-calendar-planner-20261008",
+      "pr": null,
+      "evidence": {
+        "headSha": "2ba5e6cfaf4c607f6e5b3574bd03a03ac0815cce",
+        "change": "Guard against sleep during waking + regression test",
+        "ci": "pending new PR CI",
+        "integration": "pure calendar, not in active gameplay",
+        "device": "not tested"
+      }
     },
     {
       "id": "T1-03",
