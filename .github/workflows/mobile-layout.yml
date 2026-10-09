@@ -1,7 +1,7 @@
 name: Mobile orientation and autofit
 on:
   push:
-    branches: [codex/mobile-beta-foundation]
+    branches: [main, codex/mobile-beta-foundation, codex/integrate-game-20261009]
     paths:
       - 'src/styles-responsive-play.css'
       - 'src/main.tsx'
