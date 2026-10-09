@@ -8,6 +8,7 @@ import './styles-city.css';
 import './styles-mobile-play.css';
 import './styles-world-foundation.css';
 import './styles-responsive-play.css';
+import "./styles-serve-feedback.css";
 import { syncMotionPreference } from "./game/preferences";
 
 syncMotionPreference();
