@@ -1,0 +1,73 @@
+name: M1 near-shop controlled A/B
+on:
+  push:
+    branches: [codex/mobile-beta-foundation]
+    paths:
+      - 'src/scene/city.ts'
+      - 'scripts/m1-near-ab-benchmark.mjs'
+      - '.github/workflows/m1-near-ab.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: m1-near-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Chromium
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build two production variants from the same source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'radius:35,sectorSize:12' src/scene/city.ts
+          cp src/scene/city.ts /tmp/m1-near-candidate.ts
+          sed -i 's/radius:35,sectorSize:12/radius:35,sectorSize:16/' src/scene/city.ts
+          grep -F 'radius:35,sectorSize:16' src/scene/city.ts
+          npm run build
+          mkdir -p m1-near-builds
+          mv dist m1-near-builds/near16
+          cp /tmp/m1-near-candidate.ts src/scene/city.ts
+          git diff --exit-code -- src/scene/city.ts
+          npm run build
+          mv dist m1-near-builds/near12
+      - name: Measure same 390x844 Chromium light and balanced, follow and overview
+        shell: bash
+        env:
+          M1_AB_CONTROL_DESC: sector32 distant, near radius35 size16
+          M1_AB_CANDIDATE_DESC: sector32 distant, near radius35 size12
+        run: |
+          set -euo pipefail
+          npx vite preview --outDir m1-near-builds/near16 --host 127.0.0.1 --port 5191 --strictPort > /tmp/m1-near16.log 2>&1 &
+          NEAR16_PID=$!
+          npx vite preview --outDir m1-near-builds/near12 --host 127.0.0.1 --port 5192 --strictPort > /tmp/m1-near12.log 2>&1 &
+          NEAR12_PID=$!
+          trap 'kill "$NEAR16_PID" "$NEAR12_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5191/ >/dev/null && curl -fsS http://127.0.0.1:5192/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5191/ >/dev/null
+          curl -fsS http://127.0.0.1:5192/ >/dev/null
+          node --check scripts/m1-near-ab-benchmark.mjs
+          node scripts/m1-near-ab-benchmark.mjs
+      - name: Upload raw measurements and matched WebGL screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-near-ab-${{ github.sha }}
+          path: m1-near-artifacts/
+          retention-days: 14
+          if-no-files-found: warn

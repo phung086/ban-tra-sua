@@ -1,0 +1,77 @@
+name: M1 near-radius controlled A/B
+on:
+  push:
+    branches: [codex/mobile-beta-foundation]
+    paths:
+      - 'src/scene/city.ts'
+      - 'scripts/m1-near-ab-benchmark.mjs'
+      - '.github/workflows/m1-radius-ab.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: m1-radius-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Chromium
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build radius42 and radius35 production variants from one SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'radius:35,sectorSize:12' src/scene/city.ts
+          cp src/scene/city.ts /tmp/m1-radius-candidate.ts
+          sed -i 's/radius:35,sectorSize:12/radius:42,sectorSize:12/' src/scene/city.ts
+          grep -F 'radius:42,sectorSize:12' src/scene/city.ts
+          npm run build
+          mkdir -p m1-radius-builds
+          mv dist m1-radius-builds/radius42
+          cp /tmp/m1-radius-candidate.ts src/scene/city.ts
+          git diff --exit-code -- src/scene/city.ts
+          npm run build
+          mv dist m1-radius-builds/radius35
+      - name: Measure radius35 vs radius42 matched production Chromium
+        shell: bash
+        env:
+          M1_AB_VARIANTS: radius42,radius35
+          M1_AB_COMPARISON_KEY: radius35Vs42
+          M1_AB_CONTROL_DESC: sector32 distant, near radius42 size12
+          M1_AB_CANDIDATE_DESC: sector32 distant, near radius35 size12
+          M1_AB_LOG_PREFIX: M1 RADIUS AB
+          M1_AB_OUTPUT: m1-radius-artifacts
+        run: |
+          set -euo pipefail
+          npx vite preview --outDir m1-radius-builds/radius42 --host 127.0.0.1 --port 5191 --strictPort > /tmp/m1-radius42.log 2>&1 &
+          CONTROL_PID=$!
+          npx vite preview --outDir m1-radius-builds/radius35 --host 127.0.0.1 --port 5192 --strictPort > /tmp/m1-radius35.log 2>&1 &
+          CANDIDATE_PID=$!
+          trap 'kill "$CONTROL_PID" "$CANDIDATE_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5191/ >/dev/null && curl -fsS http://127.0.0.1:5192/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5191/ >/dev/null
+          curl -fsS http://127.0.0.1:5192/ >/dev/null
+          node --check scripts/m1-near-ab-benchmark.mjs
+          node scripts/m1-near-ab-benchmark.mjs
+      - name: Upload raw measurements and matched WebGL screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-radius-ab-${{ github.sha }}
+          path: m1-radius-artifacts/
+          retention-days: 14
+          if-no-files-found: error

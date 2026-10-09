@@ -67,6 +67,7 @@ function scooter(w: Workshop, color: string, rider = true) {
 }
 export class CityWorld {
   root = new T.Group(); traffic: T.Group[] = []; residents: Person[] = [];
+  readonly staticMergeSector=32; // light-overview batching experiment; baseline CI substitutes 16
   lamps = new T.Group(); projects = new Map<string, T.Group>();
   storyProps=new Map<string,T.Group>();
   neighbors=new Map<ResidentId,{person:Person;marker:T.Group;label:T.Mesh}>();
@@ -198,7 +199,15 @@ export class CityWorld {
     this.rain = new T.Points(geometry, material); root.add(this.rain);
     const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
     this.traffic.forEach((vehicle,i)=>mergeRigid(vehicle,[],register,`traffic:${i}`));
-    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',16);
+    // Keep the near-shop and adjacent storefronts in smaller culling cells
+    // when distant streets use sector 32. Extending the near radius from 35
+    // to 48 reduced follow triangles but raised balanced overview calls; M1.1u
+    // retunes to 42 pending fresh matched production benchmark.
+    // The sector-16 baseline remains unchanged.
+    // Narrower near-shop batches trade some calls for tighter follow-camera culling.
+    // Distant streets retain 32-unit batches for overview-light draw-call savings.
+    const nearShop=this.staticMergeSector>16?{x:0,z:-7,radius:35,sectorSize:12}:undefined;
+    mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector,nearShop);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
     if (motion) this.clock += dt;

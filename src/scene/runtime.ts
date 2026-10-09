@@ -1,8 +1,9 @@
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import type {RendererFactory,SceneRenderer} from './renderDriver';
-import {AdaptiveQuality,constrainedHardware,mobileViewport,type QualityChoice} from './renderQuality';
+import {AdaptiveQuality,castCityShadow,constrainedHardware,mobileViewport,type QualityChoice} from './renderQuality';
 import {CITY_BLOCKS} from '../game/cityMap';
+import { layoutIsMobile, selectPlayLayout } from '../game/playLayout';
 import {contactShadow} from './worldAtmosphere';
 import { getCustomer } from "../game/engine";
 import {
@@ -24,6 +25,12 @@ import {movementVector,slideMove,type Stick} from '../game/movement';
 import {RESIDENTS,missionDefinition,type ResidentId} from '../game/neighborhoodStories';
 import {nearCityPlace} from '../game/cityMap';
 
+// A wide phone in landscape (e.g. 932px) is still a mobile GPU. Mirror
+// the responsive game layout instead of a hard 700px CSS breakpoint.
+function isMobileSceneViewport() {
+  return layoutIsMobile(selectPlayLayout(window.innerWidth,window.innerHeight,matchMedia('(pointer: coarse)').matches));
+}
+
 type Input = {
   game: GameState;
   screen: Screen;
@@ -38,6 +45,20 @@ export class StreetRuntime {
   renderer: SceneRenderer;
   qualityController:AdaptiveQuality;
   renderSamples=0;renderMs=0;frameMs=0;
+  // Opt-in, bounded profiling buffer. Never updates React and remains off for normal play.
+  readonly m1Capture = typeof location !== 'undefined' && new URLSearchParams(location.search).has('m1bench');
+  readonly m1Frames: {intervalMs:number;simulationMs:number;submissionMs:number;calls:number;triangles:number}[] = [];
+  // One-shot diagnostic capture in the same animation frame as WebGL render.
+  // Avoid Playwright's stalled full-page compositor capture on CI SwiftShader.
+  m1ScreenshotPending = false;
+  m1ScreenshotDataUrl: string | null = null;
+  m1ScreenshotError: string | null = null;
+  m1Snapshot() {
+    const skeletons=new Set<T.Skeleton>();
+    this.scene.traverse(object=>{if(object instanceof T.SkinnedMesh)skeletons.add(object.skeleton);});
+    const memory=this.renderer instanceof ThreeSceneRenderer ? this.renderer.renderer.info.memory : null;
+    return {frames:[...this.m1Frames],memory:memory?{geometries:memory.geometries,textures:memory.textures}:null,skeletons:skeletons.size,engine:this.renderer.name,quality:this.qualityController.profile.id,overview:this.overview,player:{...this.player}};
+  }
   submissions=0;submittedTriangles=0;
   sceneColor=new T.Color();
   scene = new T.Scene();
@@ -99,7 +120,7 @@ export class StreetRuntime {
     this.input = input;
     this.notify = notify;
     const coarse=matchMedia('(pointer:coarse)').matches;
-    const small=mobileViewport(window.innerWidth,window.innerHeight,coarse);
+    const small=isMobileSceneViewport()||mobileViewport(window.innerWidth,window.innerHeight,coarse);
     const memory=(navigator as Navigator & {deviceMemory?:number}).deviceMemory;
     this.qualityController=new AdaptiveQuality(quality,small,constrainedHardware(memory,navigator.hardwareConcurrency));
     this.renderer=factory(this.scene,this.camera,this.qualityController.profile);
@@ -163,10 +184,11 @@ export class StreetRuntime {
     );
     this.scene.add(this.camera);
     container.appendChild(this.canvas);
+    if(this.m1Capture) (window as Window & {__m1Runtime?:StreetRuntime}).__m1Runtime=this;
     this.size = new ResizeObserver(() => {
       const { width, height } = container.getBoundingClientRect();
       if (width && height) {
-        const small=mobileViewport(window.innerWidth,window.innerHeight,matchMedia('(pointer:coarse)').matches);
+        const small=isMobileSceneViewport()||mobileViewport(window.innerWidth,window.innerHeight,matchMedia('(pointer:coarse)').matches);
         this.qualityController.mobile=small;
         if(this.qualityController.choice==='auto'&&small&&this.qualityController.index>1){
           this.qualityController.index=1;this.renderer.quality(this.qualityController.profile);
@@ -303,6 +325,8 @@ export class StreetRuntime {
       drag = null;
     });
     this.listen(this.canvas,'lostpointercapture',()=>{drag=null;});
+    this.listen(window,'orientationchange',()=>{drag=null;this.keys.clear();this.stick={x:0,y:0};});
+    this.listen(window,'resize',()=>{drag=null;this.stick={x:0,y:0};});
     this.resume();
   }
   listen(target: EventTarget, type: string, fn: EventListener) {
@@ -381,6 +405,7 @@ export class StreetRuntime {
     this.sceneColor.set(night?'#38445c':rainy?'#b7c9cf':'#c8dde9');
     (this.scene.fog as T.Fog).color.copy(this.sceneColor);
     this.sun.intensity=night?0.35:rainy?1.15:2.7;
+    this.sun.castShadow=castCityShadow(this.qualityController.profile.id,this.input.exploring,this.overview,this.city.staticMergeSector);
     this.ambient.intensity=night?0.65:rainy?0.85:0.65;
     const focusX=this.input.exploring?(this.overview?0:this.player.x):0;
     const focusZ=this.input.exploring?(this.overview?-47:this.player.z):0;
@@ -581,7 +606,20 @@ export class StreetRuntime {
     this.camera.far=this.overview?300:this.qualityController.profile.distance;
     const fog=this.scene.fog as T.Fog;fog.near=this.overview?135:this.camera.far*.68;fog.far=this.overview?290:this.camera.far*.98;
     this.camera.updateProjectionMatrix();
+    const submitStart= this.m1Capture ? performance.now() : 0;
     this.renderer.render(this.scene, this.camera);
+    if(this.m1Capture){
+      this.m1Frames.push({intervalMs:frameInterval,simulationMs:submitStart-renderStart,submissionMs:performance.now()-submitStart,calls:this.renderer.info.calls,triangles:this.renderer.info.triangles});
+      if(this.m1Frames.length>1500)this.m1Frames.splice(0,this.m1Frames.length-1500);
+      if(this.m1ScreenshotPending){
+        this.m1ScreenshotPending=false;
+        try {
+          const png=this.canvas.toDataURL('image/png');
+          if(!png.startsWith('data:image/png;base64,')||png.length<5000)throw new Error('Empty WebGL screenshot');
+          this.m1ScreenshotDataUrl=png;
+        } catch(error) {this.m1ScreenshotError=String(error);}
+      }
+    }
     this.submissions+=this.renderer.info.calls;this.submittedTriangles+=this.renderer.info.triangles;
     const cpu=performance.now()-renderStart;
     this.renderMs=this.renderMs?this.renderMs*.95+cpu*.05:cpu;
@@ -605,6 +643,7 @@ export class StreetRuntime {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    if(this.m1Capture){const benchWindow=window as Window & {__m1Runtime?:StreetRuntime};if(benchWindow.__m1Runtime===this)delete benchWindow.__m1Runtime;}
     cancelAnimationFrame(this.raf);
     this.size.disconnect();
     this.intersection.disconnect();

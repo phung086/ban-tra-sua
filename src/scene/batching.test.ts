@@ -3,6 +3,41 @@ import { describe, expect, it } from "vitest";
 import { batchStatic, mergeRigid } from "./batching";
 
 describe("static prop batching", () => {
+  it("merges more rigid props at sector 32 while preserving bounds and moving subtrees", () => {
+    function measure(sector: number) {
+      const root=new T.Group(), moving=new T.Group();
+      const material=new T.MeshStandardMaterial();
+      const geometry=new T.BoxGeometry(2,1,2);
+      root.add(moving);
+      const live=new T.Mesh(geometry,material);
+      live.position.set(5,0,-12);
+      moving.add(live);
+      const positions=[2,10,18,26];
+      const pieces=positions.map(x=>{
+        const mesh=new T.Mesh(geometry,material);
+        mesh.position.set(x,0,-12); root.add(mesh);return mesh;
+      });
+      root.updateMatrixWorld(true);
+      const expected=new T.Box3();
+      pieces.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+      const allocated:T.BufferGeometry[]=[];
+      const batches=mergeRigid(root,[moving],(_,factory)=>{
+        const result=factory();allocated.push(result);return result;
+      },'test',sector);
+      const actual=new T.Box3();
+      batches.forEach(mesh=>actual.union(new T.Box3().setFromObject(mesh,true)));
+      expect(moving.children).toContain(live);
+      for(const axis of ['x','y','z'] as const) {
+        expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+        expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+      }
+      expect(positions.every(x=>x>=actual.min.x-1&&x<=actual.max.x+1)).toBe(true);
+      allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+      return batches.length;
+    }
+    expect(measure(16)).toBe(2);
+    expect(measure(32)).toBe(1);
+  });
   it('merges different geometry in local space without freezing eyes or doubling parent scale',()=>{
     const root=new T.Group(); root.position.set(5,2,-8); root.scale.set(0.8,1.2,0.9); root.rotation.y=0.4;
     const material=new T.MeshStandardMaterial(), eye=new T.Mesh(new T.SphereGeometry(0.1),material);
@@ -23,6 +58,92 @@ describe("static prop batching", () => {
     expect(actual.max.x-actual.min.x).toBeGreaterThan(2);
     expect(merged[0].geometry.getAttribute('position').count).toBeGreaterThan(100);
     allocated.forEach(g=>g.dispose()); originals.forEach(m=>m.geometry.dispose());eye.geometry.dispose();material.dispose();
+  });
+  it("keeps smaller batches near the shop while preserving all static geometry", () => {
+    const measure=(nearFocus?:{x:number;z:number;radius:number;sectorSize:number})=>{
+      const root=new T.Group(),material=new T.MeshStandardMaterial(),geometry=new T.BoxGeometry(2,1,2);
+      const pieces=[2,10,18,26,42,50,58,66].map(x=>{
+        const mesh=new T.Mesh(geometry,material);
+        mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+      });
+      root.updateMatrixWorld(true);
+      const expected=new T.Box3();
+      pieces.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+      const allocated:T.BufferGeometry[]=[];
+      const merged=mergeRigid(root,[],(_,factory)=>{
+        const g=factory();allocated.push(g);return g;
+      },'near-test',32,nearFocus);
+      const actual=new T.Box3().setFromObject(root,true);
+      for(const axis of ['x','y','z'] as const) {
+        expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+        expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+      }
+      expect(pieces[7].parent).toBe(root); // single distant prop stays visible
+      const count=merged.length;
+      allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+      return count;
+    };
+    expect(measure()).toBe(2);
+    expect(measure({x:0,z:-7,radius:35,sectorSize:16})).toBe(3);
+  });
+  it("keeps adjacent storefront batches separate across the 42-unit near-shop boundary", () => {
+    const root=new T.Group(),material=new T.MeshStandardMaterial(),geometry=new T.BoxGeometry(2,1,2);
+    const positions=[2,10,18,26,34,35,44,45];
+    const originals=positions.map(x=>{
+      const mesh=new T.Mesh(geometry,material);
+      mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+    });
+    root.updateMatrixWorld(true);
+    const expected=new T.Box3();
+    originals.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+    const allocated:T.BufferGeometry[]=[];
+    const batches=mergeRigid(root,[],(_,factory)=>{
+      const result=factory();allocated.push(result);return result;
+    },'near-boundary',32,{x:0,z:-7,radius:42,sectorSize:16});
+    // At z=-12, x=34/35 are near the shop, but x=44/45 are not.
+    // A far-sector merge of both groups would overdraw more on follow camera.
+    expect(batches).toHaveLength(4);
+    const bounds=batches.map(mesh=>new T.Box3().setFromObject(mesh,true));
+    expect(bounds.some(box=>Math.abs(box.min.x-33)<1e-5&&Math.abs(box.max.x-36)<1e-5)).toBe(true);
+    expect(bounds.some(box=>Math.abs(box.min.x-43)<1e-5&&Math.abs(box.max.x-46)<1e-5)).toBe(true);
+    const actual=new T.Box3().setFromObject(root,true);
+    for(const axis of ['x','y','z'] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+    }
+    allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+  });
+  it("keeps 12-unit near-shop sectors tightly bounded without dropping geometry or moving props", () => {
+    const root=new T.Group(), moving=new T.Group();
+    const material=new T.MeshStandardMaterial(), geometry=new T.BoxGeometry(2,1,2);
+    root.add(moving);
+    const live=new T.Mesh(geometry,material);
+    live.position.set(5,0,-12);moving.add(live);
+    const positions=[2,10,14,22,26,34];
+    const originals=positions.map(x=>{
+      const mesh=new T.Mesh(geometry,material);
+      mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+    });
+    root.updateMatrixWorld(true);
+    const expected=new T.Box3();
+    originals.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+    const allocated:T.BufferGeometry[]=[];
+    const batches=mergeRigid(root,[moving],(_,factory)=>{
+      const result=factory();allocated.push(result);return result;
+    },'near-twelve',32,{x:0,z:-7,radius:42,sectorSize:12});
+    expect(batches).toHaveLength(3);
+    const bounds=batches.map(mesh=>new T.Box3().setFromObject(mesh,true))
+      .sort((a,b)=>a.min.x-b.min.x);
+    expect(bounds.map(box=>[box.min.x,box.max.x])).toEqual([[1,11],[13,23],[25,35]]);
+    const actual=new T.Box3();
+    bounds.forEach(box=>actual.union(box));
+    for(const axis of ['x','y','z'] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+    }
+    expect(live.parent).toBe(moving);
+    expect(moving.parent).toBe(root);
+    allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
   });
   it("preserves world transforms while batching repeated geometry", () => {
     const root = new T.Group(),

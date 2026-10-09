@@ -2,6 +2,7 @@
 
 > **HƯỚNG PHÁT TRIỂN DÀI HẠN — LIFE SIM / OPEN CITY:** xem [World Bible](docs/life-sim/README.md), [30 ngày cốt truyện dự kiến](docs/life-sim/episode-catalog.md), [bản phân công và backlog cho nhiều AI](docs/life-sim/agents-and-delivery.md), [QA & performance gates](docs/life-sim/qa-and-content-standards.md) và [prompt chuyển giao AI](docs/life-sim/agent-start-prompt.md). **Đây là thiết kế, chưa phải 30 ngày playable.** Vẫn cần đóng M1 hiệu năng trước khi mở rộng scene 3D.
 
+**Lộ trình beta/production:** [Kế hoạch và tiêu chí nghiệm thu](docs/production-roadmap.md) · [Quy trình từng vòng](docs/iteration-protocol.md) · [Baseline đã kiểm chứng](docs/beta-baseline.md) · [Prompt tiếp theo](docs/next-step-prompt.md).
 
 Game web/PWA quản lý tiệm trà sữa **3D, tone hồng pastel, bối cảnh phố Việt Nam**, xây theo hướng data-driven. Tên Chibi được giữ trong tên dự án; nhân vật hiện tại là những người hàng xóm đa dạng, có chuyển động.
 
@@ -149,3 +150,8 @@ Nhánh này cố ý tách biệt khỏi các nhánh v4 khác và không thay đ�
 - thứ tự decor được lưu bằng mảng equipped hiện có, không đổi save schema;
 - seasonal ambience suy ra trực tiếp từ ngày chơi, không thêm state mới;
 - CSS nằm riêng trong `styles-v4-sol.css` để giảm xung đột merge.
+
+
+## Tầm nhìn dài hạn: từng ngày sống trong thành phố
+
+Định hướng kế hoạch (chưa phải các tính năng đã code): người chơi sống qua những **ngày/màn khác nhau** với cốt truyện, gia đình, bạn bè, chợ/bếp/bữa cơm, vận hành tiệm, khách có cá tính và tip, hóa đơn, sức khỏe, va chạm thật và khu phố/thành phố biển có thể mở rộng. Lịch/NPC/state/kinh tế tồn tại xuyên ngày; nội dung và assets chia pack để tiếp tục tối ưu thiết bị yếu. **Đọc bộ [Game Design Bible và playbook cho mọi AI](docs/game-design/README.md)** để hiểu target, 30 ngày đầu, schema, backlog/gates. Phần beta M1–M10 và [prompt M1.1 hiện hành](docs/next-step-prompt.md) vẫn ưu tiên; tuyệt đối không nhầm tầm nhìn với tính năng đã nghiệm thu.

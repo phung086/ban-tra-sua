@@ -3,14 +3,18 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Merge distinct rigid details by material, in local coordinates. Articulated
 // bones and blinking eyes stay separate. Cached actor geometry is reused per look.
-export function mergeRigid(root:T.Group, dynamic:T.Object3D[], register:(key:string,factory:()=>T.BufferGeometry)=>T.BufferGeometry, prefix:string, sectorSize?:number) {
+export function mergeRigid(root:T.Group, dynamic:T.Object3D[], register:(key:string,factory:()=>T.BufferGeometry)=>T.BufferGeometry, prefix:string, sectorSize?:number, nearFocus?:{x:number;z:number;radius:number;sectorSize:number}) {
   root.updateMatrixWorld(true);
   const inverse=root.matrixWorld.clone().invert(), skip=new Set(dynamic), buckets=new Map<string,T.Mesh[]>();
   root.traverse(object=>{
     if(!(object instanceof T.Mesh) || object instanceof T.InstancedMesh || object instanceof T.SkinnedMesh || Array.isArray(object.material) || object.material.transparent) return;
     for(let ancestor:T.Object3D|null=object;ancestor;ancestor=ancestor.parent) if(skip.has(ancestor)) return;
     const p=object.getWorldPosition(new T.Vector3());
-    const zone=sectorSize?`${Math.floor(p.x/sectorSize)},${Math.floor(p.z/sectorSize)}`:'local';
+    // Keep small spatial bounds near the shop, while using larger batches
+    // for distant streets. The near/far prefix prevents cross-zone merges.
+    const near=nearFocus && Math.hypot(p.x-nearFocus.x,p.z-nearFocus.z)<=nearFocus.radius ? nearFocus : undefined;
+    const size=near?.sectorSize??sectorSize;
+    const zone=size?`${near?'near:':''}${Math.floor(p.x/size)},${Math.floor(p.z/size)}`:'local';
     const key=`${prefix}:${zone}:${object.material.uuid}`;
     const meshes=buckets.get(key)??[]; meshes.push(object); buckets.set(key,meshes);
   });

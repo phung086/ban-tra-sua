@@ -1,0 +1,356 @@
+/* Viewport-first play layout. Loaded after the existing theme so overrides stay
+   confined to compact touch displays; no transform:scale / browser zoom. */
+:root {
+  --play-safe-top: env(safe-area-inset-top, 0px);
+  --play-safe-right: env(safe-area-inset-right, 0px);
+  --play-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --play-safe-left: env(safe-area-inset-left, 0px);
+}
+#root, .app-shell, .street-layout, .street-world, .content,
+.craft-fieldset, .craft-grid, .craft-controls, .workstation,
+.neighborhood-sheet-content { min-width: 0; }
+.app-shell button, .neighborhood button { touch-action: manipulation; }
+
+/* Portrait retains a scrollable service workflow and a large playable canvas. */
+.app-shell[data-play-layout="portrait"]:not(.exploring-city) {
+  padding-left: max(9px, var(--play-safe-left));
+  padding-right: max(9px, var(--play-safe-right));
+  padding-bottom: calc(14px + var(--play-safe-bottom));
+}
+.app-shell[data-play-layout="portrait"]:not(.exploring-city) .street-world {
+  height: clamp(325px, 54dvh, 650px);
+  min-height: 0;
+  max-height: none;
+}
+.app-shell[data-play-layout="portrait"]:not(.exploring-city) .content {
+  overflow: visible;
+  max-height: none;
+}
+.app-shell[data-play-layout="portrait"] .v6-world-nav {
+  max-width: 100%;
+}
+.app-shell[data-play-layout="portrait"] .craft-stations {
+  min-width: 0;
+}
+.app-shell[data-play-layout="portrait"] .workstation,
+.app-shell[data-play-layout="portrait"] .craft-grid,
+.app-shell[data-play-layout="portrait"] .craft-controls { max-width: 100%; }
+
+/* Rotate a phone: the entire game fills its visual viewport and neither the
+   3D view nor the recipe panel can push controls below the physical screen. */
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: var(--play-viewport-height, 100dvh);
+  padding: max(3px, var(--play-safe-top)) max(8px, var(--play-safe-right))
+           max(4px, var(--play-safe-bottom)) max(8px, var(--play-safe-left));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) > .v6-hud {
+  min-height: 40px;
+  height: 40px;
+  padding: 3px 46px 3px 2px;
+  gap: 8px;
+  flex: none;
+}
+.app-shell[data-play-layout="landscape"] .v6-brand { gap: 6px; min-width: 0; }
+.app-shell[data-play-layout="landscape"] .v6-brand > svg {
+  width: 32px; height: 32px; padding: 6px; border-radius: 8px;
+}
+.app-shell[data-play-layout="landscape"] .v6-brand small { font-size: 7px; letter-spacing: .3px; }
+.app-shell[data-play-layout="landscape"] .v6-brand b { font-size: clamp(13px, 2vw, 18px); }
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster { gap: 4px; min-width: 0; }
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster > span {
+  font-size: clamp(8px, 1.2vw, 11px); padding: 3px 5px; min-height: 30px; min-width: 0;
+}
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster svg { display: none; }
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster b {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis;
+}
+.app-shell[data-play-layout="landscape"] > .v6-world-nav {
+  flex: none; min-height: 40px; height: 40px; margin: 0 0 3px;
+  padding: 1px 0; gap: 3px; overflow: hidden;
+}
+.app-shell[data-play-layout="landscape"] .v6-world-nav-sign,
+.app-shell[data-play-layout="landscape"] .v6-world-nav button small { display: none; }
+.app-shell[data-play-layout="landscape"] .v6-world-nav button {
+  flex: 1 1 0; min-width: 0; min-height: 36px; padding: 4px 3px;
+  justify-content: center; gap: clamp(3px, .8vw, 8px);
+  font-size: 11px; white-space: nowrap;
+}
+.app-shell[data-play-layout="landscape"] .v6-world-nav svg { width: 16px; height: 16px; }
+.app-shell[data-play-layout="landscape"] > .v6-toast {
+  flex: none; min-height: 23px; margin: 0 0 4px; gap: 5px; font-size: 10px;
+  overflow: hidden;
+}
+.app-shell[data-play-layout="landscape"] > .v6-toast p {
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.app-shell[data-play-layout="landscape"] > .v6-toast svg { width: 14px; }
+.app-shell[data-play-layout="landscape"] > .game-settings {
+  position: fixed; top: calc(3px + var(--play-safe-top));
+  right: max(8px, var(--play-safe-right)); z-index: 40;
+}
+.app-shell[data-play-layout="landscape"] .settings-trigger {
+  width: 40px; min-width: 40px; min-height: 40px; height: 40px; padding: 7px;
+}
+.app-shell[data-play-layout="landscape"] .settings-popover {
+  position: fixed;
+  top: calc(46px + var(--play-safe-top));
+  right: max(8px, var(--play-safe-right));
+  width: min(340px, calc(100vw - var(--play-safe-right) - var(--play-safe-left) - 20px));
+  max-height: calc(var(--play-viewport-height, 100dvh) - 54px - var(--play-safe-top) - var(--play-safe-bottom));
+  overflow: auto; overscroll-behavior: contain;
+}
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) > .street-layout {
+  display: grid; grid-template-columns: minmax(0, 53fr) minmax(0, 47fr);
+  gap: clamp(6px, 1.5vw, 13px); align-items: stretch;
+  flex: 1 1 auto; height: auto; min-height: 0; overflow: hidden;
+}
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) .street-world {
+  position: relative; top: 0; height: 100%; width: 100%;
+  min-height: 0; max-height: none; border-radius: 11px;
+}
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) .world-viewport { inset: 0; }
+.app-shell[data-play-layout="landscape"]:not(.exploring-city) .content {
+  min-height: 0; height: 100%; max-height: none;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
+  display: flex; gap: 9px; padding: 0 3px 8px 0; scrollbar-width: thin;
+}
+.app-shell[data-play-layout="landscape"] .room-panel,
+.app-shell[data-play-layout="landscape"] .panel { padding: clamp(9px, 2vh, 15px); }
+.app-shell[data-play-layout="landscape"] .workstation-head h2 { font-size: clamp(15px, 2.5vw, 21px); }
+.app-shell[data-play-layout="landscape"] .workstation-head p { font-size: 11px; }
+.app-shell[data-play-layout="landscape"] .craft-grid { grid-template-columns: minmax(0, 1fr); }
+.app-shell[data-play-layout="landscape"] .craft-controls,
+.app-shell[data-play-layout="landscape"] .choice-grid,
+.app-shell[data-play-layout="landscape"] .two-col-controls { min-width: 0; }
+.app-shell[data-play-layout="landscape"] .craft-stations { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 3px; }
+.app-shell[data-play-layout="landscape"] .craft-stations button {
+  min-width: 0; min-height: 44px; padding: 5px 2px; font-size: clamp(8px, 1vw, 11px);
+  line-height: 1.25; overflow-wrap: anywhere;
+}
+.app-shell[data-play-layout="landscape"] .craft-stations button span { font-size: 10px; }
+.app-shell[data-play-layout="landscape"] .workstation .choice-card,
+.app-shell[data-play-layout="landscape"] .station-pagination button { min-height: 44px; }
+.app-shell[data-play-layout="landscape"] .two-col-controls { grid-template-columns: minmax(0, 1fr) minmax(0,1fr); }
+.app-shell[data-play-layout="landscape"] .order-ticket,
+.app-shell[data-play-layout="landscape"] .customer-service { min-width: 0; }
+.app-shell[data-play-layout="landscape"] .world-heading { display: none; }
+.app-shell[data-play-layout="landscape"] .view-controls {
+  top: 7px; right: 7px; gap: 4px; max-width: calc(100% - 14px);
+}
+.app-shell[data-play-layout="landscape"] .view-controls button {
+  min-width: 44px; min-height: 44px; width: 44px; height: 44px;
+  padding: 10px; display: flex; align-items: center; justify-content: center;
+}
+.app-shell[data-play-layout="landscape"] .view-controls button span {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+}
+.app-shell[data-play-layout="landscape"] .delivery-tag {
+  left: 8px; top: 55px; max-width: min(215px, 63%);
+  padding: 7px 9px; border-radius: 8px;
+}
+.app-shell[data-play-layout="landscape"] .delivery-tag > b { font-size: 14px; }
+.app-shell[data-play-layout="landscape"] .delivery-tag p { display: none; }
+.app-shell[data-play-layout="landscape"] .delivery-tag button {
+  min-height: 44px; margin-top: 5px; font-size: 10px; padding: 5px;
+}
+.app-shell[data-play-layout="landscape"] .movement-stick-wrap {
+  --landscape-stick: clamp(76px, 23dvh, 102px);
+}
+.app-shell[data-play-layout="landscape"] .movement-stick {
+  width: var(--landscape-stick); height: var(--landscape-stick);
+}
+.app-shell[data-play-layout="landscape"] .stick-knob {
+  width: clamp(36px, 10dvh, 48px); height: clamp(36px, 10dvh, 48px);
+}
+.app-shell[data-play-layout="landscape"] .stick-knob::after {
+  width: 48%; height: 48%; margin: 26%; border-radius: 50%;
+}
+.app-shell[data-play-layout="landscape"] .stick-horizontal { width: 70%; }
+.app-shell[data-play-layout="landscape"] .stick-vertical { height: 70%; }
+.app-shell[data-play-layout="landscape"] .movement-stick-wrap > small { display: none; }
+.app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .walk-ui {
+  left: 8px; right: 8px; bottom: 8px; padding: 0; min-height: 0;
+}
+.app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .place-buttons {
+  position: absolute; left: 0; bottom: 0;
+  max-width: calc(100% - 107px); width: calc(100% - 107px);
+  grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px;
+}
+.app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .place-buttons button {
+  min-height: 44px; padding: 4px 2px; font-size: clamp(8px, 1vw, 10px);
+  line-height: 1.25; overflow-wrap: anywhere;
+}
+.app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .movement-stick-wrap {
+  position: absolute; right: 0; bottom: 0;
+}
+
+/* City free-roam remains full screen; the notebook never permanently consumes
+   half of a short landscape scene. Open sheet becomes a scrollable side panel. */
+.app-shell.exploring-city[data-play-layout="landscape"] {
+  position: fixed; inset: 0; padding: 0; width: 100%; max-width: none;
+  height: var(--play-viewport-height,100dvh); overflow: hidden;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .street-layout { display: block; height: 100%; }
+.app-shell.exploring-city[data-play-layout="landscape"] .street-world {
+  position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; max-height: none;
+  border: 0; border-radius: 0;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .world-viewport { inset: 0; }
+.app-shell.exploring-city[data-play-layout="landscape"] .city-scene-caption,
+.app-shell.exploring-city[data-play-layout="landscape"] .world-heading { display: none; }
+.app-shell.exploring-city[data-play-layout="landscape"] > .game-settings {
+  top: max(6px, var(--play-safe-top)); right: max(7px, var(--play-safe-right));
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .view-controls {
+  top: max(6px, var(--play-safe-top)); right: calc(55px + var(--play-safe-right));
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .city-compass {
+  right: max(7px, var(--play-safe-right)); top: calc(55px + var(--play-safe-top));
+  width: min(95px, 16vw);
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .walk-ui {
+  position: absolute; left: max(10px, var(--play-safe-left)); bottom: max(9px, var(--play-safe-bottom));
+  width: auto; right: auto;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .city-context-actions {
+  position: absolute; left: auto; right: max(11px, var(--play-safe-right));
+  bottom: calc(10px + var(--play-safe-bottom));
+  width: min(190px, 27vw); max-width: none;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .city-context-actions button {
+  min-height: 44px; padding: 6px; font-size: 11px;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .neighborhood.sheet-closed {
+  position: absolute; left: 50%; right: auto; bottom: max(7px, var(--play-safe-bottom));
+  transform: translateX(-50%); width: min(380px, 43vw); max-height: none;
+  padding: 0 8px 4px; border-radius: 13px; box-shadow: 0 8px 28px #55334326;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-closed .neighborhood-sheet-toggle {
+  min-height: 44px; padding: 3px 2px 0;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-closed .city-tabs {
+  min-height: 44px; gap: 1px;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-closed .city-tabs button {
+  min-height: 44px; padding: 3px 1px; gap: 2px; font-size: 9px;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-closed .city-tabs .game-icon { width: 16px; height: 16px; }
+.app-shell.exploring-city[data-play-layout="landscape"] .neighborhood.sheet-open {
+  position: absolute; top: calc(52px + var(--play-safe-top));
+  bottom: max(7px, var(--play-safe-bottom));
+  right: max(7px, var(--play-safe-right)); left: auto; transform: none;
+  width: min(435px, 50vw); max-height: none;
+  padding: 0 12px 6px; border-radius: 12px; overflow: hidden;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-open .neighborhood-sheet-content {
+  min-height: 0; flex: 1; max-height: none; overflow-y: auto; padding-top: 5px;
+}
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-open .city-tabs { flex: none; }
+.app-shell.exploring-city[data-play-layout="landscape"] .sheet-open .city-tabs button { min-height: 44px; padding: 4px 1px; font-size: 9px; }
+.app-shell.exploring-city[data-play-layout="landscape"] .city-play-notice {
+  top: calc(59px + var(--play-safe-top)); left: max(9px, var(--play-safe-left));
+  width: min(220px, 36vw); right: auto; font-size: 10px; padding: 6px;
+}
+.app-shell[data-play-layout="landscape"] .neighborhood-dialogue {
+  position: fixed; inset: auto 0 max(3px,var(--play-safe-bottom));
+  width: min(620px, calc(100vw - var(--play-safe-left) - var(--play-safe-right) - 18px));
+  max-height: calc(var(--play-viewport-height,100dvh) - var(--play-safe-top) - var(--play-safe-bottom) - 8px);
+  overflow-y: auto; border-radius: 14px; padding: 12px 18px;
+  overscroll-behavior: contain;
+}
+.app-shell[data-play-layout="landscape"] .neighborhood-dialogue .dialogue-speech { padding: 9px 0; }
+.app-shell[data-play-layout="landscape"] .neighborhood-dialogue .dialogue-choices { gap: 5px; }
+.app-shell[data-play-layout="landscape"] .neighborhood-dialogue .dialogue-choices button { min-height: 48px; padding: 8px; }
+
+/* Portrait city canvas also follows its viewport instead of the 96px dock
+   reservation; the controls stay above the dock. */
+.app-shell.exploring-city[data-play-layout="portrait"] {
+  height: var(--play-viewport-height, 100dvh);
+}
+.app-shell.exploring-city[data-play-layout="portrait"] .world-viewport { inset: 0; }
+.app-shell.exploring-city[data-play-layout="portrait"] .neighborhood {
+  padding-bottom: calc(6px + var(--play-safe-bottom));
+}
+.app-shell.exploring-city[data-play-layout="portrait"] .neighborhood.sheet-open {
+  max-height: min(76dvh, calc(var(--play-viewport-height,100dvh) - 58px));
+}
+
+/* Narrow or short landscape still keeps taps usable; never shrink controls
+   below their 44px hitboxes. Recipe content scrolls in its own panel. */
+@media (max-width: 700px) and (orientation: landscape) {
+  .app-shell[data-play-layout="landscape"] .v6-brand small { display: none; }
+  .app-shell[data-play-layout="landscape"] .v6-hud-cluster > span { padding: 2px 4px; }
+  .app-shell[data-play-layout="landscape"] .view-controls button { width: 44px; height: 44px; }
+  .app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .place-buttons {
+    width: calc(100% - 85px); max-width: calc(100% - 85px);
+  }
+  .app-shell.exploring-city[data-play-layout="landscape"] .neighborhood.sheet-closed { width: min(300px, 46vw); }
+  .app-shell.exploring-city[data-play-layout="landscape"] .neighborhood.sheet-open { width: 52vw; }
+}
+@media (max-height: 360px) and (orientation: landscape) {
+  .app-shell[data-play-layout="landscape"] > .v6-toast { display: none; }
+  .app-shell[data-play-layout="landscape"] .delivery-tag:not(.carrying) { display: none; }
+  .app-shell[data-play-layout="landscape"] .street-world:not(.city-world) .place-buttons button i { display: none; }
+}
+
+/* Avoid legacy 2-row badges at <=580px: they formerly overflowed the 40px
+   game header and overlapped the navigation while rotating. */
+.app-shell[data-play-layout="landscape"] .v6-hud-cluster {
+  display: flex; grid-template-columns: none; flex-wrap: nowrap;
+  align-items: center; height: 100%; max-height: 40px;
+}
+.app-shell[data-play-layout="landscape"] .v6-world-nav button {
+  display: flex; flex-direction: row; align-items: center; justify-items: initial;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-open {
+  display: flex; flex-shrink: 0; width: 100%;
+  min-height: 48px; margin: 8px 0 11px;
+  padding: 8px 12px; font-size: 15px;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-open small {
+  font-size: 10px; margin-top: 1px;
+}
+.app-shell[data-play-layout="landscape"] .prep-foundation .prep-service-plan {
+  margin-top: 8px;
+}
+@media (max-width: 650px) and (orientation: landscape) {
+  .app-shell[data-play-layout="landscape"] .v6-hud-cluster > span {
+    font-size: 8px; padding: 2px 4px;
+  }
+  .app-shell[data-play-layout="landscape"] .v6-brand b { font-size: 14px; }
+  .app-shell[data-play-layout="landscape"] .v6-world-nav button {
+    gap: 3px; font-size: 10px;
+  }
+}
+
+/* Tutorials, settings and feedback must stay reachable on phones shorter than
+   their unscaled dialog content. Scroll the panel, never shrink tap targets. */
+.app-shell[data-play-layout="landscape"] .play-coach-backdrop {
+  padding: max(5px,var(--play-safe-top)) max(8px,var(--play-safe-right))
+           max(5px,var(--play-safe-bottom)) max(8px,var(--play-safe-left));
+  overflow-y: auto; overscroll-behavior: contain; align-items: safe center;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card {
+  width: min(540px,100%); max-height: calc(var(--play-viewport-height,100dvh) - 12px - var(--play-safe-top) - var(--play-safe-bottom));
+  overflow-y: auto; padding: 13px 18px; margin: auto;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card .coach-emoji {
+  font-size: 22px; margin: 2px 0 6px;
+}
+.app-shell[data-play-layout="landscape"] .play-coach-card h2 { font-size: 19px; margin: 4px 0 8px; }
+.app-shell[data-play-layout="landscape"] .play-coach-card p { font-size: 12px; line-height: 1.55; }
+.app-shell[data-play-layout="landscape"] .coach-dots { margin: 10px 0; }
+.app-shell[data-play-layout="landscape"] .coach-actions button { min-height: 44px; }
+.app-shell[data-play-layout="landscape"] .serve-celebration {
+  max-width: min(470px,calc(100vw - 28px)); bottom: max(6px,var(--play-safe-bottom));
+  padding: 8px 12px; gap: 7px; font-size: 11px;
+}
+.app-shell[data-play-layout="landscape"] .serve-celebration b { font-size: 16px; }

@@ -21,5 +21,7 @@ jobs:
         run: npm ci
       - name: Gameplay tests
         run: npm test
+      - name: Benchmark script syntax preflight
+        run: node --check scripts/m1-browser-benchmark.mjs
       - name: Typecheck and build
         run: npm run build

@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {AdaptiveQuality,constrainedHardware,mobileViewport} from './renderQuality';
+import {AdaptiveQuality,castCityShadow,constrainedHardware,mobileViewport} from './renderQuality';
 describe('adaptive scene quality',()=>{
   it('detects rotated touch phones without misclassifying wide desktop windows',()=>{
     expect(mobileViewport(390,844,true)).toBe(true);
@@ -22,6 +22,14 @@ describe('adaptive scene quality',()=>{
     expect(manual.profile.id).toBe('high');
     const unknown=new AdaptiveQuality('auto',true,false);
     expect(unknown.profile.id).toBe('balanced');
+  });
+  it('keeps shadows in follow/indoor/balanced and omits only optimized light overview',()=>{
+    expect(castCityShadow('light',true,true,16)).toBe(true);
+    expect(castCityShadow('light',true,true,32)).toBe(false);
+    expect(castCityShadow('light',true,false,32)).toBe(true);
+    expect(castCityShadow('light',false,true,32)).toBe(true);
+    expect(castCityShadow('balanced',true,true,32)).toBe(true);
+    expect(castCityShadow('high',true,true,32)).toBe(true);
   });
   it('reduces sustained slow frames and keeps a light floor',()=>{
     const quality=new AdaptiveQuality('auto',false);

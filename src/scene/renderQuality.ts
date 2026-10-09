@@ -19,6 +19,10 @@ export function constrainedHardware(memoryGB?:number,cpuCores?:number) {
     || (typeof cpuCores==='number' && Number.isFinite(cpuCores) && cpuCores>0 && cpuCores<=4);
 }
 
+// Overview can omit the expensive city shadow map only on the optimized light path.
+// Contact shadows/scene shading remain; follow camera and other qualities are untouched.
+export const castCityShadow = (quality:QualityProfile['id'],exploring:boolean,overview:boolean,sector:number) =>
+  !(quality==='light'&&exploring&&overview&&sector>=32);
 // Hysteresis keeps quality changes rare. Background-tab gaps are not samples.
 export class AdaptiveQuality {
   index:number;
