@@ -207,8 +207,12 @@ export function validateEpisode(input: unknown): EpisodeValidation {
       if (!stableId(item.ledgerKey)) fail(at, 'invalid ledgerKey');
       else if (ledgerKeys.has(item.ledgerKey)) fail(at, `duplicate ledgerKey ${item.ledgerKey}`);
       else ledgerKeys.add(item.ledgerKey);
+      // Keep content effects within the simulated resource scale, while
+      // retaining integer-VND rewards and costs under the existing money cap.
+      const maxDelta = item.type === 'money' ? 1_000_000_000 :
+        item.type === 'inventory' ? 100_000 : 100;
       if (['money', 'inventory', 'need', 'mood', 'health', 'trust'].includes(String(item.type)) &&
-          !integer(item.delta, -1_000_000_000, 1_000_000_000)) fail(at, 'delta must be bounded integer');
+          !integer(item.delta, -maxDelta, maxDelta)) fail(at, 'delta must be bounded integer');
       if (item.type === 'money' && item.key !== 'cash') fail(at, 'money must target cash ledger');
       if (item.type === 'need' && !validEnum(NEEDS, item.key)) fail(at, 'unknown need');
       if (['flag', 'schedule', 'bill', 'unlock'].includes(String(item.type)) && typeof item.value !== 'boolean')
