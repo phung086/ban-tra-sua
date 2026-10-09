@@ -86,6 +86,33 @@ describe("static prop batching", () => {
     expect(measure()).toBe(2);
     expect(measure({x:0,z:-7,radius:35,sectorSize:16})).toBe(3);
   });
+  it("keeps adjacent storefront batches separate across the 48-unit near-shop boundary", () => {
+    const root=new T.Group(),material=new T.MeshStandardMaterial(),geometry=new T.BoxGeometry(2,1,2);
+    const positions=[2,10,18,26,42,43,50,51];
+    const originals=positions.map(x=>{
+      const mesh=new T.Mesh(geometry,material);
+      mesh.position.set(x,0,-12);root.add(mesh);return mesh;
+    });
+    root.updateMatrixWorld(true);
+    const expected=new T.Box3();
+    originals.forEach(mesh=>expected.union(new T.Box3().setFromObject(mesh,true)));
+    const allocated:T.BufferGeometry[]=[];
+    const batches=mergeRigid(root,[],(_,factory)=>{
+      const result=factory();allocated.push(result);return result;
+    },'near-boundary',32,{x:0,z:-7,radius:48,sectorSize:16});
+    // At z=-12, x=42/43 are near the shop, but x=50/51 are not.
+    // A far-sector merge of both groups would overdraw more on follow camera.
+    expect(batches).toHaveLength(4);
+    const bounds=batches.map(mesh=>new T.Box3().setFromObject(mesh,true));
+    expect(bounds.some(box=>Math.abs(box.min.x-41)<1e-5&&Math.abs(box.max.x-44)<1e-5)).toBe(true);
+    expect(bounds.some(box=>Math.abs(box.min.x-49)<1e-5&&Math.abs(box.max.x-52)<1e-5)).toBe(true);
+    const actual=new T.Box3().setFromObject(root,true);
+    for(const axis of ['x','y','z'] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis],5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis],5);
+    }
+    allocated.forEach(g=>g.dispose());geometry.dispose();material.dispose();
+  });
   it("preserves world transforms while batching repeated geometry", () => {
     const root = new T.Group(),
       group = new T.Group();
