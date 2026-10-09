@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getCustomer } from "../game/engine";
-import { ChibiCustomer } from "./ChibiCustomer";
+import { ChibiReaction } from "./ChibiReaction";
 
 interface Props {
   served: number;
@@ -43,7 +43,7 @@ export function ServeCelebration({ served, score, combo, customerId, tip }: Prop
       <div className="celebration-burst" aria-hidden="true">
         <i>✦</i><i>♡</i><i>✦</i><i>•</i><i>♡</i><i>✦</i>
       </div>
-      {snapshot.customerId ? <ChibiCustomer customer={getCustomer(snapshot.customerId)} mood={snapshot.score >= 80 ? "delighted" : "neutral"} celebrating={snapshot.score >= 80} /> : <span className="celebration-emoji">{mood.emoji}</span>}
+      {snapshot.customerId ? <ChibiReaction customer={getCustomer(snapshot.customerId)} mood={snapshot.score >= 90 ? "delighted" : snapshot.score >= 80 ? "happy" : snapshot.score >= 65 ? "neutral" : "upset"} celebrating={snapshot.score >= 80} /> : <span className="celebration-emoji">{mood.emoji}</span>}
       <div>
         <small>{snapshot.customerId ? `${getCustomer(snapshot.customerId).name} đã nhận ly` : "Ly vừa giao"}</small>
         <b>{mood.title}</b>
