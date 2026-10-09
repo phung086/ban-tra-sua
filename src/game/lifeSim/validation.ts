@@ -217,6 +217,15 @@ export function validateEpisode(input: unknown): EpisodeValidation {
     });
   };
   effects(input.transitions, 'transitions');
+  // Day-level effects run without a player choice. Never charge a save or
+  // consume ingredients here: the player needs an explicit affordability gate.
+  if (Array.isArray(input.transitions)) {
+    input.transitions.forEach((effect: unknown, i: number) => {
+      if (record(effect) && (effect.type === 'money' || effect.type === 'inventory') &&
+          typeof effect.delta === 'number' && effect.delta < 0)
+        fail(`transitions[${i}]`, 'unconditional spending requires a guarded choice');
+    });
+  }
 
   const beats = new Map<string, Record<string, unknown>>();
   const links = new Map<string, Set<string>>();
