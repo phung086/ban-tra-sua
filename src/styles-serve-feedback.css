@@ -35,3 +35,38 @@
   .serve-celebration { animation: none; }
 }
 :root[data-motion="off"] .serve-celebration { animation: none; }
+
+/* Spoken NPC response adds human context to the score, without 3D assets. */
+.serve-customer-quote {
+  margin: 7px 0 0;
+  padding: 8px 10px;
+  max-width: 30ch;
+  border-radius: 10px 10px 10px 3px;
+  border: 1px solid #e8d5bc;
+  background: #fffdf6;
+  color: #563b3e;
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: normal;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.serve-celebration .chibi-reaction {
+  transform-origin: center bottom;
+  animation: delivery-customer-greet 440ms ease-out both;
+}
+@keyframes delivery-customer-greet {
+  from { opacity: .55; transform: translateY(8px) rotate(-4deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+@media (max-width: 580px) {
+  .serve-customer-quote { font-size: 11px; padding: 6px 8px; }
+}
+@media (max-height: 450px) and (orientation: landscape) {
+  .serve-customer-quote { margin-top: 3px; padding: 4px 7px; }
+  .serve-celebration .neighbor-portrait { width: 40px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .serve-celebration .chibi-reaction { animation: none; }
+}
+:root[data-motion="off"] .serve-celebration .chibi-reaction { animation: none; }

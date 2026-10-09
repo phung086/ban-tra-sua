@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getCustomer } from "../game/engine";
 import { ChibiReaction } from "./ChibiReaction";
+import { getCustomerDeliveryLine, getDeliveryReactionMood } from "../game/customerDeliveryDialogue";
+import type { CustomerMood } from "../game/types";
 
 interface Props {
   served: number;
@@ -8,6 +10,7 @@ interface Props {
   combo: number;
   customerId?: string;
   tip?: string;
+  serviceMood?: CustomerMood;
 }
 
 function getMood(score: number) {
@@ -18,22 +21,22 @@ function getMood(score: number) {
   return { emoji: "📝", title: "Rút kinh nghiệm", className: "retry" };
 }
 
-export function ServeCelebration({ served, score, combo, customerId, tip }: Props) {
+export function ServeCelebration({ served, score, combo, customerId, tip, serviceMood }: Props) {
   const previousServed = useRef(served);
   const [visible, setVisible] = useState(false);
-  const [snapshot, setSnapshot] = useState<{ score: number; combo: number; customerId?: string; tip?: string } | null>(null);
+  const [snapshot, setSnapshot] = useState<{ score: number; combo: number; customerId?: string; tip?: string; serviceMood?: CustomerMood } | null>(null);
 
   useEffect(() => {
     if (served === previousServed.current) return;
     previousServed.current = served;
     if (score === null) return;
 
-    setSnapshot({ score, combo, customerId, tip });
+    setSnapshot({ score, combo, customerId, tip, serviceMood });
     setVisible(true);
 
     const timer = window.setTimeout(() => setVisible(false), 4000);
     return () => window.clearTimeout(timer);
-  }, [served, score, combo, customerId, tip]);
+  }, [served, score, combo, customerId, tip, serviceMood]);
 
   if (!visible || !snapshot) return null;
   const mood = getMood(snapshot.score);
@@ -43,12 +46,17 @@ export function ServeCelebration({ served, score, combo, customerId, tip }: Prop
       <div className="celebration-burst" aria-hidden="true">
         <i>✦</i><i>♡</i><i>✦</i><i>•</i><i>♡</i><i>✦</i>
       </div>
-      {snapshot.customerId ? <ChibiReaction customer={getCustomer(snapshot.customerId)} mood={snapshot.score >= 90 ? "delighted" : snapshot.score >= 80 ? "happy" : snapshot.score >= 65 ? "neutral" : "upset"} celebrating={snapshot.score >= 80} /> : <span className="celebration-emoji">{mood.emoji}</span>}
+      {snapshot.customerId ? <ChibiReaction customer={getCustomer(snapshot.customerId)} mood={getDeliveryReactionMood(snapshot.score, snapshot.serviceMood)} celebrating={snapshot.score >= 80} /> : <span className="celebration-emoji">{mood.emoji}</span>}
       <div>
         <small>{snapshot.customerId ? `${getCustomer(snapshot.customerId).name} đã nhận ly` : "Ly vừa giao"}</small>
         <b>{mood.title}</b>
         <strong>{snapshot.score}/100</strong>
         {snapshot.combo > 1 && <em>COMBO x{snapshot.combo}</em>}
+        {snapshot.customerId && (
+          <blockquote className="serve-customer-quote">
+            “{getCustomerDeliveryLine(snapshot.customerId, snapshot.score, snapshot.serviceMood)}”
+          </blockquote>
+        )}
         {snapshot.tip && <p className="serve-coaching-tip"><span aria-hidden="true">💡</span> {snapshot.tip}</p>}
       </div>
     </div>

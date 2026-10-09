@@ -187,6 +187,7 @@ function App() {
         combo={game.combo}
         customerId={game.lastService?.customerId}
         tip={lastServeTip ?? undefined}
+        serviceMood={game.lastService?.mood}
       />
       <WorldChrome
         screen={screen}
