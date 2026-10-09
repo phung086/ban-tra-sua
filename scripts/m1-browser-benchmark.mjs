@@ -364,11 +364,33 @@ try {
           await page.screenshot({path:path.join(output,id+'-craft.png'),animations:'disabled'});
           await page.locator('.place-buttons button.destination').click();
           await page.waitForFunction(()=>!!document.querySelector('.delivery-tag button.primary-button:not([disabled])'),null,{timeout:90000});
+          const servedBefore=await page.evaluate(()=>{
+            try{return Number(JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').served||0)}
+            catch{return 0}
+          });
           await page.locator('.delivery-tag button.primary-button').click();
-          await page.waitForFunction(()=>{
-            try{return JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').served>=1}catch{return false}
-          },null,{timeout:15000});
+          try {
+            // Require both React's carrying-button transition and persisted
+            // progress. SwiftShader can stall the main thread beyond 15s.
+            await page.waitForFunction(previous=>{
+              try {
+                const saved=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+                return !document.querySelector('.delivery-tag button.primary-button') &&
+                  Number(saved.served)>previous;
+              } catch {return false}
+            },servedBefore,{timeout:90000,polling:500});
+          } catch(error) {
+            const diagnostic=await page.evaluate(()=>{
+              const button=document.querySelector('.delivery-tag button.primary-button');
+              const saved=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+              return {served:saved.served,phase:saved.phase,notice:saved.notice,
+                buttonPresent:!!button,buttonDisabled:button?.disabled??null};
+            });
+            console.error('M1 DELIVERY DIAGNOSTIC '+JSON.stringify({id,servedBefore,diagnostic}));
+            throw error;
+          }
           const served=await page.evaluate(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')).served);
+          console.log('M1 DELIVERY OK '+JSON.stringify({id,servedBefore,served}));
           await page.screenshot({path:path.join(output,id+'-delivered.png'),animations:'disabled'});
           if(errors.length)failures.push({id,errors});
           console.log('M1 SMOKE '+JSON.stringify({id,moved:round(moved),yawChanged:round(yaw-before.yaw),notebook:'ok',served,errors}));
