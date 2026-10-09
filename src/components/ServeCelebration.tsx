@@ -7,6 +7,7 @@ interface Props {
   score: number | null;
   combo: number;
   customerId?: string;
+  tip?: string;
 }
 
 function getMood(score: number) {
@@ -17,22 +18,22 @@ function getMood(score: number) {
   return { emoji: "📝", title: "Rút kinh nghiệm", className: "retry" };
 }
 
-export function ServeCelebration({ served, score, combo, customerId }: Props) {
+export function ServeCelebration({ served, score, combo, customerId, tip }: Props) {
   const previousServed = useRef(served);
   const [visible, setVisible] = useState(false);
-  const [snapshot, setSnapshot] = useState<{ score: number; combo: number; customerId?: string } | null>(null);
+  const [snapshot, setSnapshot] = useState<{ score: number; combo: number; customerId?: string; tip?: string } | null>(null);
 
   useEffect(() => {
     if (served === previousServed.current) return;
     previousServed.current = served;
     if (score === null) return;
 
-    setSnapshot({ score, combo, customerId });
+    setSnapshot({ score, combo, customerId, tip });
     setVisible(true);
 
-    const timer = window.setTimeout(() => setVisible(false), 2400);
+    const timer = window.setTimeout(() => setVisible(false), 4000);
     return () => window.clearTimeout(timer);
-  }, [served, score, combo, customerId]);
+  }, [served, score, combo, customerId, tip]);
 
   if (!visible || !snapshot) return null;
   const mood = getMood(snapshot.score);
@@ -48,6 +49,7 @@ export function ServeCelebration({ served, score, combo, customerId }: Props) {
         <b>{mood.title}</b>
         <strong>{snapshot.score}/100</strong>
         {snapshot.combo > 1 && <em>COMBO x{snapshot.combo}</em>}
+        {snapshot.tip && <p className="serve-coaching-tip"><span aria-hidden="true">💡</span> {snapshot.tip}</p>}
       </div>
     </div>
   );
