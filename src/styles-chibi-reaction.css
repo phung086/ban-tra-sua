@@ -25,3 +25,32 @@
   .chibi-reaction.is-celebrating .chibi-reaction-expression { animation: none; }
 }
 :root[data-motion="off"] .chibi-reaction.is-celebrating .chibi-reaction-expression { animation: none; }
+
+/* Short, mood-specific portrait acting. The existing portrait remains unchanged. */
+.chibi-reaction[data-mood="delighted"] .neighbor-portrait {
+  animation: chibi-delighted-hop 720ms ease-out 1;
+}
+.chibi-reaction[data-mood="restless"] .neighbor-portrait {
+  animation: chibi-restless-shift 680ms ease-in-out 1;
+}
+.chibi-reaction[data-mood="upset"] .neighbor-portrait {
+  animation: chibi-upset-slump 650ms ease-out 1;
+}
+@keyframes chibi-delighted-hop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-5px) rotate(-3deg); }
+  65% { transform: translateY(-2px) rotate(3deg); }
+}
+@keyframes chibi-restless-shift {
+  0%, 100% { transform: translateX(0); }
+  30%, 70% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+}
+@keyframes chibi-upset-slump {
+  0% { transform: translateY(0) rotate(0); }
+  60%, 100% { transform: translateY(3px) rotate(-4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chibi-reaction[data-mood] .neighbor-portrait { animation: none; }
+}
+:root[data-motion="off"] .chibi-reaction[data-mood] .neighbor-portrait { animation: none; }
