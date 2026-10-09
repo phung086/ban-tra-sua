@@ -153,3 +153,8 @@ Nhánh này cố ý tách biệt khỏi các nhánh v4 khác và không thay đ�
 ## Tầm nhìn dài hạn: từng ngày sống trong thành phố
 
 Định hướng kế hoạch (chưa phải các tính năng đã code): người chơi sống qua những **ngày/màn khác nhau** với cốt truyện, gia đình, bạn bè, chợ/bếp/bữa cơm, vận hành tiệm, khách có cá tính và tip, hóa đơn, sức khỏe, va chạm thật và khu phố/thành phố biển có thể mở rộng. Lịch/NPC/state/kinh tế tồn tại xuyên ngày; nội dung và assets chia pack để tiếp tục tối ưu thiết bị yếu. **Đọc bộ [Game Design Bible và playbook cho mọi AI](docs/game-design/README.md)** để hiểu target, 30 ngày đầu, schema, backlog/gates. Phần beta M1–M10 và [prompt M1.1 hiện hành](docs/next-step-prompt.md) vẫn ưu tiên; tuyệt đối không nhầm tầm nhìn với tính năng đã nghiệm thu.
+
+
+### Backlog làm game thực sự hay, đẹp và tự nhiên hơn
+
+Chủ dự án ưu tiên nâng **cảm giác gameplay, nhân vật/rig/animation, VFX và âm thanh, tương tác có tính vật lý, phố Việt và chất lượng đồ họa**. Mọi AI dùng [Experience Quality Initiative](docs/experience-quality/README.md), [91 task chi tiết](docs/experience-quality/backlog.md), [quality gates](docs/experience-quality/quality-gates.md) và [handoff](docs/experience-quality/ai-handoff.md). Các task là kế hoạch, không phải chức năng đã hoàn thiện; roadmap M1.1 và performance mobile vẫn giữ cổng nghiệm thu.
