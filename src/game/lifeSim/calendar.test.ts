@@ -166,6 +166,17 @@ describe('T1-02 pure life calendar', () => {
     }
   });
 
+  it('requires the waking phase to finish before sleeping', () => {
+    const state = createInitialState();
+    const waking = wakeLifeDay(state, SEED);
+    const blocked = requestLifeSleep(state, waking);
+    expect(blocked.blockedReason).toMatch(/thức dậy/);
+    expect(blocked.session).toBe(waking);
+    expect(() => confirmLifeSleep(state, waking)).toThrow();
+    const active = activateLifeDay(waking);
+    expect(requestLifeSleep(state, active).blockedReason).toBeNull();
+  });
+
   it('does not allow an asleep session to skip the wake phase', () => {
     const state = createInitialState();
     const sleeping = newLifeSession(state.day);
