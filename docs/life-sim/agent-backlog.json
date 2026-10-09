@@ -99,10 +99,19 @@
         "T1-01"
       ],
       "track": "core",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": null,
-      "pr": null
+      "branch": "codex/life-t1-03-content-validator-20261009",
+      "pr": null,
+      "evidence": {
+        "headSha": "f7a23de84c7f9b87c925d112b2b20dd76d1a036a",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37947537946",
+        "ciTests": "92/92 passed across 21 files; typecheck and production build passed",
+        "scope": "Pure content validator, no runtime day or 3D change",
+        "pr": "pending: connector safety check blocked draft PR creation",
+        "device": "not tested",
+        "note": "Do not mark accepted until review/PR and exact-head CI"
+      }
     },
     {
       "id": "T1-04",
