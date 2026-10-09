@@ -37,6 +37,21 @@ export function validateEpisode(raw: unknown): EpisodeValidation {
       else seen.add(entry);
     }
   };
+  const predicates = (input: unknown, path: string) => {
+    if (!Array.isArray(input) || input.length > 128) { fail(path,'invalid predicate list'); return; }
+    input.forEach((p: unknown, n: number) => {
+      const at = path + '[' + n + ']';
+      if (!obj(p) || !oneOf(p.op,operations)) { fail(at,'unknown predicate'); return; }
+      if (['day-eq','day-at-least','day-at-most'].includes(p.op) && !integer(p.value,1,Number.MAX_SAFE_INTEGER)) fail(at,'invalid day predicate');
+      if (p.op === 'min-cash' && !integer(p.value,0,1_000_000_000)) fail(at,'invalid cash threshold');
+      if (p.op === 'has-flag' && (!stableId(p.key) || typeof p.value !== 'boolean')) fail(at,'invalid flag predicate');
+      if (p.op === 'has-item' && (!stableId(p.key) || !integer(p.quantity,1,100000))) fail(at,'invalid item predicate');
+      if (p.op === 'trust-at-least' && (!stableId(p.key) || !integer(p.value,-100,100))) fail(at,'invalid trust predicate');
+    });
+  };
+  predicates(raw.eligible,'eligible');
+  ids(raw.places,'places');
+  ids(raw.characters,'characters',true);
   // VALIDATOR_NEXT
   return errors.length ? { ok: false, errors } : { ok: true, errors: [], episode: raw };
 }
