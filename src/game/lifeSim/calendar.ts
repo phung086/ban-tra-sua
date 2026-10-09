@@ -121,6 +121,8 @@ export function requestLifeSleep(
     return { session, blockedReason: 'Hoàn tất hoặc hủy đơn giao trà trước khi ngủ.' };
   if (session.phase === 'asleep')
     return { session, blockedReason: 'Ngày mới chưa bắt đầu.' };
+  if (session.phase === 'waking')
+    return { session, blockedReason: 'Hoàn tất bước thức dậy trước khi đi ngủ.' };
   if (session.phase === 'sleep-confirm')
     return { session, blockedReason: null };
   return { session: { ...session, phase: 'sleep-confirm' }, blockedReason: null };
