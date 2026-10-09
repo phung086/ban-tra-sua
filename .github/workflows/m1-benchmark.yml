@@ -15,7 +15,11 @@ concurrency:
 jobs:
   measure:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # Chromium SwiftShader samples both production variants, checks six
+    # settled camera poses, and completes all ten gameplay smoke scenarios.
+    # The previous 40-minute ceiling cancelled run 37868903166 during the
+    # tenth scenario; raise the ceiling without skipping any assertions.
+    timeout-minutes: 70
     permissions:
       contents: read
     steps:
