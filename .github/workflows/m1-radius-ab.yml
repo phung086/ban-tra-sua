@@ -28,35 +28,35 @@ jobs:
           npm ci
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Build radius35 and radius42 production variants from one SHA
+      - name: Build radius42 and radius35 production variants from one SHA
         shell: bash
         run: |
           set -euo pipefail
-          grep -F 'radius:42,sectorSize:12' src/scene/city.ts
-          cp src/scene/city.ts /tmp/m1-radius-candidate.ts
-          sed -i 's/radius:42,sectorSize:12/radius:35,sectorSize:12/' src/scene/city.ts
           grep -F 'radius:35,sectorSize:12' src/scene/city.ts
+          cp src/scene/city.ts /tmp/m1-radius-candidate.ts
+          sed -i 's/radius:35,sectorSize:12/radius:42,sectorSize:12/' src/scene/city.ts
+          grep -F 'radius:42,sectorSize:12' src/scene/city.ts
           npm run build
           mkdir -p m1-radius-builds
-          mv dist m1-radius-builds/radius35
+          mv dist m1-radius-builds/radius42
           cp /tmp/m1-radius-candidate.ts src/scene/city.ts
           git diff --exit-code -- src/scene/city.ts
           npm run build
-          mv dist m1-radius-builds/radius42
+          mv dist m1-radius-builds/radius35
       - name: Measure radius35 vs radius42 matched production Chromium
         shell: bash
         env:
-          M1_AB_VARIANTS: radius35,radius42
-          M1_AB_COMPARISON_KEY: radius42Vs35
-          M1_AB_CONTROL_DESC: sector32 distant, near radius35 size12
-          M1_AB_CANDIDATE_DESC: sector32 distant, near radius42 size12
+          M1_AB_VARIANTS: radius42,radius35
+          M1_AB_COMPARISON_KEY: radius35Vs42
+          M1_AB_CONTROL_DESC: sector32 distant, near radius42 size12
+          M1_AB_CANDIDATE_DESC: sector32 distant, near radius35 size12
           M1_AB_LOG_PREFIX: M1 RADIUS AB
           M1_AB_OUTPUT: m1-radius-artifacts
         run: |
           set -euo pipefail
-          npx vite preview --outDir m1-radius-builds/radius35 --host 127.0.0.1 --port 5191 --strictPort > /tmp/m1-radius35.log 2>&1 &
+          npx vite preview --outDir m1-radius-builds/radius42 --host 127.0.0.1 --port 5191 --strictPort > /tmp/m1-radius42.log 2>&1 &
           CONTROL_PID=$!
-          npx vite preview --outDir m1-radius-builds/radius42 --host 127.0.0.1 --port 5192 --strictPort > /tmp/m1-radius42.log 2>&1 &
+          npx vite preview --outDir m1-radius-builds/radius35 --host 127.0.0.1 --port 5192 --strictPort > /tmp/m1-radius35.log 2>&1 &
           CANDIDATE_PID=$!
           trap 'kill "$CONTROL_PID" "$CANDIDATE_PID" 2>/dev/null || true' EXIT
           for i in $(seq 1 60); do

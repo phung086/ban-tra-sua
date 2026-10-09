@@ -32,10 +32,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -F 'radius:42,sectorSize:12' src/scene/city.ts
+          grep -F 'radius:35,sectorSize:12' src/scene/city.ts
           cp src/scene/city.ts /tmp/m1-near-candidate.ts
-          sed -i 's/radius:42,sectorSize:12/radius:42,sectorSize:16/' src/scene/city.ts
-          grep -F 'radius:42,sectorSize:16' src/scene/city.ts
+          sed -i 's/radius:35,sectorSize:12/radius:35,sectorSize:16/' src/scene/city.ts
+          grep -F 'radius:35,sectorSize:16' src/scene/city.ts
           npm run build
           mkdir -p m1-near-builds
           mv dist m1-near-builds/near16
@@ -45,6 +45,9 @@ jobs:
           mv dist m1-near-builds/near12
       - name: Measure same 390x844 Chromium light and balanced, follow and overview
         shell: bash
+        env:
+          M1_AB_CONTROL_DESC: sector32 distant, near radius35 size16
+          M1_AB_CANDIDATE_DESC: sector32 distant, near radius35 size12
         run: |
           set -euo pipefail
           npx vite preview --outDir m1-near-builds/near16 --host 127.0.0.1 --port 5191 --strictPort > /tmp/m1-near16.log 2>&1 &
