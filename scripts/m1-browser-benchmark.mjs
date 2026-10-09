@@ -214,19 +214,38 @@ try {
                 const r=window.__m1Runtime;
                 return Math.abs(r.yaw-previousYaw)>0.25 && r.m1Frames.length>=2;
               },{previousYaw},{timeout:90000,polling:500});
+              // Pointer yaw can update before the slow SwiftShader render has
+              // applied that yaw to the actual follow-camera transform.
+              await page.waitForFunction(()=>{
+                const r=window.__m1Runtime;
+                if(!r?.input.exploring||r.overview)return false;
+                const elevation=Math.max(.28,Math.min(.85,.48-r.pitch*.6));
+                const distance=7.2*Math.cos(elevation);
+                const dx=r.camera.position.x-r.cameraFocus.x-Math.sin(r.yaw)*distance;
+                const dz=r.camera.position.z-r.cameraFocus.z-Math.cos(r.yaw)*distance;
+                return Math.hypot(dx,dz)<.035 && r.m1Frames.length>=2;
+              },null,{timeout:90000,polling:250});
+              // Count only frames rendered after the pose converged.
+              await page.evaluate(()=>{window.__m1Runtime.m1Frames.length=0});
+              await page.waitForFunction(()=>window.__m1Runtime?.m1Frames.length>=3,
+                null,{timeout:90000,polling:250});
               const trace=await page.evaluate(()=>{
                 const r=window.__m1Runtime;
                 return {
                   yaw:r.yaw,
                   camera:{x:r.camera.position.x,y:r.camera.position.y,z:r.camera.position.z},
+                  cameraFocus:{x:r.cameraFocus.x,z:r.cameraFocus.z},
                   player:{...r.player},
                   frames:r.m1Frames.slice(-4).map(f=>({
                     calls:f.calls,triangles:f.triangles,intervalMs:f.intervalMs
                   }))
                 };
               });
-              if(!trace.frames.length || trace.frames.some(f=>f.calls<=0||f.triangles<=0))
-                throw new Error('Camera sweep empty render: '+JSON.stringify(trace));
+              const expectedYaw={left:-.45,right:.45,center:0}[pose.name];
+              if(Math.abs(trace.yaw-expectedYaw)>.05)
+                throw new Error('Camera sweep yaw mismatch: '+JSON.stringify({pose:pose.name,expectedYaw,trace}));
+              if(trace.frames.length<3 || trace.frames.some(f=>f.calls<=0||f.triangles<=0))
+                throw new Error('Camera sweep missing settled render: '+JSON.stringify(trace));
               const sweepImage=path.join(output,id+'-camera-'+pose.name+'.png');
               await captureRenderedCanvas(page,sweepImage);
               const record={id,pose:pose.name,image:sweepImage,capture:'webgl-canvas',
