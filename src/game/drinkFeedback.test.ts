@@ -36,4 +36,22 @@ describe("drink preparation coaching", () => {
       ...emptyDraft(), topping: "black-pearl",
     })).toContain("topping");
   });
+
+  it("coaches underfilling without changing the recipe", () => {
+    expect(getDrinkCoachingTip(order, {
+      ...emptyDraft(), fill: 0, sealed: true,
+    })).toContain("Rót đầy hơn");
+  });
+
+  it("coaches insufficient ice", () => {
+    expect(getDrinkCoachingTip(order, {
+      ...emptyDraft(), ice: 0, sealed: true,
+    })).toContain("Thêm đá");
+  });
+
+  it("coaches insufficient shaking", () => {
+    expect(getDrinkCoachingTip(order, {
+      ...emptyDraft(), shake: 0, sealed: true,
+    })).toContain("Lắc kỹ hơn");
+  });
 });
