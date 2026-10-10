@@ -54,3 +54,47 @@
 .chibi-reaction[data-mood="delighted"] .chibi-fallback-face::after {
   transform: scaleY(.65);
 }
+
+/* Active counter customer: restrained idle motion and blinking, no JS timers. */
+.customer-heading .neighbor-portrait.has-rendered-portrait img,
+.customer-heading .chibi-fallback-shirt {
+  animation: chibi-counter-idle 5.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.customer-heading .chibi-fallback-face::before,
+.customer-heading .chibi-fallback-face::after {
+  animation: chibi-counter-blink 6s ease-in-out infinite;
+}
+@keyframes chibi-counter-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(1deg); }
+}
+@keyframes chibi-counter-blink {
+  0%, 44%, 48%, 100% { transform: scaleY(1); }
+  46% { transform: scaleY(.12); }
+}
+/* Facial expressions follow live queue patience as well as delivery feedback. */
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-smile {
+  border-bottom: 1px solid #8b4c5a;
+  border-radius: 0;
+}
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-smile {
+  border-bottom: 0;
+  border-top: 2px solid #8b4c5a;
+  border-radius: 50% 50% 0 0;
+  transform: translateY(3px);
+}
+.neighbor-portrait[data-mood="delighted"] .chibi-fallback-smile {
+  width: 22%;
+  left: 39%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-heading .neighbor-portrait.has-rendered-portrait img,
+  .customer-heading .chibi-fallback-shirt,
+  .customer-heading .chibi-fallback-face::before,
+  .customer-heading .chibi-fallback-face::after { animation: none; }
+}
+:root[data-motion="off"] .customer-heading .neighbor-portrait.has-rendered-portrait img,
+:root[data-motion="off"] .customer-heading .chibi-fallback-shirt,
+:root[data-motion="off"] .customer-heading .chibi-fallback-face::before,
+:root[data-motion="off"] .customer-heading .chibi-fallback-face::after { animation: none; }

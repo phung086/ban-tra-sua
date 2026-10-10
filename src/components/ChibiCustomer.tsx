@@ -3,9 +3,11 @@ import type { Customer, CustomerMood } from "../game/types";
 export function ChibiPortrait({
   customer,
   className = "",
+  mood,
 }: {
   customer: Customer;
   className?: string;
+  mood?: CustomerMood;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const element = useRef<HTMLSpanElement>(null);
@@ -41,6 +43,7 @@ export function ChibiPortrait({
   return (
     <span
       ref={element}
+      data-mood={mood}
       className={`neighbor-portrait chibi-polished ${url ? "has-rendered-portrait" : "has-chibi-fallback"} ${className}`}
       style={{
         "--chibi-hair": customer.hair,
@@ -65,6 +68,7 @@ export function ChibiPortrait({
 }
 export function ChibiCustomer({
   customer,
+  mood,
 }: {
   customer: Customer;
   mood?: CustomerMood;
@@ -73,7 +77,7 @@ export function ChibiCustomer({
 }) {
   return (
     <div className="neighbor-card">
-      <ChibiPortrait customer={customer} />
+      <ChibiPortrait customer={customer} mood={mood} />
       <b>{customer.name}</b>
     </div>
   );

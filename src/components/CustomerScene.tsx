@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCustomer } from "../game/engine";
+import { getCustomerServiceFeedback } from "../game/customerAi";
 import type { GameState } from "../game/types";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
@@ -9,5 +10,8 @@ export function CustomerScene({ game }: { game: GameState }) {
   const order = game.currentOrder;
   if (!order) return null;
   const customer = getCustomer(order.customerId);
-  return <div className="customer-service"><div className="customer-heading"><ChibiPortrait customer={customer} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div><CustomerQueueStatus game={game} now={now} /></div>;
+  const mood = game.currentOrderQueuedAt === null
+    ? "neutral"
+    : getCustomerServiceFeedback(game, customer, game.currentOrderQueuedAt, now).mood;
+  return <div className="customer-service"><div className="customer-heading"><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div><CustomerQueueStatus game={game} now={now} /></div>;
 }
