@@ -14,6 +14,16 @@ export function mergeRigid(root:T.Group, dynamic:T.Object3D[], register:(key:str
     // for distant streets. The near/far prefix prevents cross-zone merges.
     const near=nearFocus && Math.hypot(p.x-nearFocus.x,p.z-nearFocus.z)<=nearFocus.radius ? nearFocus : undefined;
     const size=near?.sectorSize??sectorSize;
+    // An oversized prop (road, wall, roof) spans several culling cells.
+    // Do not weld it to unrelated small details: the combined bounds would
+    // keep those details in the render/shadow pass while they are off-screen.
+    // The original mesh stays in the scene with its own accurate bounds.
+    if(size) {
+      if(!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+      const bounds=object.geometry.boundingBox!;
+      const worldBounds=bounds.clone().applyMatrix4(object.matrixWorld);
+      if(worldBounds.max.x-worldBounds.min.x>size || worldBounds.max.z-worldBounds.min.z>size) return;
+    }
     const zone=size?`${near?'near:':''}${Math.floor(p.x/size)},${Math.floor(p.z/size)}`:'local';
     const key=`${prefix}:${zone}:${object.material.uuid}`;
     const meshes=buckets.get(key)??[]; meshes.push(object); buckets.set(key,meshes);

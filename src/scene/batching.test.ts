@@ -86,6 +86,49 @@ describe("static prop batching", () => {
     expect(measure()).toBe(2);
     expect(measure({x:0,z:-7,radius:35,sectorSize:16})).toBe(3);
   });
+  it("keeps oversized street geometry independent so offscreen details can be culled", () => {
+    const root = new T.Group();
+    const material = new T.MeshStandardMaterial();
+    const box = new T.BoxGeometry(1, 1, 1);
+    const road = new T.Mesh(box, material);
+    road.position.set(30, 0, -20);
+    road.scale.set(100, 0.2, 2);
+    root.add(road);
+    const props = [29, 30, 31].map((x) => {
+      const prop = new T.Mesh(box, material);
+      prop.position.set(x, 1, -20);
+      root.add(prop);
+      return prop;
+    });
+    root.updateMatrixWorld(true);
+    const expected = new T.Box3().setFromObject(root, true);
+    const allocated: T.BufferGeometry[] = [];
+    const merged = mergeRigid(root, [], (_, factory) => {
+      const geometry = factory();
+      allocated.push(geometry);
+      return geometry;
+    }, "oversized", 32);
+    expect(merged).toHaveLength(1);
+    expect(road.parent).toBe(root);
+    props.forEach((prop) => expect(prop.parent).toBeNull());
+    const actual = new T.Box3().setFromObject(root, true);
+    for (const axis of ["x", "y", "z"] as const) {
+      expect(actual.min[axis]).toBeCloseTo(expected.min[axis], 5);
+      expect(actual.max[axis]).toBeCloseTo(expected.max[axis], 5);
+    }
+    const camera = new T.PerspectiveCamera(60, 1, 0.1, 80);
+    camera.position.set(0, 2, 0);
+    camera.lookAt(0, 2, -20);
+    camera.updateMatrixWorld(true);
+    const frustum = new T.Frustum().setFromProjectionMatrix(
+      new T.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+    );
+    expect(frustum.intersectsObject(road)).toBe(true);
+    expect(frustum.intersectsObject(merged[0])).toBe(false);
+    allocated.forEach((geometry) => geometry.dispose());
+    box.dispose();
+    material.dispose();
+  });
   it("keeps adjacent storefront batches separate across the 42-unit near-shop boundary", () => {
     const root=new T.Group(),material=new T.MeshStandardMaterial(),geometry=new T.BoxGeometry(2,1,2);
     const positions=[2,10,18,26,34,35,44,45];
