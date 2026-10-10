@@ -27,7 +27,7 @@ export interface StockRescue {
  * Never grants ingredients, resets the customer timer, or silently changes a
  * sealed cup. A player can instead visit Stock to fulfil the original recipe.
  */
-export function planStockRescue(state: GameState): StockRescue | null {
+export function planStockRescue(state: GameState, preferredBase?: BaseId): StockRescue | null {
   if (state.phase !== "open" || !state.currentOrder || state.draft.sealed ||
       missingDraftStock(state).length === 0) return null;
   const { inventory } = state;
@@ -40,9 +40,12 @@ export function planStockRescue(state: GameState): StockRescue | null {
     changes.push("đổi cỡ ly");
   }
   if (!inventory[DRINKS[draft.base].ingredient]) {
-    const replacement = state.unlockedBaseIds.find(
-      (id: BaseId) => inventory[DRINKS[id].ingredient] > 0,
-    );
+    const replacement = preferredBase && state.unlockedBaseIds.includes(preferredBase) &&
+      inventory[DRINKS[preferredBase].ingredient] > 0
+      ? preferredBase
+      : state.unlockedBaseIds.find(
+        (id: BaseId) => inventory[DRINKS[id].ingredient] > 0,
+      );
     if (!replacement) return null;
     draft.base = replacement;
     changes.push("đổi nền trà");
@@ -73,4 +76,20 @@ export function planStockRescue(state: GameState): StockRescue | null {
     changes,
     predictedScore: scoreDrink(state.currentOrder, draft),
   };
+}
+
+/** Show genuinely different stocked alternatives, not a forced first-match swap.
+ * Options are ordered by recipe quality; no inventory/time is changed until a player selects one.
+ */
+export function listStockRescueOptions(state: GameState): StockRescue[] {
+  const fallback = planStockRescue(state);
+  if (!fallback) return [];
+  const baseUnavailable = (state.inventory[DRINKS[state.draft.base].ingredient] ?? 0) < 1;
+  if (!baseUnavailable) return [fallback];
+  const options = state.unlockedBaseIds
+    .filter(id => (state.inventory[DRINKS[id].ingredient] ?? 0) > 0)
+    .map(id => planStockRescue(state, id))
+    .filter((option): option is StockRescue => option !== null);
+  // Stable sorting keeps choice order deterministic across reloads.
+  return options.sort((a, b) => b.predictedScore - a.predictedScore).slice(0, 3);
 }
