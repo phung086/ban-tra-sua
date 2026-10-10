@@ -490,6 +490,29 @@ button.primary:hover {
   border: 0;
   min-width: 0;
 }
+/* Mobile-safe, high-contrast decision after sealing a drink. */
+.remake-choice {
+  margin: 12px 0 18px;
+  padding: 14px;
+  background: #fff7fb;
+  border: 1px solid #db9bb8;
+  border-radius: 12px;
+  color: #563246;
+  line-height: 1.5;
+}
+.remake-choice p { margin: 0 0 9px; font-size: 14px; }
+.remake-choice button {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #a65178;
+  background: #fff;
+  color: #803352;
+  font-weight: 700;
+  cursor: pointer;
+}
+.remake-choice button:focus-visible { outline: 3px solid #823e69; outline-offset: 2px; }
 .carry-card h2 {
   margin: 7px 0 12px;
 }
