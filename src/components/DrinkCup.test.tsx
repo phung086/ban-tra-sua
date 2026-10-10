@@ -27,4 +27,9 @@ describe("live tea cup preview", () => {
     expect(markup).toContain("Đường 20%");
     expect(markup).toContain("đá 80%");
   });
+  it("marks large cups with a distinct size", () => {
+    const markup = renderToStaticMarkup(<DrinkCup draft={{ ...emptyDraft(), size: "L" }} />);
+    expect(markup).toContain('data-size="L"');
+  });
+
 });
