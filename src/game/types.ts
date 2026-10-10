@@ -117,6 +117,8 @@ export interface DrinkDraft {
   fill: number;
   shake: number;
   sealed: boolean;
+  /** Optional for backward-compatible v3 saves; quick mixing trades precision for speed. */
+  rushed?: boolean;
 }
 
 export interface CustomerQueueEntry {
