@@ -39,4 +39,9 @@ describe("live tea cup preview", () => {
     expect(mixed).toContain('class="tea-cup-bubble"');
   });
 
+  it("caps bubble decoration for out-of-range values", () => {
+    const mixed = renderToStaticMarkup(<DrinkCup draft={{ ...emptyDraft(), shake: 900 }} />);
+    expect(mixed.split('class="tea-cup-bubble"').length - 1).toBe(4);
+  });
+
 });
