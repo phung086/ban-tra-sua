@@ -69,7 +69,7 @@ jobs:
           curl -fsS http://127.0.0.1:5192/ >/dev/null
           node --check scripts/m1-near-ab-benchmark.mjs
           node --check scripts/m1-ab-statistics.mjs
-          node --test scripts/m1-ab-statistics.test.mjs
+          npx vitest run scripts/m1-ab-statistics.test.mjs
           node scripts/m1-near-ab-benchmark.mjs
       - name: Upload raw measurements and matched WebGL screenshots
         if: always()

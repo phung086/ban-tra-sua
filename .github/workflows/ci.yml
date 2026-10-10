@@ -27,6 +27,6 @@ jobs:
           node --check scripts/m1-near-ab-benchmark.mjs
           node --check scripts/m1-ab-statistics.mjs
       - name: Paired A/B statistics tests
-        run: node --test scripts/m1-ab-statistics.test.mjs
+        run: npx vitest run scripts/m1-ab-statistics.test.mjs
       - name: Typecheck and build
         run: npm run build
