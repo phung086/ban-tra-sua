@@ -54,3 +54,117 @@
 .chibi-reaction[data-mood="delighted"] .chibi-fallback-face::after {
   transform: scaleY(.65);
 }
+
+/* Active counter customer: restrained idle motion and blinking, no JS timers. */
+.customer-heading .neighbor-portrait.has-rendered-portrait img,
+.customer-heading .chibi-fallback-shirt {
+  animation: chibi-counter-idle 5.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.customer-heading .chibi-fallback-face::before,
+.customer-heading .chibi-fallback-face::after {
+  animation: chibi-counter-blink 6s ease-in-out infinite;
+}
+@keyframes chibi-counter-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(1deg); }
+}
+@keyframes chibi-counter-blink {
+  0%, 44%, 48%, 100% { transform: scaleY(1); }
+  46% { transform: scaleY(.12); }
+}
+/* Facial expressions follow live queue patience as well as delivery feedback. */
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-smile {
+  border-bottom: 1px solid #8b4c5a;
+  border-radius: 0;
+}
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-smile {
+  border-bottom: 0;
+  border-top: 2px solid #8b4c5a;
+  border-radius: 50% 50% 0 0;
+  transform: translateY(3px);
+}
+.neighbor-portrait[data-mood="delighted"] .chibi-fallback-smile {
+  width: 22%;
+  left: 39%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-heading .neighbor-portrait.has-rendered-portrait img,
+  .customer-heading .chibi-fallback-shirt,
+  .customer-heading .chibi-fallback-face::before,
+  .customer-heading .chibi-fallback-face::after { animation: none; }
+}
+:root[data-motion="off"] .customer-heading .neighbor-portrait.has-rendered-portrait img,
+:root[data-motion="off"] .customer-heading .chibi-fallback-shirt,
+:root[data-motion="off"] .customer-heading .chibi-fallback-face::before,
+:root[data-motion="off"] .customer-heading .chibi-fallback-face::after { animation: none; }
+
+/* Counter acting: readable whole-body silhouette within the existing portrait footprint. */
+.chibi-fallback-shirt { bottom: 5%; height: 32%; left: 18%; width: 64%; }
+.chibi-fallback-arm {
+  position: absolute; top: 65%; width: 15%; height: 23%;
+  border-radius: 45% 45% 60% 60%;
+  background: var(--chibi-skin, #f6ccb7);
+  border: 1px solid #8b5c6940;
+  z-index: 2;
+  transform-origin: 50% 12%;
+}
+.chibi-fallback-arm.is-left { left: 12%; transform: rotate(18deg); }
+.chibi-fallback-arm.is-right { right: 12%; transform: rotate(-18deg); }
+.chibi-fallback-shoe {
+  position: absolute; bottom: 0; width: 23%; height: 10%;
+  border-radius: 45% 45% 25% 25%;
+  background: #76566e; z-index: 1;
+}
+.chibi-fallback-shoe.is-left { left: 25%; }
+.chibi-fallback-shoe.is-right { right: 25%; }
+.chibi-fallback-brows::before, .chibi-fallback-brows::after {
+  content: ""; position: absolute; top: 34%; width: 16%; height: 2px;
+  border-radius: 100%; background: #68414c; opacity: .8;
+}
+.chibi-fallback-brows::before { left: 23%; }
+.chibi-fallback-brows::after { right: 23%; }
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-brows::before,
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-brows::after { transform: rotate(-12deg); }
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-brows::before { transform: rotate(-18deg); }
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-brows::after { transform: rotate(18deg); }
+
+/* One arrival per new order; all motion is transform-only and isolated to the UI. */
+.customer-heading .neighbor-portrait {
+  animation: chibi-counter-arrival 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+.customer-heading .neighbor-portrait[data-mood="delighted"] .chibi-fallback-arm.is-right {
+  animation: chibi-counter-wave 2.8s ease-in-out infinite;
+}
+.customer-heading .neighbor-portrait[data-mood="restless"] .chibi-fallback-shoe.is-right,
+.customer-heading .neighbor-portrait[data-mood="upset"] .chibi-fallback-shoe.is-right {
+  animation: chibi-counter-foot-tap 560ms ease-in-out infinite;
+}
+.customer-heading .neighbor-portrait[data-mood="upset"] .chibi-fallback-arm.is-left {
+  transform: rotate(40deg);
+}
+@keyframes chibi-counter-arrival {
+  from { opacity: .5; transform: translateX(10px) scale(.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes chibi-counter-wave {
+  0%, 25%, 75%, 100% { transform: rotate(-18deg); }
+  40%, 60% { transform: rotate(-58deg); }
+  50% { transform: rotate(-38deg); }
+}
+@keyframes chibi-counter-foot-tap {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.customer-heading > div { min-width: 0; }
+@media (max-height: 450px) and (orientation: landscape) {
+  .customer-heading { padding-top: 6px; padding-bottom: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-heading .neighbor-portrait,
+  .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-arm,
+  .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-shoe { animation: none; }
+}
+:root[data-motion="off"] .customer-heading .neighbor-portrait,
+:root[data-motion="off"] .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-arm,
+:root[data-motion="off"] .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-shoe { animation: none; }
