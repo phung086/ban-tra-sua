@@ -155,10 +155,11 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             <div className="finish-actions">
               <button
                 className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
-                onClick={() => onGame(updateDraft(game, { sealed: !game.draft.sealed }))}
+                disabled={game.draft.sealed}
+                onClick={() => onGame(updateDraft(game, { sealed: true }))}
               >
                 <span>{game.draft.sealed ? "🎀" : "🔘"}</span>
-                {game.draft.sealed ? "Nắp đã chuẩn" : "Dập nắp ly"}
+                {game.draft.sealed ? "Đã dập nắp · không sửa trực tiếp" : "Dập nắp ly"}
               </button>
               <button className="primary-button serve-button" onClick={serveDrink}>
                 <span>💗</span> Bê ly cho {customerName}
