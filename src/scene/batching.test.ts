@@ -195,3 +195,39 @@ describe("static prop batching", () => {
     glass.dispose();
   });
 });
+
+
+describe('M2 instancing transform regression', () => {
+  it('preserves world transforms under translated/rotated nested parents', () => {
+    const scene = new T.Group();
+    scene.position.set(18, 0, -7);
+    scene.rotation.y = 0.38;
+    const root = new T.Group();
+    root.position.set(4, 0, 6);
+    root.rotation.y = -0.62;
+    scene.add(root);
+    const nested = new T.Group();
+    nested.position.set(2, 0, -1);
+    nested.rotation.y = 0.3;
+    root.add(nested);
+    const geometry = new T.BoxGeometry(1, 2, 1);
+    const material = new T.MeshBasicMaterial();
+    const instances = [new T.Mesh(geometry, material), new T.Mesh(geometry, material)];
+    instances[0].position.set(1, 0, -10);
+    instances[1].position.set(-2, 0, -12);
+    instances.forEach(item => nested.add(item));
+    scene.updateMatrixWorld(true);
+    const expectedMatrices = instances.map(item => item.matrixWorld.clone());
+    const batches = batchStatic(root, []);
+    expect(batches).toHaveLength(1);
+    const matrix = new T.Matrix4();
+    batches[0].updateMatrixWorld(true);
+    expectedMatrices.forEach((expected, index) => {
+      batches[0].getMatrixAt(index, matrix);
+      const actual = batches[0].matrixWorld.clone().multiply(matrix);
+      for (let i = 0; i < 16; i++) expect(actual.elements[i]).toBeCloseTo(expected.elements[i], 5);
+    });
+    geometry.dispose();
+    material.dispose();
+  });
+});
