@@ -13,5 +13,5 @@ export function CustomerScene({ game }: { game: GameState }) {
   const mood = game.currentOrderQueuedAt === null
     ? "neutral"
     : getCustomerServiceFeedback(game, customer, game.currentOrderQueuedAt, now).mood;
-  return <div className="customer-service"><div className="customer-heading"><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div><CustomerQueueStatus game={game} now={now} /></div>;
+  return <div className="customer-service"><div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div><CustomerQueueStatus game={game} now={now} /></div>;
 }
