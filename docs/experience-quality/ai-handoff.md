@@ -74,8 +74,8 @@ Bản cập nhật 1 dòng mỗi epic ở báo cáo mới: planned / in-progress
 
 ## 6. Không làm sai thứ tự chỉ vì muốn game đẹp ngay
 
-Hiện tại M1.1 **chưa accepted** dù một số lần benchmark đạt threshold tương đối. Vì thế:
-- Được làm ngay: QI-01, QI-03, QI-04, QI-05, QI-06, QI-07, QI-09, QI-11, chuẩn bị QI-02; cải thiện culling/perf thật trong M1 scope sau đo.
+**Cập nhật 10/10/2026:** chủ dự án đã trực tiếp xác nhận pass toàn bộ M1 và cho phép mở M2; xem docs/iterations/m1-owner-signoff-2026-10-10.md. Nghiệm thu là xác nhận của chủ dự án, không phải kết luận AI có raw mobile trace. M2 chưa accepted. Vì thế:
+- Được làm ngay trong M2: QR-05/QR-10 (LOD/culling/instancing, zone streaming và dispose), cùng QI-01/03/04/05/06/07/09/11 hỗ trợ bằng chứng; tiếp tục đòi dữ liệu thiết bị thật, không dừng lại ở SwiftShader.
 - Chờ milestone: bản thay asset/rig hàng loạt, thay loop nhiệm vụ, postprocess/VFX nặng, hệ NPC lịch mới. Chuẩn bị scene/style spec và test fixture **không** có nghĩa đã triển khai.
 - Sau khi M1/M2 qua gate, chọn **vertical slice chất lượng**: 1 nhân vật chính + 1 NPC + 1 mặt tiền tiệm + 1 lượt pha/giao, chứ không nhân rộng hình đẹp vào cả map rồi mất 30fps.
 - Đối với feature lớn ở roadmap M3–M7, chia thành asset sample → rig/logic sample → integration sample → QA/mobile → rollout. Fail ở đâu quay lại đó.

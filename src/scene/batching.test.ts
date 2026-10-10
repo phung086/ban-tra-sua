@@ -175,6 +175,57 @@ describe("static prop batching", () => {
     geometry.dispose();
     material.dispose();
   });
+  it("preserves instance world transforms and covering bounds under rotated/scaled zones", () => {
+    const world = new T.Group();
+    world.position.set(-13, 1.5, 7);
+    world.rotation.y = 0.27;
+    world.scale.set(1.3, 1.1, 0.9);
+    const zone = new T.Group();
+    zone.position.set(11, 0, -6);
+    zone.rotation.y = -0.45;
+    zone.scale.set(0.8, 1.2, 1.1);
+    world.add(zone);
+    const nested = new T.Group();
+    nested.position.set(2, 0, -3);
+    nested.rotation.y = 0.6;
+    zone.add(nested);
+    const geometry = new T.BoxGeometry(0.75, 1.2, 1.5);
+    const material = new T.MeshStandardMaterial();
+    const originals = [0, 2, 4].map((offset) => {
+      const mesh = new T.Mesh(geometry, material);
+      mesh.position.set(offset, 1, -4);
+      mesh.rotation.y = offset * 0.15;
+      nested.add(mesh);
+      return mesh;
+    });
+    world.updateMatrixWorld(true);
+    const matrices = originals.map((mesh) => mesh.matrixWorld.clone());
+    const expectedBounds = new T.Box3();
+    originals.forEach((mesh) => expectedBounds.union(new T.Box3().setFromObject(mesh, true)));
+
+    const instances = batchStatic(zone, []);
+    expect(instances).toHaveLength(1);
+    expect(instances[0].count).toBe(3);
+    const local = new T.Matrix4();
+    instances[0].updateMatrixWorld(true);
+    for (let i = 0; i < matrices.length; i++) {
+      instances[0].getMatrixAt(i, local);
+      const actual = new T.Matrix4().multiplyMatrices(instances[0].matrixWorld, local);
+      matrices[i].elements.forEach((value, axis) => {
+        expect(actual.elements[axis]).toBeCloseTo(value, 5);
+      });
+    }
+    // Root rotations can enlarge an axis-aligned batch bound, but it must
+    // contain every instance; underestimating it causes objects to pop out.
+    const actualBounds = new T.Box3().setFromObject(instances[0]);
+    for (const axis of ["x", "y", "z"] as const) {
+      expect(actualBounds.min[axis]).toBeLessThanOrEqual(expectedBounds.min[axis] + 1e-5);
+      expect(actualBounds.max[axis]).toBeGreaterThanOrEqual(expectedBounds.max[axis] - 1e-5);
+    }
+    instances[0].dispose();
+    geometry.dispose();
+    material.dispose();
+  });
   it("keeps articulated subtrees, inventory and glass outside static batches", () => {
     const root = new T.Group(),
       moving = new T.Group();

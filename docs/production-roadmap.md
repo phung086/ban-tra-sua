@@ -19,8 +19,8 @@ Mỗi dòng gồm nhiều vòng nhỏ, mỗi vòng chỉ có một prompt. Chỉ
 | Mốc | Kết quả cần xây | Cổng nghiệm thu | Trạng thái |
 | --- | --- | --- | --- |
 | M0 | Lưu code, CI, ảnh và báo cáo baseline | Remote đúng SHA; test/build/CI xanh | Đã đạt cho baseline code |
-| M1 | Đo hiệu năng đáng tin và giảm tải cảnh nặng nhất | Báo cáo tái lập, bộ đếm rõ nghĩa, trước/sau cùng máy và góc nhìn; giảm ít nhất 40% draw call cảnh toàn phố chế độ nhẹ; không hỏng di chuyển hay tương tác | Prompt kế tiếp |
-| M2 | LOD, phân khu tải cảnh, instancing và pipeline texture | Đạt ngân sách mobile bên dưới; chuyển khu không mất vật thể tương tác; bộ nhớ ổn định sau 10 lượt ra/vào | Chờ M1 |
+| M1 | Đo hiệu năng đáng tin và giảm tải cảnh nặng nhất | Báo cáo tái lập, bộ đếm rõ nghĩa, trước/sau cùng máy và góc nhìn; giảm ít nhất 40% draw call cảnh toàn phố chế độ nhẹ; không hỏng di chuyển hay tương tác | **OWNER-ACCEPTED 10/10/2026** — xem báo cáo nghiệm thu; raw device logs chưa đính kèm |
+| M2 | LOD, phân khu tải cảnh, instancing và pipeline texture | Đạt ngân sách mobile bên dưới; chuyển khu không mất vật thể tương tác; bộ nhớ ổn định sau 10 lượt ra/vào | **ĐANG TRIỂN KHAI** — QR-05, chưa nghiệm thu |
 | M3 | Bộ asset mẫu: người, tiệm, nhà phố, cây, xe và ánh sáng | Duyệt ảnh gần/xa, chuyển động và hiệu năng trên máy yếu trước khi nhân rộng | Chờ M2 |
 | M4 | Hoàn thiện điều khiển, camera, va chạm và NPC | Đi/chạm/xoay đồng thời; không xuyên vật cản, kẹt đường hoặc camera xuyên tường; kiểm tra thiết bị thật | Chờ M3 |
 | M5 | Engine cốt truyện có trạng thái và công cụ kiểm tra nội dung | Mọi nhánh khả dụng đi tới điểm tiếp tục/kết thúc; hiệu ứng chạy đúng một lần; save cũ chuyển đổi được | Chờ M4 |
@@ -124,4 +124,4 @@ Những thành phần nền như data contracts, story outline, validator design
 
 Chủ dự án yêu cầu thay trọng tâm trải nghiệm: **gameplay bớt nhàm, nhân vật đẹp và có biểu cảm, animation/tương tác tự nhiên, VFX/âm thanh giàu phản hồi, phố và đồ họa có chiều sâu nhưng vẫn chạy được trên điện thoại yếu**. Đây là định hướng bắt buộc cho các vòng triển khai tiếp theo, không phải bằng chứng các hạng mục đã cải tiến.
 
-Bộ tài liệu giao việc cho mọi AI: [Experience Quality Initiative](experience-quality/README.md), [91 task IDs có acceptance/dependency](experience-quality/backlog.md), [quality gates](experience-quality/quality-gates.md), [AI ownership và handoff](experience-quality/ai-handoff.md). Thực thi từng slice có ảnh/clip trước–sau, gameplay, performance và human review; **không nới lỏng M1.1 hoặc đảo thứ tự milestone M1–M10**. Trong M1 chỉ làm kiểm chứng, audit và công cụ đo không phụ thuộc; model/asset và gameplay mở rộng làm ở đúng mốc roadmap.
+Bộ tài liệu giao việc cho mọi AI: [Experience Quality Initiative](experience-quality/README.md), [91 task IDs có acceptance/dependency](experience-quality/backlog.md), [quality gates](experience-quality/quality-gates.md), [AI ownership và handoff](experience-quality/ai-handoff.md). Thực thi từng slice có ảnh/clip trước–sau, gameplay, performance và human review; **không nới lỏng các cổng M2–M10 hoặc đảo thứ tự milestone**. M1 đã được chủ dự án xác nhận nghiệm thu ngày 10/10/2026; M2 tiếp tục kiểm chứng instancing, LOD, streaming và ngân sách máy yếu trước khi mở M3. Mẫu nhân vật và gameplay mở rộng làm ở đúng mốc roadmap.

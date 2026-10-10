@@ -2,7 +2,7 @@
 
 **Nguồn yêu cầu:** phản hồi chủ dự án ngày 10/10/2026: gameplay nhàm chán, nhân vật chưa đẹp, hiệu ứng yếu, thiếu chân thực, đồ họa chưa đạt. Đây là **nhận xét sản phẩm của chủ dự án**, không phải kết quả khảo sát hoặc chứng cứ benchmark. Chuyển nhận xét thành công việc có thể kiểm chứng, không coi là đã sửa.
 
-**Status:** PLAN. **Nhánh phát triển:** codex/mobile-beta-foundation. **Roadmap vẫn có thẩm quyền cao nhất:** [production-roadmap](../production-roadmap.md), [iteration-protocol](../iteration-protocol.md), [active next step](../next-step-prompt.md). M1.1 đang mở: tuyệt đối không đánh dấu nghiệm thu hoặc triển khai đại trà hạng mục M3/M4/M6/M7 khi M1/M2 chưa qua gate. Có thể làm tài liệu, concept, audit và tooling kiểm thử độc lập, nhưng không lén thay đổi runtime lớn.
+**Status:** PLAN. **Nhánh phát triển:** codex/mobile-beta-foundation. **Roadmap vẫn có thẩm quyền cao nhất:** [production-roadmap](../production-roadmap.md), [iteration-protocol](../iteration-protocol.md), [active next step](../next-step-prompt.md). **Cập nhật 10/10/2026:** chủ dự án xác nhận nghiệm thu M1, M2 đang hoạt động (xem docs/iterations/m1-owner-signoff-2026-10-10.md). Không triển khai đại trà hạng mục M3/M4/M6/M7 khi M2 chưa qua gate. Có thể làm tài liệu, concept, audit và tooling kiểm thử độc lập, nhưng không lén thay đổi runtime lớn.
 
 ## Đọc theo thứ tự
 
@@ -38,7 +38,7 @@
 | Integrity / beta / production | M8–M10 | save, test devices, retention/playtest, shipping gates | “production-ready” từ một ảnh hoặc CI xanh |
 | Living city | LC sau gates core | gia đình, chợ, bạn bè, lịch ngày, nghỉ dưỡng, vùng biển | tự chuyển sang LC khi core yếu |
 
-**Lượt ngay sau khi backlog được commit** vẫn phải tuân [next-step-prompt](../next-step-prompt.md): đo/đánh giá M1.1 trên SHA thực, chọn **một** nhiệm vụ có tác động; mọi AI có thể đọc backlog song song để chuẩn bị scope. Tất cả cải tiến phải lưu ảnh/clip trước–sau + thước đo chơi + hiệu năng same-device, tránh vòng chỉ viết báo cáo.
+**Các vòng sau khi chủ dự án nghiệm thu M1** vẫn phải tuân [next-step-prompt](../next-step-prompt.md): phát triển M2 với QR-05/QR-10 từng bước có đo hiệu năng, chọn **một** nhiệm vụ có tác động; mọi AI có thể đọc backlog song song để chuẩn bị scope. Tất cả cải tiến phải lưu ảnh/clip trước–sau + thước đo chơi + hiệu năng same-device, tránh vòng chỉ viết báo cáo.
 
 ## Chế độ quyết định hàng vòng
 

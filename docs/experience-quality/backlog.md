@@ -142,8 +142,8 @@
 
 ## J. Thứ tự pick thực tế và phụ thuộc bắt buộc
 
-**Ngay khi M1.1 còn mở:** QI-03 → QI-05 → QI-01/QI-04 → QI-09/QI-11/QI-06 và chuẩn bị QI-02; phần runtime chỉ thay đổi trong scope renderer/perf, không bắt tay cùng lúc thay model và quest. Test gameplay cũ phải giữ 10/10 và ảnh/camera/va chạm. Nếu A/B cần chạy lâu, chọn tối ưu có kiểm chứng thay vì tạo thêm 5 workflows chồng nhau.
+**Giai đoạn M1.1 (lịch sử; chủ dự án đã xác nhận nghiệm thu ngày 10/10):** QI-03 → QI-05 → QI-01/QI-04 → QI-09/QI-11/QI-06 và chuẩn bị QI-02; phần runtime chỉ thay đổi trong scope renderer/perf, không bắt tay cùng lúc thay model và quest. Test gameplay cũ phải giữ 10/10 và ảnh/camera/va chạm. Nếu A/B cần chạy lâu, chọn tối ưu có kiểm chứng thay vì tạo thêm 5 workflows chồng nhau.
 
-**Sau M1:** M2 là QR-05/QR-10 và pipeline LOD/asset budget. **Sau M2:** M3 vertical slice QC-01/02/03/06 + QR-02 + QV-01/02/03, chỉ mở rộng khi 1 nhân vật/1 tiệm tốt ở cận/xa và máy yếu. **Sau M3:** M4 QF-01/03/05/06, QC-07, QR-06/07. **Sau M4:** M5/M6 QG-01/03/05/06/07/08/12. **Sau M6:** M7 VFX/âm thanh/UI QV-05..10, QS, QU; M8–M10 là cổng toàn diện. QL theo LC khi core accepted.
+**M2 hiện hành:** QR-05/QR-10 và pipeline LOD/asset budget. **Sau M2:** M3 vertical slice QC-01/02/03/06 + QR-02 + QV-01/02/03, chỉ mở rộng khi 1 nhân vật/1 tiệm tốt ở cận/xa và máy yếu. **Sau M3:** M4 QF-01/03/05/06, QC-07, QR-06/07. **Sau M4:** M5/M6 QG-01/03/05/06/07/08/12. **Sau M6:** M7 VFX/âm thanh/UI QV-05..10, QS, QU; M8–M10 là cổng toàn diện. QL theo LC khi core accepted.
 
 **Không áp dụng máy móc ưu tiên nếu lỗi P0 mới xuất hiện.** Khi một task bị chặn bởi device/asset/license, tạo blocker cụ thể và pick việc độc lập cùng gate; không đánh dấu “đã hoàn thành” khi chỉ viết đặc tả.
