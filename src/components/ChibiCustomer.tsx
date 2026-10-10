@@ -54,9 +54,14 @@ export function ChibiPortrait({
     >
       {url ? <img src={url} alt="" /> : (
         <span className="chibi-fallback">
+          <span className="chibi-fallback-shoe is-left" />
+          <span className="chibi-fallback-shoe is-right" />
           <span className="chibi-fallback-shirt" />
+          <span className="chibi-fallback-arm is-left" />
+          <span className="chibi-fallback-arm is-right" />
           <span className="chibi-fallback-hair" />
           <span className="chibi-fallback-face">
+            <span className="chibi-fallback-brows" />
             <span className="chibi-fallback-blush" />
             <span className="chibi-fallback-smile" />
           </span>
