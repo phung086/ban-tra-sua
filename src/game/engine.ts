@@ -995,6 +995,9 @@ export function remakeSealedDrink(state: GameState): GameState {
 }
 
 export function updateDraft(state: GameState, patch: Partial<DrinkDraft>): GameState {
+  if (patch.sealed === true && findShortage(state.inventory, inventoryRequirement({ ...state.draft, ...patch }))) {
+    return { ...state, notice: "Thiếu nguyên liệu: chọn Cứu đơn hoặc nhập thêm tại Kho trước khi dập nắp." };
+  }
   if (state.draft.sealed) {
     return { ...state, notice: "Ly đã dập nắp. Muốn đổi công thức, chọn “Bỏ ly và pha lại” để ghi nhận nguyên liệu hao." };
   }
