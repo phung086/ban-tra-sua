@@ -69,3 +69,21 @@ describe("live brewing stock shortage gates", () => {
     expect(action(ready, "serve-button")).not.toContain("disabled");
   });
 });
+
+
+describe("choice of substitute tea at the live workbench", () => {
+  it("renders distinct rescue buttons and predicted scores for stocked alternatives", () => {
+    const started = startDay(createInitialState(), 1_000_000);
+    const game = {
+      ...started,
+      draft: { ...started.draft, base: "classic-milk-tea" as const },
+      unlockedBaseIds: ["classic-milk-tea", "peach-tea", "matcha-latte"] as typeof started.unlockedBaseIds,
+      inventory: { ...started.inventory, classicMilkTea: 0, peachTea: 2, matchaLatte: 2 },
+    };
+    const html = renderToStaticMarkup(createElement(StockRescueHint, { game, onGame: () => {} }));
+    expect(html).toContain("Trà đào");
+    expect(html).toContain("Matcha");
+    expect(html).toContain("Chọn vị thay thế");
+    expect((html.match(/Cứu đơn [12]:/g) ?? [])).toHaveLength(2);
+  });
+});
