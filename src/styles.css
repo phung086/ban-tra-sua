@@ -1827,3 +1827,44 @@ input:focus-visible {
     transition-duration: .001ms !important;
   }
 }
+
+
+/* M2 gameplay polish: readable fast/careful decision, no new render or VFX loop. */
+.quick-mix-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #eeb5cd;
+  border-radius: 18px;
+  background: linear-gradient(130deg, #fff4f9, #fffaf0);
+  box-shadow: 0 5px 14px rgba(128, 56, 88, .07);
+}
+.quick-mix-choice.is-rushed {
+  border-color: #e7b16e;
+  background: linear-gradient(130deg, #fff3dc, #fff8f0);
+}
+.quick-mix-copy { min-width: 0; }
+.quick-mix-copy strong { display: block; font-size: 15px; color: #7e3658; }
+.quick-mix-copy p { margin: 5px 0; font-size: 13px; line-height: 1.5; }
+.quick-mix-copy small { display: block; font-size: 12px; line-height: 1.5; }
+.quick-mix-actions button {
+  min-height: 48px;
+  max-width: 250px;
+  padding: 10px 14px;
+  border: 2px solid #d75891;
+  border-radius: 14px;
+  color: #672b4a;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.quick-mix-actions button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 720px) {
+  .quick-mix-choice { grid-template-columns: 1fr; }
+  .quick-mix-actions button { max-width: none; width: 100%; }
+}
