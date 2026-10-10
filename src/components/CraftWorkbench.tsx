@@ -9,6 +9,7 @@ import { ToppingTray } from "./ToppingTray";
 import { StockRescueHint } from "./StockRescueHint";
 import { DRINKS } from "../game/content";
 import { updateDraft } from "../game/engine";
+import { missingDraftStock } from "../game/stockRescue";
 import type { BaseId, GameState, ToppingId } from "../game/types";
 
 interface Props {
@@ -22,6 +23,7 @@ interface Props {
 
 export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink, station, onStation: setStation }: Props) {
   const order = game.currentOrder!;
+  const stockMissing = missingDraftStock(game).length > 0;
   return (
       <div className="panel workstation v6-brew-bench v7-workbench" id="craft-workbench">
         <div className="workstation-head">
@@ -148,7 +150,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             <AdaptiveCraftHint order={order} draft={game.draft} />
             <RecipeChecklist order={order} draft={game.draft} />
             <CraftHotkeys
-              enabled={station === 3}
+              enabled={station === 3 && !stockMissing}
               sealed={game.draft.sealed}
               onSeal={() => onGame(updateDraft(game, { sealed: true }))}
               onServe={serveDrink}
