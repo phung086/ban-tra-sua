@@ -4,10 +4,13 @@ import type { DrinkDraft, GameState } from "./types";
 /** One-tap service choice: faster in real player actions, less precise on quality.
  * No RNG, clock reset, ingredient mutation or new save fields.
  */
+// Existing technique weights: 40 fill points off costs 6; 60 shake points off costs 6.
 export const QUICK_MIX_PENALTY = 12;
 const quickPatch = (state: GameState): Partial<DrinkDraft> => ({
-  fill: Math.max(0, state.currentOrder!.targetFill - 8),
-  shake: Math.min(100, state.currentOrder!.targetShake + 8),
+  fill: state.currentOrder!.targetFill - 40,
+  shake: state.currentOrder!.targetShake <= 40
+    ? state.currentOrder!.targetShake + 60
+    : state.currentOrder!.targetShake - 60,
   rushed: true,
 });
 
