@@ -1,4 +1,5 @@
 import * as T from "three";
+import { neighborGreeting, INITIAL_GREETING } from "./neighborGreeting";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Customer, DrinkDraft } from "../game/types";
 import { mergeRigid } from './batching';
