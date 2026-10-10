@@ -159,16 +159,19 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             <div className="finish-actions">
               <button
                 className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
-                disabled={game.draft.sealed}
+                disabled={game.draft.sealed || stockMissing}
+                aria-describedby={stockMissing ? "stock-seal-warning" : undefined}
                 onClick={() => onGame(updateDraft(game, { sealed: true }))}
               >
                 <span>{game.draft.sealed ? "🎀" : "🔘"}</span>
                 {game.draft.sealed ? "Đã dập nắp · không sửa trực tiếp" : "Dập nắp ly"}
               </button>
-              <button className="primary-button serve-button" onClick={serveDrink}>
+              <button className="primary-button serve-button" disabled={!game.draft.sealed || stockMissing} onClick={serveDrink}>
                 <span>💗</span> Bê ly cho {customerName}
               </button>
             </div>
+            {stockMissing && <p id="stock-seal-warning" role="status">Thiếu nguyên liệu: hãy chọn Cứu đơn ở trên hoặc nhập thêm tại Kho trước khi dập nắp.</p>}
+            {!stockMissing && !game.draft.sealed && <p role="status">Dập nắp ly trước khi bê giao khách.</p>}
             </section>)}
             <div className="station-pagination">
               <button type="button" disabled={station === 0} onClick={() => setStation(station - 1)}>← Quay lại</button>
