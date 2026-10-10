@@ -13,6 +13,7 @@ const teaColors: Record<DrinkDraft["base"], string> = {
 export function DrinkCup({ draft }: { draft: DrinkDraft }) {
   const fill = Math.max(0, Math.min(100, draft.fill));
   const iceCount = Math.ceil(Math.max(0, Math.min(100, draft.ice)) / 34);
+  const bubbleCount = Math.min(4, Math.floor(Math.max(0, Math.min(100, draft.shake)) / 25));
   const hasPieces = draft.topping !== "none" && draft.topping !== "cheese-foam";
   const toppingName = TOPPINGS[draft.topping].name;
 
@@ -21,10 +22,16 @@ export function DrinkCup({ draft }: { draft: DrinkDraft }) {
       <GameIcon />
       <span
         className="tea-cup-visual"
+        data-size={draft.size}
         role="img"
-        aria-label={`Ly ${DRINKS[draft.base].shortName}, rót ${fill}%, đá ${draft.ice}%, topping ${toppingName}, ${draft.sealed ? "đã dập nắp" : "nắp mở"}`}
+        aria-label={`Ly cỡ ${draft.size} ${DRINKS[draft.base].shortName}, rót ${fill}%, đá ${draft.ice}%, lắc ${draft.shake}%, topping ${toppingName}, ${draft.sealed ? "đã dập nắp" : "nắp mở"}`}
       >
         <span className="tea-cup-liquid" style={{ height: `${fill}%`, backgroundColor: teaColors[draft.base] }}>
+          <span className="tea-cup-mix-bubbles" key={draft.shake} aria-hidden="true">
+            {Array.from({ length: bubbleCount }, (_, index) => (
+              <span className="tea-cup-bubble" key={index} />
+            ))}
+          </span>
           <span className="tea-cup-ice-layer">
             {Array.from({ length: iceCount }, (_, index) => (
               <span className="tea-cup-ice" key={index} />
