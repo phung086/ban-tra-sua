@@ -925,10 +925,10 @@
       "branch": "codex/serve-remake-consequences-20261010",
       "pr": 24,
       "evidence": {
-        "headSha": "98e4a499a588243b230faa7533cbd279e441c28d",
-        "code": "CraftWorkbench mounts StockRescueHint and blocks D shortcut while stock missing",
-        "ci": "pending",
-        "preview": "not verified",
+        "codeSha": "f6698ec771b0ac177142671499625687df4351eb",
+        "code": "Engine and UI prevent sealing/pickup without stock; rescue restores action; 3 new regression cases",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/38050072645 (SUCCESS for code SHA)",
+        "preview": "not verified: 360x800, 390x844, 844x390, desktop",
         "playable": false,
         "released": false
       }
