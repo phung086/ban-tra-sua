@@ -755,6 +755,12 @@ export function pose(
     motion && walking ? Math.abs(Math.sin(gaitPhase)) * 0.014 : motion ? Math.sin(time*1.8)*0.006 : 0;
   person.head.rotation.y =
     motion && !walking ? Math.sin(time * 0.65) * 0.075 : 0;
+  // Welcome gesture is procedural: no additional geometry or textures.
+  const hello = motion ? T.MathUtils.clamp(greeting, 0, 1) : 0;
+  person.rightArm.rotation.z = -hello * 0.16;
+  person.hand.rotation.z = hello * Math.sin(time * 8) * 0.24;
+  person.head.rotation.z = hello * 0.07;
+  person.head.rotation.x = hello * (0.04 + Math.sin(time * 3) * 0.015);
 }
 
 export const DRINK_COLORS: Record<DrinkDraft["base"], string> = {
