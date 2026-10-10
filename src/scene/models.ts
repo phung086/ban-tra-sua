@@ -757,7 +757,13 @@ export function pose(
   person.head.rotation.y =
     motion && !walking ? Math.sin(time * 0.65) * 0.075 : 0;
   // Welcome gesture is procedural: no additional geometry or textures.
-  const hello = motion ? T.MathUtils.clamp(greeting, 0, 1) : 0;
+  // Neighborhood NPCs currently signal proximity with gesture=0.35.
+  // A one-shot pulse prevents endless waving while the player stands nearby.
+  const nearNeighbor = !walking && gesture > 0.1 && gesture < 0.4;
+  const response = neighborGreeting(person.root.userData.greetingState ?? INITIAL_GREETING,
+    nearNeighbor ? 2.5 : 5, time);
+  person.root.userData.greetingState = response.state;
+  const hello = motion ? T.MathUtils.clamp(greeting || response.strength, 0, 1) : 0;
   person.rightArm.rotation.z = -hello * 0.16;
   person.hand.rotation.z = hello * Math.sin(time * 8) * 0.24;
   person.head.rotation.z = hello * 0.07;
