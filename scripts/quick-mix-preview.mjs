@@ -33,6 +33,8 @@ try {
       const button = choice.getByRole("button", {name:/Pha nhanh/});
       const tapHeight = await button.evaluate(el => el.getBoundingClientRect().height);
       if (tapHeight < 48) throw new Error("Fast-mix target below 48px: "+tapHeight);
+      const copyWidth = await choice.locator(".quick-mix-copy").evaluate(el => el.getBoundingClientRect().width);
+      if (copyWidth < 160) throw new Error("Fast-mix explanation too narrow: "+copyWidth);
       await choice.screenshot({path:path.join(output,`choice-before-${width}x${height}.png`),timeout:60000});
       await button.click({timeout:20000});
       if (!(await choice.textContent())?.includes("Đã chọn pha nhanh"))
@@ -50,7 +52,7 @@ try {
       }));
       if (geometry.documentWidth > geometry.viewport + 2)
         throw new Error("Horizontal overflow: "+JSON.stringify(geometry));
-      report.cases.push({viewport:`${width}x${height}`,tapHeight,choice:true,fastMix:true,carefulReset:true,geometry});
+      report.cases.push({viewport:`${width}x${height}`,tapHeight,copyWidth,choice:true,fastMix:true,carefulReset:true,geometry});
     } catch(error) {
       report.failures.push(`${width}x${height}: ${String(error)}`);
     } finally {
