@@ -98,3 +98,84 @@
 :root[data-motion="off"] .customer-heading .chibi-fallback-shirt,
 :root[data-motion="off"] .customer-heading .chibi-fallback-face::before,
 :root[data-motion="off"] .customer-heading .chibi-fallback-face::after { animation: none; }
+
+/* Counter acting: readable whole-body silhouette within the existing portrait footprint. */
+.chibi-fallback-shirt { bottom: 5%; height: 32%; left: 18%; width: 64%; }
+.chibi-fallback-arm {
+  position: absolute; top: 65%; width: 15%; height: 23%;
+  border-radius: 45% 45% 60% 60%;
+  background: var(--chibi-skin, #f6ccb7);
+  border: 1px solid #8b5c6940;
+  z-index: 2;
+  transform-origin: 50% 12%;
+}
+.chibi-fallback-arm.is-left { left: 12%; transform: rotate(18deg); }
+.chibi-fallback-arm.is-right { right: 12%; transform: rotate(-18deg); }
+.chibi-fallback-shoe {
+  position: absolute; bottom: 0; width: 23%; height: 10%;
+  border-radius: 45% 45% 25% 25%;
+  background: #76566e; z-index: 1;
+}
+.chibi-fallback-shoe.is-left { left: 25%; }
+.chibi-fallback-shoe.is-right { right: 25%; }
+.chibi-fallback-brows::before, .chibi-fallback-brows::after {
+  content: ""; position: absolute; top: 34%; width: 16%; height: 2px;
+  border-radius: 100%; background: #68414c; opacity: .8;
+}
+.chibi-fallback-brows::before { left: 23%; }
+.chibi-fallback-brows::after { right: 23%; }
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-brows::before,
+.neighbor-portrait[data-mood="restless"] .chibi-fallback-brows::after { transform: rotate(-12deg); }
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-brows::before { transform: rotate(-18deg); }
+.neighbor-portrait[data-mood="upset"] .chibi-fallback-brows::after { transform: rotate(18deg); }
+
+/* One arrival per new order; all motion is transform-only and isolated to the UI. */
+.customer-heading .neighbor-portrait {
+  animation: chibi-counter-arrival 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+.customer-heading .neighbor-portrait[data-mood="delighted"] .chibi-fallback-arm.is-right {
+  animation: chibi-counter-wave 2.8s ease-in-out infinite;
+}
+.customer-heading .neighbor-portrait[data-mood="restless"] .chibi-fallback-shoe.is-right,
+.customer-heading .neighbor-portrait[data-mood="upset"] .chibi-fallback-shoe.is-right {
+  animation: chibi-counter-foot-tap 560ms ease-in-out infinite;
+}
+.customer-heading .neighbor-portrait[data-mood="upset"] .chibi-fallback-arm.is-left {
+  transform: rotate(40deg);
+}
+@keyframes chibi-counter-arrival {
+  from { opacity: .5; transform: translateX(10px) scale(.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes chibi-counter-wave {
+  0%, 25%, 75%, 100% { transform: rotate(-18deg); }
+  40%, 60% { transform: rotate(-58deg); }
+  50% { transform: rotate(-38deg); }
+}
+@keyframes chibi-counter-foot-tap {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.customer-heading > div { min-width: 0; }
+.customer-waiting-line {
+  max-width: 44ch; margin: 5px 0 0; padding: 5px 9px;
+  border: 1px solid #f0d2dd; border-radius: 9px 9px 9px 2px;
+  background: #fff; color: #70495e;
+  font-size: 11px; line-height: 1.35; overflow-wrap: anywhere;
+}
+.customer-heading[data-mood="restless"] .customer-waiting-line,
+.customer-heading[data-mood="upset"] .customer-waiting-line {
+  background: #fff7e8; border-color: #e9d1a5;
+}
+@media (max-height: 450px) and (orientation: landscape) {
+  .customer-heading { padding-top: 6px; padding-bottom: 6px; }
+  .customer-waiting-line { margin-top: 2px; padding: 3px 7px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-heading .neighbor-portrait,
+  .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-arm,
+  .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-shoe { animation: none; }
+}
+:root[data-motion="off"] .customer-heading .neighbor-portrait,
+:root[data-motion="off"] .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-arm,
+:root[data-motion="off"] .customer-heading .neighbor-portrait[data-mood] .chibi-fallback-shoe { animation: none; }
