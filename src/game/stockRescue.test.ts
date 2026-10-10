@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialState, scoreDrink, serveCurrentDrink, startDay, updateDraft } from "./engine";
-import { missingDraftStock, planStockRescue } from "./stockRescue";
+import { listStockRescueOptions, missingDraftStock, planStockRescue } from "./stockRescue";
 import type { GameState } from "./types";
 
 function ready(): GameState {
@@ -88,5 +88,34 @@ describe("real stock substitution choice", () => {
     expect(rescue.patch.base).toBe("peach-tea");
     expect(rescue.changes).toContain("đổi nền trà");
     expect(missingDraftStock(updateDraft(game, rescue.patch))).toEqual([]);
+  });
+});
+
+
+describe("multiple meaningful rescue decisions", () => {
+  it("offers ranked stocked tea substitutes with different scores and no side effects", () => {
+    const base = ready();
+    const game = {
+      ...base,
+      unlockedBaseIds: ["classic-milk-tea", "peach-tea", "matcha-latte"] as GameState["unlockedBaseIds"],
+      inventory: { ...base.inventory, classicMilkTea: 0, peachTea: 2, matchaLatte: 1 },
+    };
+    const snapshot = JSON.stringify(game);
+    const options = listStockRescueOptions(game);
+    expect(options).toHaveLength(2);
+    expect(options.map(option => option.patch.base).sort()).toEqual(["matcha-latte", "peach-tea"]);
+    expect(options[0].predictedScore).toBeGreaterThanOrEqual(options[1].predictedScore);
+    for (const option of options) {
+      const next = updateDraft(game, option.patch);
+      expect(missingDraftStock(next)).toEqual([]);
+      expect(next.currentOrderQueuedAt).toBe(game.currentOrderQueuedAt);
+      expect(next.inventory).toEqual(game.inventory);
+    }
+    expect(JSON.stringify(game)).toBe(snapshot);
+  });
+  it("does not offer fictional substitutes when all tea bases are depleted", () => {
+    const base = ready();
+    const game = { ...base, inventory: { ...base.inventory, classicMilkTea: 0, peachTea: 0, matchaLatte: 0 } };
+    expect(listStockRescueOptions(game)).toEqual([]);
   });
 });
