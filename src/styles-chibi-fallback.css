@@ -157,19 +157,8 @@
   50% { transform: translateY(-3px); }
 }
 .customer-heading > div { min-width: 0; }
-.customer-waiting-line {
-  max-width: 44ch; margin: 5px 0 0; padding: 5px 9px;
-  border: 1px solid #f0d2dd; border-radius: 9px 9px 9px 2px;
-  background: #fff; color: #70495e;
-  font-size: 11px; line-height: 1.35; overflow-wrap: anywhere;
-}
-.customer-heading[data-mood="restless"] .customer-waiting-line,
-.customer-heading[data-mood="upset"] .customer-waiting-line {
-  background: #fff7e8; border-color: #e9d1a5;
-}
 @media (max-height: 450px) and (orientation: landscape) {
   .customer-heading { padding-top: 6px; padding-bottom: 6px; }
-  .customer-waiting-line { margin-top: 2px; padding: 3px 7px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .customer-heading .neighbor-portrait,
