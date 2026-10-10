@@ -8,6 +8,8 @@ on:
       - 'src/components/QuickMixChoice.tsx'
       - 'src/components/CraftWorkbench.tsx'
       - 'src/styles.css'
+      - 'src/styles-quick-mix.css'
+      - 'src/main.tsx'
       - 'scripts/quick-mix-preview.mjs'
       - '.github/workflows/quick-mix-preview.yml'
   workflow_dispatch:
