@@ -6,6 +6,7 @@ import { DrinkCup } from "./DrinkCup";
 import { HoldDispenser } from "./HoldDispenser";
 import { RecipeChecklist } from "./RecipeChecklist";
 import { ToppingTray } from "./ToppingTray";
+import { StockRescueHint } from "./StockRescueHint";
 import { DRINKS } from "../game/content";
 import { updateDraft } from "../game/engine";
 import type { BaseId, GameState, ToppingId } from "../game/types";
@@ -45,6 +46,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
           <DrinkCup draft={game.draft} />
 
           <div className="craft-controls v6-craft-controls" id="craft-station">
+            <StockRescueHint game={game} onGame={onGame} />
             {station === 0 && (<section id="craft-station-0" aria-label="Lắp ly">
             <ControlGroup title="1. Chọn nền trà" icon="🫖">
               <div className="choice-grid drink-choices v2-drink-choices">
