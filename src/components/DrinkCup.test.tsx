@@ -7,6 +7,7 @@ describe("live tea cup preview", () => {
   it("shows a cup with the actual fill and color", () => {
     const markup = renderToStaticMarkup(<DrinkCup draft={{ ...emptyDraft(), fill: 70 }} />);
     expect(markup).toContain("tea-cup-liquid");
+    expect(markup).toContain('data-size="M"');
     expect(markup).toContain("height:70%");
     expect(markup).toContain("#b98b68");
   });
