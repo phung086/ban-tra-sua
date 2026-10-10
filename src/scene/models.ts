@@ -765,7 +765,7 @@ export function pose(
   person.root.userData.greetingState = response.state;
   const hello = motion ? T.MathUtils.clamp(greeting || response.strength, 0, 1) : 0;
   person.rightArm.rotation.z = -hello * 0.16;
-  person.hand.rotation.z = hello * Math.sin(time * 8) * 0.24;
+  person.hand.rotation.z = hello > 0 ? hello * Math.sin(time * 8) * 0.24 : 0;
   person.head.rotation.z = hello * 0.07;
   person.head.rotation.x = hello * (0.04 + Math.sin(time * 3) * 0.015);
 }
