@@ -1,0 +1,56 @@
+/* Hand-authored lightweight chibi illustration shown while WebGL portraits load. */
+.neighbor-portrait.chibi-polished {
+  position: relative;
+  isolation: isolate;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px #fff8, 0 3px 8px #6a405326;
+}
+.neighbor-portrait.has-chibi-fallback {
+  background: linear-gradient(150deg, #fff2f8, #e6f3ff);
+}
+.chibi-fallback { position: absolute; inset: 0; display: block; overflow: hidden; }
+.chibi-fallback-shirt {
+  position: absolute; left: 13%; bottom: -8%; width: 74%; height: 37%;
+  background: var(--chibi-shirt, #f49ab9);
+  border: 1px solid #76515b44; border-radius: 48% 48% 10% 10%; z-index: 1;
+}
+.chibi-fallback-hair {
+  position: absolute; left: 17%; top: 11%; width: 66%; height: 68%;
+  background: var(--chibi-hair, #563e54);
+  border-radius: 47% 47% 28% 28%; z-index: 2;
+}
+.chibi-fallback-face {
+  position: absolute; left: 23%; top: 27%; width: 54%; height: 46%;
+  background: var(--chibi-skin, #f6ccb7);
+  border-radius: 44% 44% 48% 48%; z-index: 3;
+  box-shadow: inset 0 -2px 0 #9d615a19;
+}
+.chibi-fallback-face::before, .chibi-fallback-face::after {
+  content: ""; position: absolute; top: 43%; width: 10%; height: 16%;
+  border-radius: 50%; background: #3c2c39;
+}
+.chibi-fallback-face::before { left: 27%; }
+.chibi-fallback-face::after { right: 27%; }
+.chibi-fallback-blush::before, .chibi-fallback-blush::after {
+  content: ""; position: absolute; top: 60%; width: 21%; height: 11%;
+  border-radius: 50%; background: #ed82965e;
+}
+.chibi-fallback-blush::before { left: 8%; }
+.chibi-fallback-blush::after { right: 8%; }
+.chibi-fallback-smile {
+  position: absolute; left: 43%; top: 65%; width: 15%; height: 12%;
+  border-bottom: 2px solid #8b4c5a; border-radius: 0 0 50% 50%;
+}
+.chibi-fallback-fringe {
+  position: absolute; left: 19%; top: 15%; width: 63%; height: 22%;
+  background: var(--chibi-hair, #563e54);
+  border-radius: 58% 48% 26% 18%; transform: rotate(-7deg); z-index: 4;
+}
+.chibi-reaction[data-mood="upset"] .chibi-fallback-smile {
+  border-bottom: 0; border-top: 2px solid #8b4c5a;
+  border-radius: 50% 50% 0 0; transform: translateY(3px);
+}
+.chibi-reaction[data-mood="delighted"] .chibi-fallback-face::before,
+.chibi-reaction[data-mood="delighted"] .chibi-fallback-face::after {
+  transform: scaleY(.65);
+}

@@ -75,3 +75,30 @@ export function getCustomerMoodMeta(mood: CustomerMood) {
   if (mood === "restless") return { emoji: "😣", label: "sốt ruột", tone: "Tip sẽ giảm nếu chậm thêm." };
   return { emoji: "💢", label: "khó chịu", tone: "Ưu tiên giao ly sớm để cứu trải nghiệm." };
 }
+
+
+/**
+ * Visible service trade-off: time remaining before the next patience/tip tier.
+ * Uses the same rounded wait clock and thresholds as actual tip settlement.
+ * Display is approximate (the UI refreshes once per second).
+ */
+export function getNextPatienceDrop(
+  state: GameState, customer: Customer, joinedAt: number, now = Date.now(),
+): { seconds: number; tipBefore: number; tipAfter: number; nextMood: CustomerMood } | null {
+  const feedback = getCustomerServiceFeedback(state, customer, joinedAt, now);
+  const tiers: { mood: CustomerMood; boundary: number; nextMood: CustomerMood; nextTip: number }[] = [
+    { mood: "delighted", boundary: 0.35, nextMood: "happy", nextTip: 1.05 },
+    { mood: "happy", boundary: 0.65, nextMood: "neutral", nextTip: 1 },
+    { mood: "neutral", boundary: 0.9, nextMood: "restless", nextTip: 0.75 },
+    { mood: "restless", boundary: 1.15, nextMood: "upset", nextTip: 0.4 },
+  ];
+  const tier = tiers.find(entry => entry.mood === feedback.mood);
+  if (!tier) return null;
+  const nextWaitedSecond = Math.floor(tier.boundary * feedback.patienceSeconds) + 1;
+  return {
+    seconds: Math.max(1, nextWaitedSecond - feedback.waitedSeconds),
+    tipBefore: feedback.tipMultiplier,
+    tipAfter: tier.nextTip,
+    nextMood: tier.nextMood,
+  };
+}

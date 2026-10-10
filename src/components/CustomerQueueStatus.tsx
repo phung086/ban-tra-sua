@@ -1,4 +1,4 @@
-import { getCustomerMoodMeta, getCustomerServiceFeedback } from "../game/customerAi";
+import { getCustomerMoodMeta, getCustomerServiceFeedback, getNextPatienceDrop } from "../game/customerAi";
 import { getCustomer } from "../game/engine";
 import type { GameState } from "../game/types";
 
@@ -7,6 +7,8 @@ export function CustomerQueueStatus({ game, now }: { game: GameState; now: numbe
   const customer = getCustomer(game.currentOrder.customerId);
   const feedback = getCustomerServiceFeedback(game, customer, game.currentOrderQueuedAt, now);
   const meta = getCustomerMoodMeta(feedback.mood);
+  const nextDrop = getNextPatienceDrop(game, customer, game.currentOrderQueuedAt, now);
+  const tipLabel = (multiplier: number) => `${Math.round((multiplier - 1) * 100) > 0 ? "+" : ""}${Math.round((multiplier - 1) * 100)}%`;
   return (
     <aside className={`customer-queue mood-${feedback.mood}`} aria-label="Nhịp phục vụ khách">
       <div className="queue-current"><b>{meta.emoji} {customer.name} · {meta.label}</b><span>{feedback.waitedSeconds}s đã chờ</span></div>
@@ -14,6 +16,9 @@ export function CustomerQueueStatus({ game, now }: { game: GameState; now: numbe
         <i style={{ transform: `scaleX(${feedback.remainingPercent / 100})` }} />
       </div>
       <p>{meta.tone}</p>
+      <p className="queue-service-stakes" aria-live="off">{nextDrop
+        ? `⏱ Còn khoảng ${nextDrop.seconds}s trước khi tip giảm (${tipLabel(nextDrop.tipBefore)} → ${tipLabel(nextDrop.tipAfter)}). Pha kỹ hay giao sớm?`
+        : "⏱ Khách đã chờ quá lâu · ưu tiên giao ly để giữ quan hệ."}</p>
       <div className="queue-next"><span>Tiếp theo</span>
         {game.customerQueue.length === 0 ? <span>Khách cuối ca</span> : game.customerQueue.map((entry) => {
           const queued = getCustomer(entry.order.customerId);

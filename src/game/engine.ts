@@ -363,6 +363,25 @@ export function scoreDrink(order: Order, draft: DrinkDraft): number {
   return Math.round(clamp(score, 0, 100));
 }
 
+/**
+ * One actionable, deterministic coaching note for the drink just served.
+ * Prioritises the biggest lost scoring component; does not touch the save or RNG.
+ */
+export function getDrinkCoachingTip(order: Order, draft: DrinkDraft): string {
+  const misses: { loss: number; tip: string }[] = [
+    { loss: draft.base === order.base ? 0 : 25, tip: "Chọn đúng nền trà khách gọi." },
+    { loss: draft.topping === order.topping ? 0 : 15, tip: "Kiểm tra topping theo phiếu đặt." },
+    { loss: draft.size === order.size ? 0 : 10, tip: "Đổi đúng cỡ ly khách muốn." },
+    { loss: Math.abs(draft.sugar - order.sugar) / 10, tip: draft.sugar > order.sugar ? "Giảm đường một chút." : "Thêm đường đúng mức khách thích." },
+    { loss: Math.abs(draft.ice - order.ice) / 10, tip: draft.ice > order.ice ? "Bớt đá để đúng khẩu vị." : "Thêm đá đúng mức khách yêu cầu." },
+    { loss: Math.abs(draft.fill - order.targetFill) * 0.15, tip: draft.fill > order.targetFill ? "Rót ít hơn để tránh tràn ly." : "Rót đầy hơn tới vạch yêu cầu." },
+    { loss: Math.abs(draft.shake - order.targetShake) / 10, tip: draft.shake > order.targetShake ? "Lắc nhẹ tay hơn một chút." : "Lắc kỹ hơn để vị trà hòa đều." },
+    { loss: draft.sealed ? 0 : 5, tip: "Đậy kín nắp trước khi giao." },
+  ];
+  const worst = misses.reduce((best, item) => item.loss > best.loss ? item : best);
+  return worst.loss <= 0 ? "Công thức chuẩn rồi! Giữ nhịp phục vụ nhé." : worst.tip;
+}
+
 function getStars(score: number): number {
   if (score >= 93) return 5;
   if (score >= 80) return 4;
@@ -636,7 +655,7 @@ export function serveCurrentDrink(state: GameState, now = Date.now()): GameState
         ? `Perfect ${score}/100! Combo x${nextCombo} ✨`
         : score >= 80
           ? `Khách hài lòng: ${score}/100. Giữ nhịp nào!`
-          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`) + serviceNotice + storyNotice,
+          : `Ly vừa rồi ${score}/100 — xem lại order trước ly tiếp theo nha.`) + ` 💡 ${getDrinkCoachingTip(order, state.draft)}` + serviceNotice + storyNotice,
   };
 
   if (served >= state.targetOrders) {

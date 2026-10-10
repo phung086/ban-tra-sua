@@ -1,0 +1,82 @@
+/* Live 2D tea cup; no textures, new mesh or render loop. */
+.tea-cup-visual {
+  position: relative; display: block; flex: 0 0 48px;
+  width: 48px; height: 72px; overflow: hidden;
+  clip-path: polygon(5% 0, 95% 0, 83% 100%, 17% 100%);
+  background: linear-gradient(110deg, #fff9, #e4cbd866 65%, #fff9);
+  border-radius: 5px 5px 12px 12px;
+  box-shadow: inset 0 0 0 2px #b88e9e88;
+}
+.tea-cup-liquid {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  transition: height 240ms ease, background-color 240ms ease;
+  box-shadow: inset 8px 0 10px #fff5, inset -7px 0 10px #4c303020;
+}
+.tea-cup-label {
+  position: absolute; left: 6px; right: 6px; top: 42%;
+  text-align: center; font-size: 6px; font-weight: 800;
+  letter-spacing: .5px; color: #553343;
+  padding: 2px 0; border-radius: 3px; background: #fff9;
+}
+.tea-cup-seal {
+  position: absolute; top: 0; left: 0; width: 100%;
+  height: 6px; background: #eaa2bf;
+  box-shadow: 0 1px 3px #6d3e5866;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tea-cup-liquid { transition: none; }
+}
+:root[data-motion="off"] .tea-cup-liquid { transition: none; }
+
+
+.tea-cup-liquid { overflow: hidden; }
+.tea-cup-ice-layer { position: absolute; inset: 0; }
+.tea-cup-ice { position: absolute; width: 11px; height: 9px; border-radius: 2px; border: 1px solid #fff; background: #e6f6ffb0; transform: rotate(-16deg); }
+.tea-cup-ice:nth-child(1) { top: 18%; left: 19%; }
+.tea-cup-ice:nth-child(2) { top: 42%; left: 58%; }
+.tea-cup-ice:nth-child(3) { top: 64%; left: 34%; }
+.tea-cup-toppings { position: absolute; bottom: 5%; left: 0; right: 0; display: flex; justify-content: center; gap: 3px; }
+.tea-cup-topping { width: 6px; height: 6px; border-radius: 50%; background: #38232c; }
+.topping-pudding .tea-cup-topping { border-radius: 2px; background: #e3a54e; }
+.topping-rainbow-jelly .tea-cup-topping { border-radius: 2px; background: #f59fbc; }
+.topping-rainbow-jelly .tea-cup-topping:nth-child(even) { background: #b7e6ce; }
+.topping-aloe-vera .tea-cup-topping { border-radius: 2px; background: #cce9a2; }
+.topping-mochi .tea-cup-topping { background: #fff4e5; }
+.tea-cup-foam { position: absolute; left: 0; right: 0; top: 0; height: 11px; background: #fff3dc; border-radius: 0 0 45% 45%; }
+.tea-cup-shine { position: absolute; top: 12%; bottom: 8%; left: 12%; width: 5px; border-radius: 10px; background: #fff9; }
+.tea-cup-rim { position: absolute; top: 0; left: 2%; right: 2%; height: 3px; background: #fff9f4; }
+.tea-cup-label { z-index: 1; }
+.tea-cup-seal { z-index: 2; }
+
+/* Distinct M/L silhouettes and a brief, capped visual cue for shaking. */
+.tea-cup-visual[data-size="L"] {
+  flex-basis: 56px;
+  width: 56px;
+  height: 84px;
+}
+.tea-cup-mix-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tea-cup-bubble {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #fff9;
+  border-radius: 50%;
+  background: #fff6;
+  animation: tea-cup-mix 380ms ease-out both;
+}
+.tea-cup-bubble:nth-child(1) { left: 21%; top: 48%; }
+.tea-cup-bubble:nth-child(2) { left: 62%; top: 27%; animation-delay: 45ms; }
+.tea-cup-bubble:nth-child(3) { left: 42%; top: 69%; animation-delay: 90ms; }
+.tea-cup-bubble:nth-child(4) { left: 75%; top: 54%; animation-delay: 130ms; }
+@keyframes tea-cup-mix {
+  from { opacity: .15; transform: translateY(5px) scale(.7); }
+  to { opacity: .9; transform: translateY(-2px) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tea-cup-bubble { animation: none; }
+}
+:root[data-motion="off"] .tea-cup-bubble { animation: none; }
