@@ -38,7 +38,9 @@ export function mergeRigid(root:T.Group, dynamic:T.Object3D[], register:(key:str
 
 // Only immutable opaque props; actors, cups and live inventory stay independent.
 export function batchStatic(root: T.Group, dynamic: T.Object3D[]) {
-  root.updateMatrixWorld(true);
+  root.updateWorldMatrix(true, true);
+  // Instances live under root: setMatrixAt needs root-local, not world matrices.
+  const rootInverse = root.matrixWorld.clone().invert();
   const skip = new Set(dynamic),
     buckets = new Map<string, T.Mesh[]>();
   root.traverse((object) => {
@@ -73,7 +75,7 @@ export function batchStatic(root: T.Group, dynamic: T.Object3D[]) {
     batch.castShadow = items.some((item) => item.castShadow);
     batch.receiveShadow = true;
     items.forEach((item, index) => {
-      batch.setMatrixAt(index, item.matrixWorld);
+      batch.setMatrixAt(index, rootInverse.clone().multiply(item.matrixWorld));
       item.removeFromParent();
     });
     batch.computeBoundingBox();
