@@ -15,6 +15,20 @@ function ready(): GameState {
 }
 
 describe("real stock substitution choice", () => {
+  it("refuses to seal depleted cups at the engine boundary without charging or resetting time", () => {
+    const game = ready();
+    const depleted = { ...game, inventory: { ...game.inventory, cupsM: 0 } };
+    const attempted = updateDraft(depleted, { sealed: true });
+    expect(attempted.draft.sealed).toBe(false);
+    expect(attempted.notice).toContain("Thiếu nguyên liệu");
+    expect(attempted.inventory).toEqual(depleted.inventory);
+    expect(attempted.currentOrderQueuedAt).toBe(depleted.currentOrderQueuedAt);
+    const rescued = planStockRescue({ ...depleted, inventory: { ...depleted.inventory, cupsL: 1 } });
+    expect(rescued?.patch.size).toBe("L");
+    const sealed = updateDraft(updateDraft(depleted, rescued!.patch), { sealed: true });
+    expect(sealed.draft.sealed).toBe(true);
+  });
+
   it("replaces an unavailable topping without free inventory or resetting patience", () => {
     const base = ready();
     const game = { ...base, inventory: { ...base.inventory, blackPearl: 0 } };
