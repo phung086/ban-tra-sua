@@ -913,5 +913,22 @@
       "pr": null
     }
   ],
-  "rule": "Only mark accepted with linked head SHA, passing tests, evidence and merge result; one new validated playable day per cycle when dependencies are green"
+  "rule": "Only mark accepted with linked head SHA, passing tests, evidence and merge result; one new validated playable day per cycle when dependencies are green",
+  "qualityIterations": [
+    {
+      "id": "UX-TEA-CUP-20261010-0950",
+      "status": "in_progress",
+      "track": "gameplay-ui",
+      "branch": "codex/serve-feedback-coaching-20261010",
+      "pr": 20,
+      "change": "M/L cup silhouettes and shake-intensity bubbles; reduced-motion",
+      "evidence": {
+        "iteration": "docs/iterations/cup-size-mixing-20261010-0950.md",
+        "ci": "pending",
+        "preview": "not verified",
+        "device": "not verified"
+      },
+      "released": false
+    }
+  ]
 }
