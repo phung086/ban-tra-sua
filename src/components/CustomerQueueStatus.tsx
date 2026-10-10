@@ -1,5 +1,6 @@
 import { getCustomerMoodMeta, getCustomerServiceFeedback } from "../game/customerAi";
 import { getCustomer } from "../game/engine";
+import { getCustomerWaitingLine } from "../game/customerWaitingDialogue";
 import type { GameState } from "../game/types";
 
 export function CustomerQueueStatus({ game, now }: { game: GameState; now: number }) {
@@ -13,7 +14,7 @@ export function CustomerQueueStatus({ game, now }: { game: GameState; now: numbe
       <div className="patience-track" role="progressbar" aria-label={`Kiên nhẫn của ${customer.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={feedback.remainingPercent}>
         <i style={{ transform: `scaleX(${feedback.remainingPercent / 100})` }} />
       </div>
-      <p>{meta.tone}</p>
+      <p className="queue-customer-dialogue" aria-live="off">“{getCustomerWaitingLine(customer.id, feedback.mood)}”</p>
       <div className="queue-next"><span>Tiếp theo</span>
         {game.customerQueue.length === 0 ? <span>Khách cuối ca</span> : game.customerQueue.map((entry) => {
           const queued = getCustomer(entry.order.customerId);
