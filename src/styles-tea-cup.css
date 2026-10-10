@@ -47,3 +47,36 @@
 .tea-cup-rim { position: absolute; top: 0; left: 2%; right: 2%; height: 3px; background: #fff9f4; }
 .tea-cup-label { z-index: 1; }
 .tea-cup-seal { z-index: 2; }
+
+/* Distinct M/L silhouettes and a brief, capped visual cue for shaking. */
+.tea-cup-visual[data-size="L"] {
+  flex-basis: 56px;
+  width: 56px;
+  height: 84px;
+}
+.tea-cup-mix-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tea-cup-bubble {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #fff9;
+  border-radius: 50%;
+  background: #fff6;
+  animation: tea-cup-mix 380ms ease-out both;
+}
+.tea-cup-bubble:nth-child(1) { left: 21%; top: 48%; }
+.tea-cup-bubble:nth-child(2) { left: 62%; top: 27%; animation-delay: 45ms; }
+.tea-cup-bubble:nth-child(3) { left: 42%; top: 69%; animation-delay: 90ms; }
+.tea-cup-bubble:nth-child(4) { left: 75%; top: 54%; animation-delay: 130ms; }
+@keyframes tea-cup-mix {
+  from { opacity: .15; transform: translateY(5px) scale(.7); }
+  to { opacity: .9; transform: translateY(-2px) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tea-cup-bubble { animation: none; }
+}
+:root[data-motion="off"] .tea-cup-bubble { animation: none; }
