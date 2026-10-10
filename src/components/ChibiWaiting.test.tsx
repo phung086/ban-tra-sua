@@ -21,6 +21,21 @@ describe("counter customer facial acting", () => {
     expect(html).toContain("chibi-fallback-face");
   });
 
+  it("renders complete chibi silhouette with expressive eyebrows and two arms", () => {
+    const html = renderToStaticMarkup(<ChibiPortrait customer={CUSTOMERS[0]} mood="delighted" />);
+    expect(html).toContain("chibi-fallback-brows");
+    expect(html.match(/chibi-fallback-arm is-/g)).toHaveLength(2);
+    expect(html.match(/chibi-fallback-shoe is-/g)).toHaveLength(2);
+    expect(html).toContain('data-mood="delighted"');
+  });
+
+  it("preserves each customer's outfit colors in the fallback silhouette", () => {
+    const html = renderToStaticMarkup(<ChibiPortrait customer={CUSTOMERS[1]} mood="upset" />);
+    expect(html).toContain(CUSTOMERS[1].shirt);
+    expect(html).toContain(CUSTOMERS[1].skin);
+    expect(html).toContain('data-mood="upset"');
+  });
+
   it("forwards delivery mood through the customer card", () => {
     const html = renderToStaticMarkup(<ChibiCustomer customer={CUSTOMERS[0]} mood="upset" />);
     expect(html).toContain('data-mood="upset"');
