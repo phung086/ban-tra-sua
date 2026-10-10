@@ -1,7 +1,8 @@
 /* Active quick-mix styling: imported by src/main.tsx after responsive layers. */
 .quick-mix-choice {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  scroll-margin-top: 110px;
   gap: 14px;
   align-items: center;
   padding: 14px;
@@ -19,7 +20,8 @@
 .quick-mix-actions button {
   min-height: 52px;
   padding: 12px 14px;
-  max-width: 250px;
+  max-width: none;
+  width: 100%;
   border: 2px solid #d75891;
   border-radius: 14px;
   color: #672b4a;
