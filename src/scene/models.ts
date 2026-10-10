@@ -740,6 +740,7 @@ export function pose(
   sitting: boolean,
   motion: boolean,
   gaitPhase=time*7,
+  greeting=0,
 ) {
   const swing = motion && walking ? Math.sin(gaitPhase) * 0.34 : 0;
   person.leftLeg.rotation.x = sitting ? -1.35 : swing;
