@@ -32,4 +32,11 @@ describe("live tea cup preview", () => {
     expect(markup).toContain('data-size="L"');
   });
 
+  it("shows visual bubbles when the shake slider increases", () => {
+    const calm = renderToStaticMarkup(<DrinkCup draft={{ ...emptyDraft(), shake: 0 }} />);
+    const mixed = renderToStaticMarkup(<DrinkCup draft={{ ...emptyDraft(), shake: 100 }} />);
+    expect(calm).not.toContain('class="tea-cup-bubble"');
+    expect(mixed).toContain('class="tea-cup-bubble"');
+  });
+
 });
