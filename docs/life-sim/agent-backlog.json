@@ -911,6 +911,27 @@
       "acceptance": "Playable wake-shop/social-evening-sleep, >=1 multi-day consequence, no-softlock low-cash, seed/reload deterministic, 3 fixture states, CI + mobile smoke",
       "branch": null,
       "pr": null
+    },
+    {
+      "id": "T7-01",
+      "owner": "A08",
+      "title": "Playable stock shortage decision in brewing workbench",
+      "dependsOn": [
+        "T1-02"
+      ],
+      "track": "gameplay",
+      "status": "in_progress",
+      "acceptance": "Player can substitute unavailable ingredients on the actual brew screen; choice preserves inventory and queue timer; mobile interaction/preview and exact-head CI required before playable.",
+      "branch": "codex/serve-remake-consequences-20261010",
+      "pr": 24,
+      "evidence": {
+        "codeSha": "f6698ec771b0ac177142671499625687df4351eb",
+        "code": "Engine and UI prevent sealing/pickup without stock; rescue restores action; 3 new regression cases",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/38050072645 (SUCCESS for code SHA)",
+        "preview": "not verified: 360x800, 390x844, 844x390, desktop",
+        "playable": false,
+        "released": false
+      }
     }
   ],
   "rule": "Only mark accepted with linked head SHA, passing tests, evidence and merge result; one new validated playable day per cycle when dependencies are green",

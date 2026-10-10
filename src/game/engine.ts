@@ -539,7 +539,7 @@ export function serveCurrentDrink(state: GameState, now = Date.now()): GameState
       eventMultiplier *
       signatureMultiplier,
   ) + tip;
-  const ingredientCost = (state.draft.size === "L" ? 9500 : 7600) + (state.draft.topping === "none" ? 0 : 2500);
+  const ingredientCost = getDraftIngredientCost(state.draft);
   const served = state.served + 1;
   const perfectToday = state.perfectToday + (perfect ? 1 : 0);
   const review = makeReview(state, order, score);
@@ -966,7 +966,41 @@ export function nextDay(state: GameState): GameState {
   return applyAchievements(base);
 }
 
+/** Same ingredient valuation used for a served drink and a discarded remake. */
+export function getDraftIngredientCost(draft: DrinkDraft): number {
+  return (draft.size === "L" ? 9500 : 7600) + (draft.topping === "none" ? 0 : 2500);
+}
+
+/**
+ * A sealed cup cannot be edited for free. The player may discard it and start
+ * again, sacrificing stock and profit while the real customer clock continues.
+ * This is a deliberate, observable service-vs-quality decision, not a new RNG.
+ */
+export function remakeSealedDrink(state: GameState): GameState {
+  if (state.phase !== "open" || !state.currentOrder || !state.draft.sealed) return state;
+  const requirements = inventoryRequirement(state.draft);
+  if (findShortage(state.inventory, requirements)) {
+    return { ...state, notice: "Kho thiếu nguyên liệu để ghi nhận ly đã pha. Nhập thêm trước khi làm lại." };
+  }
+  const cost = getDraftIngredientCost(state.draft);
+  return {
+    ...state,
+    inventory: consume(state.inventory, requirements),
+    dailyCost: state.dailyCost + cost,
+    dailyWaste: state.dailyWaste + cost,
+    stats: { ...state.stats, waste: state.stats.waste + cost },
+    draft: emptyDraft(state.unlockedBaseIds[0] ?? "classic-milk-tea"),
+    notice: `Đã bỏ ly cũ (hao ${formatMoney(cost)} nguyên liệu). Khách vẫn đang chờ — pha lại thật chuẩn nhé!`,
+  };
+}
+
 export function updateDraft(state: GameState, patch: Partial<DrinkDraft>): GameState {
+  if (patch.sealed === true && findShortage(state.inventory, inventoryRequirement({ ...state.draft, ...patch }))) {
+    return { ...state, notice: "Thiếu nguyên liệu: chọn Cứu đơn hoặc nhập thêm tại Kho trước khi dập nắp." };
+  }
+  if (state.draft.sealed) {
+    return { ...state, notice: "Ly đã dập nắp. Muốn đổi công thức, chọn “Bỏ ly và pha lại” để ghi nhận nguyên liệu hao." };
+  }
   return { ...state, draft: { ...state.draft, ...patch } };
 }
 

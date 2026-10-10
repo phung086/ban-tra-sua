@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialState, startDay, updateDraft } from "./engine";
+import { createInitialState, startDay, updateDraft, remakeSealedDrink } from "./engine";
 import {
   canWalk,
   deliverDrink,
@@ -27,6 +27,17 @@ function ready(id: string) {
   });
 }
 describe("physical service", () => {
+  it("charges wasted ingredients when a sealed cup is remade", () => {
+    const game = ready("remake-case");
+    const after = remakeSealedDrink(game);
+    expect(after.served).toBe(game.served);
+    expect(after.currentOrder).toEqual(game.currentOrder);
+    expect(after.dailyCost).toBeGreaterThan(game.dailyCost);
+    expect(after.stats.waste).toBeGreaterThan(game.stats.waste);
+    expect(after.draft.sealed).toBe(false);
+    expect(updateDraft(game, { sealed: false }).draft.sealed).toBe(true);
+  });
+
   it.each(["c", "a", "b"])(
     "only completes %s at its assigned destination and charges once",
     (id) => {
