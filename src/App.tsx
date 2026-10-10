@@ -24,6 +24,9 @@ import {
   formatMoney,
   getCustomer,
   getDrinkCoachingTip,
+  getDraftIngredientCost,
+  remakeSealedDrink,
+  scoreDrink,
   nextDay,
 } from "./game/engine";
 import {
@@ -321,6 +324,19 @@ function App() {
                       onStation={setStation}
                     />
                   </fieldset>
+                  {atCounter && game.draft.sealed && (
+                    <aside className="remake-choice" aria-label="Quyết định phục vụ">
+                      <p>🎯 Công thức hiện tại: {scoreDrink(order, game.draft)}/100 điểm (chưa tính thưởng máy và độ tươi).</p>
+                      <p>Ly đã dập nắp: bê giao ngay để giữ tip, hoặc làm lại và chịu hao nguyên liệu. Khách vẫn đang chờ.</p>
+                      <button type="button" onClick={() => {
+                        const next = remakeSealedDrink(game);
+                        setGame(next);
+                        if (!next.draft.sealed) setStation(0);
+                      }}>
+                        ♻️ Bỏ ly, pha lại · hao {formatMoney(getDraftIngredientCost(game.draft))}
+                      </button>
+                    </aside>
+                  )}
                 </>
               )}
             </>
