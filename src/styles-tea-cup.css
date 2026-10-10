@@ -27,3 +27,23 @@
   .tea-cup-liquid { transition: none; }
 }
 :root[data-motion="off"] .tea-cup-liquid { transition: none; }
+
+
+.tea-cup-liquid { overflow: hidden; }
+.tea-cup-ice-layer { position: absolute; inset: 0; }
+.tea-cup-ice { position: absolute; width: 11px; height: 9px; border-radius: 2px; border: 1px solid #fff; background: #e6f6ffb0; transform: rotate(-16deg); }
+.tea-cup-ice:nth-child(1) { top: 18%; left: 19%; }
+.tea-cup-ice:nth-child(2) { top: 42%; left: 58%; }
+.tea-cup-ice:nth-child(3) { top: 64%; left: 34%; }
+.tea-cup-toppings { position: absolute; bottom: 5%; left: 0; right: 0; display: flex; justify-content: center; gap: 3px; }
+.tea-cup-topping { width: 6px; height: 6px; border-radius: 50%; background: #38232c; }
+.topping-pudding .tea-cup-topping { border-radius: 2px; background: #e3a54e; }
+.topping-rainbow-jelly .tea-cup-topping { border-radius: 2px; background: #f59fbc; }
+.topping-rainbow-jelly .tea-cup-topping:nth-child(even) { background: #b7e6ce; }
+.topping-aloe-vera .tea-cup-topping { border-radius: 2px; background: #cce9a2; }
+.topping-mochi .tea-cup-topping { background: #fff4e5; }
+.tea-cup-foam { position: absolute; left: 0; right: 0; top: 0; height: 11px; background: #fff3dc; border-radius: 0 0 45% 45%; }
+.tea-cup-shine { position: absolute; top: 12%; bottom: 8%; left: 12%; width: 5px; border-radius: 10px; background: #fff9; }
+.tea-cup-rim { position: absolute; top: 0; left: 2%; right: 2%; height: 3px; background: #fff9f4; }
+.tea-cup-label { z-index: 1; }
+.tea-cup-seal { z-index: 2; }
