@@ -7,6 +7,7 @@ import { HoldDispenser } from "./HoldDispenser";
 import { RecipeChecklist } from "./RecipeChecklist";
 import { ToppingTray } from "./ToppingTray";
 import { StockRescueHint } from "./StockRescueHint";
+import { QuickMixChoice } from "./QuickMixChoice";
 import { DRINKS } from "../game/content";
 import { updateDraft } from "../game/engine";
 import { missingDraftStock } from "../game/stockRescue";
@@ -120,7 +121,8 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             </section>)}
 
             {station === 2 && (<section id="craft-station-2" aria-label="Rót và lắc">
-            <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
+            <QuickMixChoice game={game} onGame={onGame} />
+            {!game.draft.rushed && <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
               <div className="timing-grid">
                 <CraftGauge
                   label="Rót"
@@ -143,7 +145,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
                   onCommit={(value) => onGame(updateDraft(game, { shake: value, sealed: false }))}
                 />
               </div>
-            </ControlGroup>
+            </ControlGroup>}
             </section>)}
 
             {station === 3 && (<section id="craft-station-3" aria-label="Hoàn thiện và giao khách">
