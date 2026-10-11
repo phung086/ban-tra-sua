@@ -1,1 +1,1 @@
-// Market gameplay regression tests.
+import { describe, expect, it } from 'vitest';
