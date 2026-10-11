@@ -17,3 +17,16 @@ export function pourVerdict(fill: number, target: number, tolerance = 5): PourVe
   const distance = Math.abs(fill - target);
   return distance <= tolerance ? 'perfect' : distance <= tolerance * 2 ? 'close' : 'off';
 }
+
+/** Actionable cue shown while the player is holding the pour button. */
+export type PourCue = "empty" | "filling" | "approaching" | "release" | "over";
+export function pourCue(fill: number, target: number, tolerance = 5): PourCue {
+  const current = Number.isFinite(fill) ? clamp(fill, 0, 100) : 0;
+  const goal = Number.isFinite(target) ? clamp(target, 0, 100) : 80;
+  const margin = Number.isFinite(tolerance) ? clamp(tolerance, 0, 20) : 5;
+  if (current <= 0) return "empty";
+  if (current > goal + margin) return "over";
+  if (current >= goal - margin) return "release";
+  if (current >= goal - Math.max(12, margin + 5)) return "approaching";
+  return "filling";
+}
