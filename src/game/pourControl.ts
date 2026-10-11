@@ -46,3 +46,11 @@ export function finishPourAtRelease(
     ? releasedAt - lastSampleAt : 0;
   return advancePour(fill, elapsed, speed, brewerLevel);
 }
+
+/** Feedback fires only on entering a useful cue, never every render frame. */
+export function pourCuePulse(previous: PourCue, next: PourCue): "tap" | "good" | null {
+  if (previous === next) return null;
+  if (next === "approaching") return "tap";
+  if (next === "release") return "good";
+  return null;
+}
