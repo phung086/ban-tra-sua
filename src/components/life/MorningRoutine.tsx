@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, MARKET_OPTIONS, chooseBreakfast, visitMorningMarket, wakeMorning, type BreakfastChoice, type MarketChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -17,6 +17,12 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
   {id:'cook',emoji:'🍳',hint:'Bữa cơm ấm bụng · 20 phút'},
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
+];
+
+const marketChoices: {id:MarketChoice;emoji:string;hint:string}[] = [
+  {id:'fruit',emoji:'🍎',hint:'8 phút · no thêm 12 · thân cô Hạnh +1'},
+  {id:'chat',emoji:'💬',hint:'5 phút · thân cô Hạnh +2'},
+  {id:'leave',emoji:'🏪',hint:'0 phút · không tốn tiền'},
 ];
 
 /** Uses an existing pre-shop panel, not an additional WebGL scene. */
@@ -60,5 +66,28 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
       <small>Đã lưu trong ngày, không tính tiền lần hai.</small>
     </div>}
+    {finished&&<section className="life-market" aria-label="Ghé chợ buổi sáng">
+      <h4>🧺 Ghé chợ đầu ngõ</h4>
+      {morning.marketVisit == null ? <>
+        <p>Cô Hạnh đang xếp hoa quả. Mình ghé mua, hỏi thăm hay đi mở tiệm?</p>
+        <div className="life-morning-options">
+          {marketChoices.map(({id,emoji,hint})=>{
+            const option=MARKET_OPTIONS[id],enough=game.cash>=option.cost;
+            return <button type="button" key={id} disabled={!enough}
+              className="life-morning-option" onClick={()=>onGame(visitMorningMarket(game,id))}>
+              <span aria-hidden="true">{emoji}</span>
+              <strong>{option.label}</strong>
+              <small>{hint}</small>
+              <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+              {!enough&&<small>Không đủ tiền — có thể hỏi thăm miễn phí</small>}
+            </button>;
+          })}
+        </div>
+      </> : <div className="life-market-reply" role="status">
+        <strong>✓ Đã ghé chợ hôm nay</strong>
+        <p>{MARKET_OPTIONS[morning.marketVisit].reply}</p>
+        <small>Độ no {morning.satiety}/100 · Mỗi ngày chỉ chọn một lần.</small>
+      </div>}
+    </section>}
   </section>;
 }
