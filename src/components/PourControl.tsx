@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pulseFeedback } from "../game/feedback";
-import { advancePour, finishPourAtRelease, pourVerdict, type PourSpeed } from "../game/pourControl";
+import { advancePour, finishPourAtRelease, pourCue, pourCuePulse, pourVerdict, type PourCue, type PourSpeed } from "../game/pourControl";
 import "./PourControl.css";
 
 interface Props {
@@ -20,6 +20,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
   const [assisting, setAssisting] = useState(false);
   const amountRef = useRef(clampPercent(value));
   const holdingRef = useRef(false);
+  const lastCueRef = useRef<PourCue>("empty");
   const frameRef = useRef<number | null>(null);
   const previousFrameRef = useRef<number | null>(null);
   const assistRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,6 +33,13 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
     setAmount(amountRef.current);
   }, [value]);
 
+  const announceCue = (nextAmount: number) => {
+    const cue = pourCue(nextAmount, target, 5 + brewerLevel);
+    const pulse = pourCuePulse(lastCueRef.current, cue);
+    lastCueRef.current = cue;
+    if (pulse) pulseFeedback(pulse);
+  };
+
   const stop = () => {
     if (!holdingRef.current) return;
     holdingRef.current = false;
@@ -40,6 +48,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
       amountRef.current, previousFrameRef.current, performance.now(), speed, brewerLevel,
     );
     setAmount(amountRef.current);
+    announceCue(amountRef.current);
     setHolding(false);
     const poured = Math.round(amountRef.current);
     onCommitRef.current(poured);
@@ -53,6 +62,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
       previousFrameRef.current = now;
       amountRef.current = advancePour(amountRef.current, now - previous, speed, brewerLevel);
       setAmount(amountRef.current);
+      announceCue(amountRef.current);
       if (amountRef.current >= 100) {
         holdingRef.current = false;
         setHolding(false);
@@ -124,6 +134,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
   };
 
   const grade = pourVerdict(amount, target, 5 + brewerLevel);
+  const cue = pourCue(amount, target, 5 + brewerLevel);
   const hasPoured = amountRef.current > 0;
   return (
     <section className="manual-pour" aria-label="Rót trà thủ công">
@@ -131,7 +142,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
         <strong>🫗 Rót trà vào ly</strong>
         <span aria-live="polite">{Math.round(amount)}% / cần {target}%</span>
       </div>
-      <div className={`manual-pour-vessel ${holding ? "pouring" : ""}`} role="progressbar"
+      <div className={`manual-pour-vessel ${holding ? "pouring" : ""} cue-${cue}`} role="progressbar"
         aria-label="Lượng trà trong ly" aria-valuemin={0} aria-valuemax={100}
         aria-valuenow={Math.round(amount)}>
         <div className="manual-pour-stream" aria-hidden="true" />
@@ -154,7 +165,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
         <button type="button" aria-pressed={speed === "quick"} disabled={holding || assisting}
           onClick={() => setSpeed("quick")}>Rót nhanh · tiết kiệm giờ</button>
       </div>
-      <button className="manual-pour-hold" type="button" disabled={assisting || amount >= 100}
+      <button className={`manual-pour-hold cue-${cue}`} type="button" disabled={assisting || amount >= 100}
         onPointerDown={event => { if (event.pointerType !== "mouse" || event.button === 0) {
           event.currentTarget.setPointerCapture(event.pointerId); begin();
         } }}
@@ -165,7 +176,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
         onKeyUp={event => { if (event.key === " " || event.key === "Enter") {
           event.preventDefault(); stop();
         } }}>
-        {holding ? "🫗 ĐANG RÓT · THẢ ĐỂ DỪNG" : hasPoured ? "🫗 GIỮ ĐỂ RÓT TIẾP" : "🫗 GIỮ ĐỂ RÓT"}
+        {holding && cue === "release" ? "✅ ĐÚNG MỐC — THẢ TAY" : holding && cue === "over" ? "⚠️ QUÁ MỐC — DỪNG RÓT" : holding ? "🫗 ĐANG RÓT · THẢ ĐỂ DỪNG" : hasPoured ? "🫗 GIỮ ĐỂ RÓT TIẾP" : "🫗 GIỮ ĐỂ RÓT"}
       </button>
       <button type="button" className="manual-pour-assist"
         disabled={holding || (hasPoured && !assisting)}
