@@ -30,3 +30,19 @@ export function pourCue(fill: number, target: number, tolerance = 5): PourCue {
   if (current >= goal - Math.max(12, margin + 5)) return "approaching";
   return "filling";
 }
+
+/** Finish the unsampled tail of a held press, including presses shorter than one RAF.
+ * Shares the same 100ms safety cap as animation frames; no wall-clock catch-up.
+ */
+export function finishPourAtRelease(
+  fill: number,
+  lastSampleAt: number | null,
+  releasedAt: number,
+  speed: PourSpeed,
+  brewerLevel = 0,
+): number {
+  const elapsed = lastSampleAt !== null && Number.isFinite(lastSampleAt) &&
+    Number.isFinite(releasedAt) && releasedAt >= lastSampleAt
+    ? releasedAt - lastSampleAt : 0;
+  return advancePour(fill, elapsed, speed, brewerLevel);
+}

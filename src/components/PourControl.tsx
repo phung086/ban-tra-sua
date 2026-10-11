@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pulseFeedback } from "../game/feedback";
-import { advancePour, pourVerdict, type PourSpeed } from "../game/pourControl";
+import { advancePour, finishPourAtRelease, pourVerdict, type PourSpeed } from "../game/pourControl";
 import "./PourControl.css";
 
 interface Props {
@@ -35,6 +35,11 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
   const stop = () => {
     if (!holdingRef.current) return;
     holdingRef.current = false;
+    // A tap can end before the first animation frame; count its actual held time.
+    amountRef.current = finishPourAtRelease(
+      amountRef.current, previousFrameRef.current, performance.now(), speed, brewerLevel,
+    );
+    setAmount(amountRef.current);
     setHolding(false);
     const poured = Math.round(amountRef.current);
     onCommitRef.current(poured);
@@ -57,7 +62,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
         frameRef.current = requestAnimationFrame(tick);
       }
     };
-    previousFrameRef.current = null;
+    // The press timestamp was captured in begin(); do not discard the first frame.
     frameRef.current = requestAnimationFrame(tick);
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
@@ -94,6 +99,7 @@ export function PourControl({ value, target, brewerLevel, onCommit }: Props) {
   const begin = () => {
     if (holdingRef.current || assistRef.current !== null || amountRef.current >= 100) return;
     holdingRef.current = true;
+    previousFrameRef.current = performance.now();
     setHolding(true);
     pulseFeedback("tap");
   };
