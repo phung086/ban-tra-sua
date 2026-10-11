@@ -23,6 +23,11 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
     ...game, notice: 'Chưa đủ tiền mua trái cây. Cô Hạnh vẫn vui nếu mình hỏi thăm.',
   };
   const stories = game.city.stories;
+  const updatedMorning = {
+    ...morning,
+    marketVisit: choice,
+    satiety: Math.min(100, morning.satiety + option.satiety),
+  };
   return {
     ...game,
     cash: game.cash - option.cost,
@@ -35,11 +40,7 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
         bonds: { ...stories.bonds, hanh: Math.min(1000, (stories.bonds.hanh ?? 0) + option.bond) },
       } : stories,
     },
-    morning: {
-      ...morning,
-      marketVisit: choice,
-      satiety: Math.min(100, morning.satiety + option.satiety),
-    },
+    morning: updatedMorning,
     notice: option.reply,
   };
 }
