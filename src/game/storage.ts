@@ -1,6 +1,8 @@
 import { createInitialState, getLevelFromXp } from "./engine";
 import type { GameState, Inventory, Review } from "./types";
 import { hydrateCity } from './city';
+import { initialCity } from './city';
+import { createMorning, hydrateMorning } from './lifeSim/morning';
 
 const SAVE_KEY = "tiem-tra-chibi-save-v3";
 const LEGACY_V2_KEY = "tiem-tra-chibi-save-v2";
@@ -24,6 +26,8 @@ interface LegacyV1 {
 
 function hydrate(parsed: StoredGame): GameState {
   const initial = createInitialState();
+  const day = Number.isSafeInteger(parsed.day) && (parsed.day ?? 0) >= 1 ? parsed.day! : 1;
+  const city = hydrateCity(parsed.city, day);
   const xp = typeof parsed.xp === "number" ? parsed.xp : initial.xp;
   const now = Date.now();
   const rebasedQueue = (parsed.customerQueue ?? []).map((entry, index) => ({
@@ -35,7 +39,9 @@ function hydrate(parsed: StoredGame): GameState {
     ...initial,
     ...parsed,
     saveVersion: 3,
-    city: hydrateCity(parsed.city, parsed.day ?? 1),
+    day,
+    city,
+    morning: hydrateMorning(parsed.morning, { day, city }, parsed.phase ?? 'prep'),
     xp,
     level: getLevelFromXp(xp),
     inventory: { ...initial.inventory, ...(parsed.inventory ?? {}) },
@@ -71,9 +77,13 @@ function migrateV2(parsed: StoredGame): GameState {
 function migrateV1(parsed: LegacyV1): GameState {
   const initial = createInitialState();
   const xp = parsed.xp ?? 0;
+  const day = Number.isSafeInteger(parsed.day) && (parsed.day ?? 0) >= 1 ? parsed.day! : 1;
+  const city = initialCity(day);
   return {
     ...initial,
-    day: parsed.day ?? 1,
+    day,
+    city,
+    morning: createMorning({ day, city }, initial.morning.worldSeed),
     cash: parsed.cash ?? initial.cash,
     reputation: parsed.reputation ?? initial.reputation,
     xp,

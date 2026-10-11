@@ -6,6 +6,7 @@ import "@fontsource/be-vietnam-pro/600.css";
 import "./styles-street.css";
 import './styles-city.css';
 import './styles-mobile-play.css';
+import './styles-life-morning.css';
 import './styles-world-foundation.css';
 import './styles-responsive-play.css';
 import { syncMotionPreference } from "./game/preferences";
