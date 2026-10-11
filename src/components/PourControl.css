@@ -32,3 +32,6 @@
 .manual-pour:has(.manual-pour-verdict.grade-perfect) .manual-pour-vessel{border-color:#31945f;box-shadow:0 0 0 3px #31945f33,inset 0 2px 14px #b8888930}
 .manual-pour:has(.manual-pour-verdict.grade-perfect) .manual-pour-hold:not(:disabled){background:#28794d}
 .manual-pour:has(.manual-pour-verdict.grade-close) .manual-pour-vessel{border-color:#e6a54d}
+
+/* Readable release prompt without requiring a new React render path. */
+.manual-pour:has(.manual-pour-vessel.pouring):has(.manual-pour-verdict.grade-perfect) .manual-pour-hold::after{content:'✓ ĐÚNG MỐC — THẢ TAY';display:block;margin-top:3px;font-size:12px;letter-spacing:.04em}
