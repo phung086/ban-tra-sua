@@ -405,6 +405,8 @@ export interface Person {
   eyes: T.Mesh[];
   knees: T.Bone[];
   elbows:T.Bone[];
+  // Per-actor blending/idle timing; no new GPU meshes or draw calls.
+  animation:{lastTime:number|null;walkWeight:number;seed:number;basePitch:number};
 }
 
 export function makePerson(w: Workshop, customer: Customer): Person {
@@ -729,7 +731,9 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
   const parts=[body,head,leftArm,rightArm,leftLeg,rightLeg];
   parts.forEach((part,i)=>mergeRigid(part,[head,leftArm,rightArm,...knees,...elbows,...eyes].filter(p=>p!==part),register,`person:${customer.id}:${i}`));
-  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows };
+  const seed=Array.from(customer.id).reduce((value,char)=>(value*31+char.charCodeAt(0))%997,0)/997;
+  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows,
+    animation:{lastTime:null,walkWeight:0,seed,basePitch:body.rotation.x} };
 }
 
 export function pose(
@@ -741,19 +745,43 @@ export function pose(
   motion: boolean,
   gaitPhase=time*7,
 ) {
-  const swing = motion && walking ? Math.sin(gaitPhase) * 0.34 : 0;
-  person.leftLeg.rotation.x = sitting ? -1.35 : swing;
-  person.rightLeg.rotation.x = sitting ? -1.35 : -swing;
-  person.knees.forEach((knee,i) => { knee.rotation.x = sitting ? 1.35 : motion && walking ? Math.max(0, Math.sin(gaitPhase + i*Math.PI))*0.38 : 0; });
-  const blinking = motion && (time + person.root.scale.y*3) % 4.7 > 4.55;
-  person.eyes.forEach(eye => { eye.scale.y = blinking ? 0.002 : eye.userData.blinkHeight; });
-  person.elbows.forEach((elbow,i)=>{elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):-.12-(motion&&walking?Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.12:0);});
-  person.leftArm.rotation.x = -swing * 0.55;
-  person.rightArm.rotation.x = gesture ? -gesture : swing * 0.55;
-  person.body.position.y =
-    motion && walking ? Math.abs(Math.sin(gaitPhase)) * 0.014 : motion ? Math.sin(time*1.8)*0.006 : 0;
-  person.head.rotation.y =
-    motion && !walking ? Math.sin(time * 0.65) * 0.075 : 0;
+  // Blend locomotion instead of snapping all limbs when a step starts/stops.
+  // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
+  const anim=person.animation;
+  const dt=anim.lastTime===null?0:Math.min(0.05,Math.max(0,time-anim.lastTime));
+  anim.lastTime=time;
+  const target=motion&&!sitting&&walking?1:0;
+  anim.walkWeight=!motion||sitting?0:anim.walkWeight+(target-anim.walkWeight)*(1-Math.exp(-14*dt));
+  const weight=anim.walkWeight;
+  const phase=Math.sin(gaitPhase),swing=phase*0.39*weight;
+  person.leftLeg.rotation.x=sitting?-1.35:swing;
+  person.rightLeg.rotation.x=sitting?-1.35:-swing;
+  person.knees.forEach((knee,i)=>{
+    knee.rotation.x=sitting?1.35:Math.max(0,Math.sin(gaitPhase+i*Math.PI))*0.43*weight;
+  });
+
+  // Distinct, deterministic eye/idle rhythms keep nearby residents from
+  // blinking and turning their heads together; paused motion stays still.
+  const blinkInterval=3.7+anim.seed*1.4;
+  const blinkPhase=(time+anim.seed*blinkInterval)%blinkInterval;
+  const blinking=motion&&blinkPhase>blinkInterval-0.135;
+  person.eyes.forEach(eye=>{eye.scale.y=blinking?0.002:eye.userData.blinkHeight;});
+  person.elbows.forEach((elbow,i)=>{
+    elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):
+      -.12-Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.15*weight;
+  });
+  person.leftArm.rotation.x=-swing*.7;
+  person.rightArm.rotation.x=gesture?-gesture:swing*.7;
+
+  const idle=motion&&!sitting?1-weight:0;
+  const breath=motion&&!sitting?Math.sin(time*1.8+anim.seed*5)*.007:0;
+  person.body.position.y=sitting?0:Math.abs(phase)*.024*weight+breath*idle;
+  // Preserve the base posture of older characters rather than overwriting it.
+  person.body.rotation.x=anim.basePitch+weight*.035;
+  person.body.rotation.z=motion&&!sitting?Math.sin(gaitPhase*.5)*.022*weight:0;
+  person.head.rotation.y=idle*Math.sin(time*.56+anim.seed*6)*.115;
+  person.head.rotation.x=motion&&!sitting?Math.sin(time*.9+anim.seed*4)*.026*idle:0;
+  person.head.rotation.z=motion&&!sitting?Math.sin(time*.7+anim.seed*3)*.025*idle:0;
 }
 
 export const DRINK_COLORS: Record<DrinkDraft["base"], string> = {

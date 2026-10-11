@@ -30,4 +30,53 @@ describe('continuous character deformation',()=>{
     w.releaseSkeletons(person.root);expect(w.skeletons.size).toBe(0);
     w.releaseSkeletons(person.root);expect(released).toBe(1);w.dispose();expect(released).toBe(1);
   });
+  it('blends walking and standing instead of snapping arms and legs',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    pose(person,0,false,0,false,true,Math.PI/2);
+    expect(person.animation.walkWeight).toBe(0);
+    pose(person,.1,true,0,false,true,Math.PI/2);
+    const first=person.leftLeg.rotation.x;
+    expect(first).toBeGreaterThan(0);
+    expect(first).toBeLessThan(.39);
+    pose(person,.15,true,0,false,true,Math.PI/2);
+    expect(person.leftLeg.rotation.x).toBeGreaterThan(first);
+    pose(person,.2,false,0,false,true,Math.PI/2);
+    expect(person.leftLeg.rotation.x).toBeGreaterThan(0);
+    const released=person.leftLeg.rotation.x;
+    pose(person,.25,false,0,false,true,Math.PI/2);
+    expect(person.leftLeg.rotation.x).toBeLessThan(released);
+    expect(person.leftArm.rotation.x).toBeCloseTo(-person.leftLeg.rotation.x*.7);
+    w.dispose();
+  });
+
+  it('preserves seated and reduced-motion poses without head drift',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    pose(person,1,false,0,false,true);
+    expect(Math.abs(person.head.rotation.y)+Math.abs(person.head.rotation.z)).toBeGreaterThan(0);
+    pose(person,1.1,true,0,true,true);
+    expect(person.leftLeg.rotation.x).toBeCloseTo(-1.35);
+    expect(person.rightLeg.rotation.x).toBeCloseTo(-1.35);
+    expect(person.knees.every(k=>Math.abs(k.rotation.x-1.35)<1e-5)).toBe(true);
+    pose(person,1.2,true,0,false,false);
+    expect(person.animation.walkWeight).toBe(0);
+    expect(person.head.rotation.y).toBe(0);
+    expect(person.head.rotation.x).toBe(0);
+    expect(person.body.position.y).toBe(0);
+    expect(person.eyes.every(eye=>eye.scale.y===eye.userData.blinkHeight)).toBe(true);
+    w.dispose();
+  });
+
+  it('keeps actor idle phases distinct and preserves original body posture',()=>{
+    const w=new Workshop(),first=makePerson(w,CUSTOMERS[0]),second=makePerson(w,CUSTOMERS[1]);
+    first.body.rotation.x=.09;
+    first.animation.basePitch=.09;
+    pose(first,2.3,false,.3,false,true);
+    pose(second,2.3,false,.3,false,true);
+    expect(first.body.rotation.x).toBeCloseTo(.09);
+    expect(first.head.rotation.y).not.toBeCloseTo(second.head.rotation.y);
+    expect(first.hand.parent).toBe(first.elbows[1]);
+    expect(first.rightArm.rotation.x).toBeCloseTo(-.3);
+    w.dispose();
+  });
+
 });
