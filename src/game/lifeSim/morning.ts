@@ -3,6 +3,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
+export type MarketChoice = 'fruit' | 'chat' | 'leave';
 
 export interface MorningRoutineState {
   day: number;
@@ -11,7 +12,15 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** Optional in old saves; hydrated to null for a fresh encounter. */
+  marketVisit?: MarketChoice | null;
 }
+
+export const MARKET_OPTIONS = {
+  fruit: { label: 'Mua trái cây cô Hạnh', cost: 12000, minutes: 8, satiety: 12, bond: 1, reply: 'Cô Hạnh: “Quả vừa về sáng nay đấy. Nhớ ăn giữa ca cho có sức nhé!”' },
+  chat: { label: 'Hỏi thăm cô Hạnh', cost: 0, minutes: 5, satiety: 0, bond: 2, reply: 'Cô Hạnh: “Hôm nay cô bán hơi chậm. Cảm ơn cháu đã hỏi thăm!”' },
+  leave: { label: 'Đi thẳng tới tiệm', cost: 0, minutes: 0, satiety: 0, bond: 0, reply: 'Bạn chào cô Hạnh từ xa rồi đi mở cửa tiệm.' },
+} as const;
 
 export const BREAKFAST_OPTIONS = {
   cook: { label: 'Nấu cơm trứng ở nhà', cost: 14000, minutes: 20, satiety: 80, energy: 5 },
@@ -32,6 +41,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    marketVisit: null,
   };
 }
 
@@ -57,7 +67,9 @@ export function hydrateMorning(
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100) {
-    return value as unknown as MorningRoutineState;
+    const marketVisit = ['fruit', 'chat', 'leave'].includes(String(value.marketVisit))
+      ? value.marketVisit as MarketChoice : null;
+    return { ...(value as unknown as MorningRoutineState), marketVisit };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -101,5 +113,40 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** Optional daily market encounter after breakfast, before opening the tea shop.
+ * Updates cash, clock, satiety, and the SAME resident bond used in street dialogue.
+ * marketVisit is persisted with the morning to prevent repeat payments/rewards.
+ */
+export function visitMorningMarket(game: GameState, choice: MarketChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day ||
+      morning.step !== 'finished' || morning.marketVisit != null) return game;
+  const option = MARKET_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return {
+    ...game, notice: 'Chưa đủ tiền mua trái cây. Cô Hạnh vẫn vui nếu mình hỏi thăm.',
+  };
+  const stories = game.city.stories;
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      journal: [`Ngày ${game.day} · ${option.label} · ${option.reply}`, ...game.city.journal].slice(0, 24),
+      stories: option.bond ? {
+        ...stories,
+        bonds: { ...stories.bonds, hanh: Math.min(1000, (stories.bonds.hanh ?? 0) + option.bond) },
+      } : stories,
+    },
+    morning: {
+      ...morning,
+      marketVisit: choice,
+      satiety: Math.min(100, morning.satiety + option.satiety),
+    },
+    notice: option.reply,
   };
 }
