@@ -1,0 +1,36 @@
+/* DOM-only wake up scene: no WebGL resources or new animation loops. */
+.life-morning{margin:14px 0 18px;padding:clamp(14px,2.4vw,22px);border:1px solid #efbed2;border-radius:22px;background:linear-gradient(135deg,#fffdf5,#ffe9f3 78%,#fff4ec);box-shadow:0 8px 26px #b45b7c1c;color:#653849}
+.life-morning-heading{display:flex;gap:12px;align-items:center}
+.life-morning-heading>div{flex:1;min-width:0}
+.life-morning-sun{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:50%;background:#fff8d8;font-size:24px}
+.life-morning-label{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9b5475}
+.life-morning-heading h3{margin:5px 0;font-size:clamp(16px,2.8vw,21px);line-height:1.3}
+.life-morning-heading p{font-size:12px;line-height:1.5;margin:0}
+.life-morning-clock{flex:none;align-self:flex-start;font-variant-numeric:tabular-nums;font-size:13px;color:#8c4d6d;background:#fff8fa;border:1px solid #f0c1d5;border-radius:12px;padding:7px 9px}
+.life-morning-wake{display:flex;gap:10px;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:16px;padding:12px;color:#fff;font-size:14px;font-weight:700;border:1px solid #b54c7d;border-radius:14px;background:#ba5488;cursor:pointer}
+.life-morning-prompt{font-size:15px;font-weight:700;margin:16px 0 10px}
+.life-morning-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.life-morning-option{min-height:132px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:12px;background:#fffdfddd;color:#683b52;text-align:left;border:1px solid #e8b9cf;border-radius:14px;cursor:pointer;overflow-wrap:anywhere}
+.life-morning-option:hover:not(:disabled),.life-morning-option:focus-visible{border-color:#c75b8e;background:#fff}
+.life-morning-option:disabled{opacity:.55;cursor:not-allowed}
+.life-morning-option>span{font-size:23px;line-height:1}
+.life-morning-option strong{font-size:12px;line-height:1.35}
+.life-morning-option small{font-size:10px;line-height:1.4}
+.life-morning-option b{margin-top:auto;font-size:12px}
+.life-morning-done{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:15px;border-radius:12px;padding:10px;background:#fff8f0;font-size:12px}
+.life-morning-done>span:first-child{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#d1f2dd;color:#307653;font-weight:800}
+.life-morning-done small{margin-left:auto;color:#88617a}
+.prep-open:disabled{cursor:not-allowed;opacity:.5;filter:grayscale(.25)}
+@media(max-width:580px){
+ .life-morning{padding:13px;border-radius:17px}
+ .life-morning-heading{gap:9px}
+ .life-morning-sun{width:38px;height:38px;font-size:20px}
+ .life-morning-clock{font-size:11px;padding:6px}
+ .life-morning-options{grid-template-columns:1fr}
+ .life-morning-option{min-height:52px;display:grid;grid-template-columns:32px minmax(0,1fr) auto;column-gap:6px;align-items:center;padding:9px 11px}
+ .life-morning-option>span{grid-row:span 2}
+ .life-morning-option strong,.life-morning-option small{grid-column:2}
+ .life-morning-option b{grid-column:3;grid-row:span 2;margin:0}
+ .life-morning-done small{margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){.life-morning *,.life-morning{animation:none!important;transition:none!important}}
