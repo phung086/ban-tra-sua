@@ -9,3 +9,27 @@ export function marketChoice(game: GameState): MarketChoice | null {
   const value = game.morning.marketVisit;
   return value === 'fruit' || value === 'chat' || value === 'leave' ? value : null;
 }
+
+export function visitMorningMarket(game: GameState, choice: MarketChoice): GameState {
+  if (game.phase !== 'prep' || game.morning.day !== game.day ||
+    game.morning.step !== 'finished' || marketChoice(game) !== null) return game;
+  const option = MARKET_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return {
+    ...game, notice: 'Chưa đủ tiền mua trái cây; có thể hỏi thăm miễn phí.',
+  };
+  const reply = choice === 'fruit'
+    ? 'Cô Hạnh: Trái cây mới về sáng nay, nhớ ăn giữa ca nhé!'
+    : choice === 'chat'
+      ? 'Cô Hạnh: Hôm nay chợ vắng. Cảm ơn cháu đã hỏi thăm.'
+      : 'Bạn chào cô Hạnh rồi đi mở cửa tiệm.';
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    morning: {
+      ...game.morning, marketVisit: choice,
+      satiety: Math.min(100, game.morning.satiety + option.food),
+    },
+    notice: reply,
+  };
+}
