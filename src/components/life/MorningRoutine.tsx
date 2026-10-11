@@ -1,4 +1,5 @@
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { MARKET_OPTIONS, marketChoice, visitMorningMarket, type MarketChoice } from '../../game/lifeSim/marketEncounter';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -23,6 +24,7 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
 export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:GameState)=>void}) {
   const {morning} = game;
   const finished = morning.step === 'finished';
+  const visited = marketChoice(game);
   return <section className="life-morning" aria-label="Sinh hoạt buổi sáng" data-step={morning.step}>
     <header className="life-morning-heading">
       <span className="life-morning-sun" aria-hidden="true">{morning.plan.wakeVariant==='overslept'?'⏰':'🌤️'}</span>
