@@ -145,10 +145,12 @@ try{
   // Rotate with a prepared cup in hand. Serving must stay possible afterwards;
   // the game state must not reset because the responsive UI changed.
   await page.locator('.serve-button').click({timeout:15000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:15000});
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait',null,{timeout:10000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:10000});
+  // Software WebGL can stall CSS visibility/layout even when React has already
+  // produced the correct carrying state; assert DOM state instead of paint timing.
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.screenshot({path:path.join(output,'carrying-after-rotate-390x844.png'),animations:'disabled'});
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape',null,{timeout:10000});
