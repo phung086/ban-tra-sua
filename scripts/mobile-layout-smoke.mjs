@@ -125,6 +125,21 @@ try{
   await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).click({timeout:15000});
   assert(await openShop.isEnabled(),'Opening shop must unlock after breakfast');
   // Market interaction must change actual persisted runtime state, not just a fixture.
+  for(const [width,height] of [[360,800],[390,844],[844,390],[1280,800]]){
+    await page.setViewportSize({width,height});
+    await page.waitForFunction(()=>{
+      const market=document.querySelector('.life-market');
+      return !!market&&market.querySelectorAll('button').length===3&&
+        document.documentElement.scrollWidth<=innerWidth+2;
+    },null,{timeout:15000});
+    await page.locator('.life-market').screenshot({
+      path:path.join(output,'market-choices-'+width+'x'+height+'.png'),
+      animations:'disabled',timeout:30000
+    });
+    report.passes.push('market options visible without overflow '+width+'x'+height);
+  }
+  await page.setViewportSize({width:844,height:390});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
   await page.getByRole('button',{name:/Mua trái cây cô Hạnh/}).click({timeout:15000});
   await page.waitForFunction(()=>{
     try{
