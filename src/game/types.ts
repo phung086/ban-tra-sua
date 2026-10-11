@@ -1,4 +1,5 @@
 import type { CityState } from './city';
+import type { MorningRoutineState } from './lifeSim/morning';
 export type Phase = "prep" | "open" | "summary";
 export type Screen = "shop" | "stock" | "upgrades" | "reviews" | "goals";
 export type Size = "M" | "L";
@@ -282,6 +283,7 @@ export interface GameState {
   saveVersion: 3;
   city: CityState;
   day: number;
+  morning: MorningRoutineState;
   phase: Phase;
   cash: number;
   reputation: number;
