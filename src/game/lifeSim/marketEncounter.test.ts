@@ -33,7 +33,8 @@ describe('market encounter', () => {
   });
   it('locks after shop opens and resets on next day', () => {
     const game = visitMorningMarket(ready(), 'leave');
-    expect(visitMorningMarket(startDay(game), 'chat')).toEqual(startDay(game));
+    const opened = startDay(game);
+    expect(visitMorningMarket(opened, 'chat')).toBe(opened);
     expect(marketChoice(nextDay(game))).toBeNull();
   });
 });
