@@ -19,3 +19,11 @@
 .manual-pour button:focus-visible{outline:3px solid #963b6a;outline-offset:2px}
 @media(max-width:360px){.manual-pour{padding:10px}.manual-pour-speeds{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.manual-pour-liquid,.manual-pour-vessel.pouring .manual-pour-stream{transition:none}}
+
+/* Immediate, non-animated cue for the release window; no new assets or render loops. */
+.manual-pour-vessel.cue-approaching{border-color:#e6a54d}
+.manual-pour-vessel.cue-release{border-color:#31945f;box-shadow:0 0 0 3px #31945f33,inset 0 2px 14px #b8888930}
+.manual-pour-vessel.cue-over{border-color:#b74848}
+.manual-pour .manual-pour-hold.cue-release{background:#28794d}
+.manual-pour .manual-pour-hold.cue-approaching{background:#a66a20}
+.manual-pour .manual-pour-hold.cue-over{background:#9c4a4a}
