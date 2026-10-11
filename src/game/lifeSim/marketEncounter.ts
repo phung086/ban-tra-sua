@@ -30,6 +30,18 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
       ...game.morning, marketVisit: choice,
       satiety: Math.min(100, game.morning.satiety + option.food),
     },
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      journal: [`Ngày ${game.day}: ${option.label}. ${reply}`, ...game.city.journal].slice(0, 24),
+      stories: {
+        ...game.city.stories,
+        bonds: {
+          ...game.city.stories.bonds,
+          hanh: Math.min(1000, (game.city.stories.bonds.hanh ?? 0) + option.bond),
+        },
+      },
+    },
     notice: reply,
   };
 }
