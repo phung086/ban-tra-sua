@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CraftWorkbench } from "../components/CraftWorkbench";
 import { createInitialState, emptyDraft, startDay } from "./engine";
-import { advancePour, pourVerdict } from "./pourControl";
+import { advancePour, pourCue, pourCuePulse, pourVerdict } from "./pourControl";
 
 describe("live manual pouring", () => {
   it("starts each new cup empty instead of showing phantom tea", () => {
@@ -53,5 +53,25 @@ describe("live manual pouring", () => {
     expect(pourVerdict(80, 80, 5)).toBe("perfect");
     expect(pourVerdict(88, 80, 5)).toBe("close");
     expect(pourVerdict(92, 80, 5)).toBe("off");
+  });
+});
+
+describe("actionable release cues in production", () => {
+  it("shows the release instruction for a cup already at its target", () => {
+    const game = startDay(createInitialState(), 1000);
+    game.draft.fill = game.currentOrder!.targetFill;
+    const html = renderToStaticMarkup(createElement(CraftWorkbench, {
+      game, customerName: "Khách thử", onGame: () => undefined,
+      onServe: () => undefined, station: 2, onStation: () => undefined,
+    }));
+    expect(html).toContain("cue-release");
+  });
+  it("pulses only when entering a useful target zone", () => {
+    expect(pourCue(0, 80)).toBe("empty");
+    expect(pourCue(70, 80)).toBe("approaching");
+    expect(pourCue(78, 80)).toBe("release");
+    expect(pourCuePulse("filling", "approaching")).toBe("tap");
+    expect(pourCuePulse("approaching", "release")).toBe("good");
+    expect(pourCuePulse("release", "release")).toBeNull();
   });
 });
