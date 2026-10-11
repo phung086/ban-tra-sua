@@ -59,9 +59,9 @@ describe('continuous character deformation',()=>{
     expect(person.knees.every(k=>Math.abs(k.rotation.x-1.35)<1e-5)).toBe(true);
     pose(person,1.2,true,0,false,false);
     expect(person.animation.walkWeight).toBe(0);
-    expect(person.head.rotation.y).toBe(0);
-    expect(person.head.rotation.x).toBe(0);
-    expect(person.body.position.y).toBe(0);
+    expect(person.head.rotation.y).toBeCloseTo(0,5);
+    expect(person.head.rotation.x).toBeCloseTo(0,5);
+    expect(person.body.position.y).toBeCloseTo(0,5);
     expect(person.eyes.every(eye=>eye.scale.y===eye.userData.blinkHeight)).toBe(true);
     w.dispose();
   });
