@@ -117,6 +117,20 @@ try{
   report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  // Exercise the newly playable life-simulation morning before opening shop.
+  // This doubles as a production-browser save/reload and landscape interaction smoke.
+  const openShop = page.getByRole('button',{name:/Mở cửa tiệm/});
+  assert(await openShop.isDisabled(),'Opening shop must wait for the daily morning choice');
+  await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
+  await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).click({timeout:15000});
+  assert(await openShop.isEnabled(),'Opening shop must unlock after breakfast');
+  await page.waitForFunction(()=>{
+    try {
+      const state=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return state.morning?.step==='finished'&&state.morning?.breakfast==='street'&&state.cash===200000;
+    }catch{return false;}
+  },null,{timeout:10000});
+  report.passes.push('landscape: waking, buying breakfast once and unlocking the tea shop');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});
