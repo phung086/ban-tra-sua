@@ -67,7 +67,7 @@ export const emptyDraft = (base: BaseId = "classic-milk-tea"): DrinkDraft => ({
   sugar: 50,
   ice: 50,
   topping: "none",
-  fill: 80,
+  fill: 0,
   shake: 60,
   sealed: false,
 });
