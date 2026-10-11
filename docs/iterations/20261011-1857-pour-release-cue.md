@@ -4,7 +4,7 @@
 - The live pouring cup now highlights amber when close to target and green in the existing perfect-score tolerance window.
 - The hold button also turns green and displays "ĐÚNG MỐC — THẢ TAY" while actively pouring in the correct window.
 - Uses existing `pourVerdict` state through CSS `:has()`; no new 3D objects, assets, renderer work, RNG or save fields.
-- A small Vitest regression checks the production SSR markup and the active CSS selectors.
+- A small Vitest regression checks the deterministic approaching/release/over-pour windows. The visual CSS is not yet browser-validated.
 
 ## Evidence and limitations
 - Branch: `codex/pour-control-integration-20261011`, draft PR #25.
