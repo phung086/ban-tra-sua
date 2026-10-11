@@ -1,4 +1,5 @@
 import { initialCity, newCityDay } from './city';
+import { createMorning, createWorldSeed } from './lifeSim/morning';
 import {
   ACHIEVEMENTS,
   BASE_IDS,
@@ -194,10 +195,13 @@ function pickCustomerForOrder(state: GameState) {
 
 export function createInitialState(): GameState {
   const event = getEventForDay(1);
+  const city = initialCity();
+  const morning = createMorning({ day: 1, city }, createWorldSeed());
   return {
     saveVersion: 3,
-    city: initialCity(),
+    city,
     day: 1,
+    morning,
     phase: "prep",
     cash: 220000,
     reputation: 12,
@@ -911,12 +915,15 @@ function decayInventory(state: GameState) {
 export function nextDay(state: GameState): GameState {
   const day = state.day + 1;
   const event = getEventForDay(day);
+  const city = newCityDay(state.city, day);
+  const morning = createMorning({ day, city }, state.morning.worldSeed);
   const decayed = decayInventory(state);
   const base = syncProgression({
     ...state,
     day,
     phase: "prep",
-    city: newCityDay(state.city, day),
+    city,
+    morning,
     fans: state.fans + (state.city.projects.includes('club') ? 3 : 0),
     served: 0,
     combo: 0,
