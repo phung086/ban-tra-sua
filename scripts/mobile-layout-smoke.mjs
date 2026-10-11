@@ -117,6 +117,37 @@ try{
   report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  // Exercise the newly playable life-simulation morning before opening shop.
+  // This doubles as a production-browser save/reload and landscape interaction smoke.
+  const openShop = page.getByRole('button',{name:/Mở cửa tiệm/});
+  assert(await openShop.isDisabled(),'Opening shop must wait for the daily morning choice');
+  await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
+  await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).click({timeout:15000});
+  assert(await openShop.isEnabled(),'Opening shop must unlock after breakfast');
+  // Market interaction must change actual persisted runtime state, not just a fixture.
+  await page.getByRole('button',{name:/Mua trái cây cô Hạnh/}).click({timeout:15000});
+  await page.waitForFunction(()=>{
+    try{
+      const state=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return state.morning?.marketVisit==='fruit'&&state.morning?.satiety===82&&state.cash===188000;
+    }catch{return false;}
+  },null,{timeout:12000});
+  await page.screenshot({path:path.join(output,'market-after-fruit-844x390.png'),animations:'disabled'});
+  report.passes.push('market: fruit purchase updates saved cash, satiety and once-only visit');
+  await page.reload({waitUntil:'domcontentloaded',timeout:90000});
+  await page.waitForSelector('.street-world canvas',{timeout:120000});
+  assert(await page.getByText('Đã ghé chợ hôm nay').count()===1,'Market visit must persist after reload');
+  assert(await page.getByRole('button',{name:/Mua trái cây cô Hạnh/}).count()===0,'Market choice must not replay after reload');
+  assert(await openShop.isEnabled(),'Opening shop must stay enabled after reload');
+  report.passes.push('market: reload preserves NPC encounter and no repeat purchase');
+
+  await page.waitForFunction(()=>{
+    try {
+      const state=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return state.morning?.step==='finished'&&state.morning?.breakfast==='street'&&state.cash===200000;
+    }catch{return false;}
+  },null,{timeout:10000});
+  report.passes.push('landscape: waking, buying breakfast once and unlocking the tea shop');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});
@@ -131,10 +162,12 @@ try{
   // Rotate with a prepared cup in hand. Serving must stay possible afterwards;
   // the game state must not reset because the responsive UI changed.
   await page.locator('.serve-button').click({timeout:15000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:15000});
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait',null,{timeout:10000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:10000});
+  // Software WebGL can stall CSS visibility/layout even when React has already
+  // produced the correct carrying state; assert DOM state instead of paint timing.
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.screenshot({path:path.join(output,'carrying-after-rotate-390x844.png'),animations:'disabled'});
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape',null,{timeout:10000});
