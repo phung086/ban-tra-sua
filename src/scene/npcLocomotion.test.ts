@@ -36,8 +36,8 @@ describe('QC-06 customer locomotion integration', () => {
     expect(turning.next.heading).toBeLessThan(7.5 / 30 + 1e-9);
     const wrapped = step(initialNpcLocomotion(), 0, 0, Math.PI - .05).next;
     const crossing = step(wrapped, 0, 0, -Math.PI + .05).next;
-    expect(Math.abs(Math.atan2(Math.sin(crossing.next.heading - (-Math.PI + .05)),
-      Math.cos(crossing.next.heading - (-Math.PI + .05))))).toBeLessThan(.1);
+    expect(Math.abs(Math.atan2(Math.sin(crossing.heading - (-Math.PI + .05)),
+      Math.cos(crossing.heading - (-Math.PI + .05))))).toBeLessThan(.1);
   });
   it('ignores teleports and long gaps rather than pumping the legs', () => {
     const initial = step(initialNpcLocomotion(), 0, 0).next;
