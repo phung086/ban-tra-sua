@@ -2,6 +2,7 @@ import type { GameState } from '../types';
 import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanner';
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
+export type LunchPrepChoice = 'lunchbox' | 'water';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
 
 export interface MorningRoutineState {
@@ -11,12 +12,18 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  lunchPrep: LunchPrepChoice | null;
 }
 
 export const BREAKFAST_OPTIONS = {
   cook: { label: 'Nấu cơm trứng ở nhà', cost: 14000, minutes: 20, satiety: 80, energy: 5 },
   street: { label: 'Mua bánh mì đầu ngõ', cost: 20000, minutes: 10, satiety: 70, energy: 2 },
   skip: { label: 'Đi làm luôn', cost: 0, minutes: 0, satiety: 30, energy: 0 },
+} as const;
+
+export const LUNCH_PREP_OPTIONS = {
+  lunchbox: { label: 'Nấu cơm hộp mang theo', cost: 16000, minutes: 15, satiety: 12, energy: 5 },
+  water: { label: 'Chuẩn bị bình nước lọc', cost: 0, minutes: 2, satiety: 0, energy: 2 },
 } as const;
 
 /** Only new games roll a seed. Subsequent days and reloads reuse the same value. */
@@ -32,6 +39,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    lunchPrep: null,
   };
 }
 
@@ -57,7 +65,11 @@ export function hydrateMorning(
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100) {
-    return value as unknown as MorningRoutineState;
+    return {
+      ...value as unknown as MorningRoutineState,
+      // Saves created before lunch prep existed are still valid v3 saves.
+      lunchPrep: value.lunchPrep === 'lunchbox' || value.lunchPrep === 'water' ? value.lunchPrep : null,
+    };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -101,5 +113,34 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** Optional before-shift lunch preparation; breakfast and shop opening remain independent. */
+export function prepareLunch(game: GameState, choice: LunchPrepChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day ||
+    morning.step !== 'finished' || morning.lunchPrep != null) return game;
+  const option = LUNCH_PREP_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) {
+    return { ...game, notice: 'Chưa đủ tiền nấu cơm hộp. Mang nước lọc vẫn miễn phí nhé.' };
+  }
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      energy: Math.min(100, game.city.energy + option.energy),
+      journal: [`Ngày ${game.day} · ${option.label} trước ca bán (${option.cost.toLocaleString('vi-VN')} ₫).`,
+        ...game.city.journal].slice(0, 24),
+    },
+    morning: {
+      ...morning,
+      lunchPrep: choice,
+      satiety: Math.min(100, morning.satiety + option.satiety),
+    },
+    notice: `${option.label}. Đã sẵn sàng cho ca bán!`,
   };
 }
