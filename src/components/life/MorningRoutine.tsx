@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, chooseBreakfast, chooseMotherCall, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -17,6 +17,12 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
   {id:'cook',emoji:'🍳',hint:'Bữa cơm ấm bụng · 20 phút'},
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
+];
+
+const motherChoices: {id:MotherCallChoice;emoji:string;hint:string}[] = [
+  {id:'listen',emoji:'📞',hint:'10 phút · gắn kết +2'},
+  {id:'promise',emoji:'🍚',hint:'5 phút · gắn kết +1'},
+  {id:'later',emoji:'💌',hint:'0 phút · không áp lực'},
 ];
 
 /** Uses an existing pre-shop panel, not an additional WebGL scene. */
@@ -55,6 +61,27 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         })}
       </div>
     </>}
+    {finished&&shouldOfferMotherCall(morning)&&<section className="life-mother-call" aria-label="Cuộc gọi của mẹ Mai">
+      <p className="life-morning-prompt">📱 Cuộc gọi từ mẹ Mai</p>
+      {motherCallDecision(game) == null ? <>
+        <p className="life-mother-message">{motherCallPrompt(game)}</p>
+        <div className="life-morning-options">
+          {motherChoices.map(({id,emoji,hint})=>{
+            const option=MOTHER_CALL_OPTIONS[id];
+            return <button key={id} type="button" className="life-morning-option"
+              onClick={()=>onGame(chooseMotherCall(game,id))}>
+              <span aria-hidden="true">{emoji}</span>
+              <strong>{option.label}</strong>
+              <small>{hint}</small>
+              <b>Miễn phí</b>
+            </button>;
+          })}
+        </div>
+      </> : <p className="life-mother-reply" aria-live="polite">
+        {motherCallDialogue(motherCallDecision(game)!,motherCallMemory(game).bond)}
+      </p>}
+      <small className="life-mother-bond">Gắn kết gia đình: {motherCallMemory(game).bond} điểm</small>
+    </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>

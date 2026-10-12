@@ -34,3 +34,11 @@
  .life-morning-done small{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){.life-morning *,.life-morning{animation:none!important;transition:none!important}}
+
+/* Family call is DOM-only; no WebGL meshes or animation loops. */
+.life-mother-call{margin-top:14px;padding:12px;border:1px dashed #dca7bc;border-radius:14px;background:#fff8fc}
+.life-mother-call .life-morning-prompt{margin:0 0 6px}
+.life-mother-message,.life-mother-reply{font-size:13px;line-height:1.5;margin:0 0 12px}
+.life-mother-reply{padding:10px;background:#fff;border-radius:10px}
+.life-mother-bond{display:block;margin-top:10px;color:#865773;font-size:11px}
+@media(max-width:580px){.life-mother-call{padding:10px}}
