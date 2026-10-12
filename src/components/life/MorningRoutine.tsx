@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, callFather, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -55,6 +55,13 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         })}
       </div>
     </>}
+    {finished && game.phase === 'prep' && <section className="life-family-call" aria-label="Gọi bố Quang">
+      <strong>Bố Quang hỏi thăm tiệm</strong>
+      {morning.fatherCall === null ? <div className="life-family-call-actions">
+        <button onClick={() => onGame(callFather(game, 'listen'))}>Nghe bố tâm sự · 5 phút</button>
+        <button onClick={() => onGame(callFather(game, 'promise'))}>Hẹn bố sửa biển hiệu · 8 phút</button>
+      </div> : <p role="status">Đã gọi bố hôm nay.</p>}
+    </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
