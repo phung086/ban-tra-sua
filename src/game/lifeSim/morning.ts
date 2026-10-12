@@ -3,6 +3,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
+export type LanMealChoice = 'split' | 'treat' | 'decline';
 
 export interface MorningRoutineState {
   day: number;
@@ -11,7 +12,15 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** Optional once-only friend invitation, persisted with the existing morning save. */
+  lanMeal?: LanMealChoice | null;
 }
+
+export const LAN_MEAL_OPTIONS = {
+  split: { label: 'Đi ăn cùng Lan · chia đôi', cost: 65000, minutes: 40, satiety: 20, bond: 2 },
+  treat: { label: 'Mời Lan ăn · mình trả cả hai', cost: 130000, minutes: 40, satiety: 20, bond: 3 },
+  decline: { label: 'Hẹn Lan hôm khác', cost: 0, minutes: 0, satiety: 0, bond: 0 },
+} as const;
 
 export const BREAKFAST_OPTIONS = {
   cook: { label: 'Nấu cơm trứng ở nhà', cost: 14000, minutes: 20, satiety: 80, energy: 5 },
@@ -32,6 +41,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    lanMeal: null,
   };
 }
 
@@ -57,7 +67,9 @@ export function hydrateMorning(
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100) {
-    return value as unknown as MorningRoutineState;
+    const restored = value as unknown as MorningRoutineState;
+    const meal = value.lanMeal;
+    return { ...restored, lanMeal: meal === 'split' || meal === 'treat' || meal === 'decline' ? meal : null };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -101,5 +113,32 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** Lan invites the player to a small meal before opening. Costs are shown in the UI first. */
+export function chooseLanMeal(game: GameState, choice: LanMealChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.lanMeal) return game;
+  const option = LAN_MEAL_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return { ...game, notice: 'Chưa đủ tiền đi ăn. Có thể hẹn Lan hôm khác, không mất phí.' };
+  const lanBond = Math.min(1000, (game.city.stories.bonds.lan ?? 0) + option.bond);
+  const dialogue = choice === 'split'
+    ? 'Lan: Chia đôi nhé, vậy cả hai đều thoải mái!'
+    : choice === 'treat'
+      ? 'Lan: Cảm ơn bạn đã mời. Hôm khác để mình mời lại nhé!'
+      : 'Lan: Không sao đâu, để hôm khác tụi mình đi ăn nhé!';
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    morning: { ...morning, lanMeal: choice, satiety: Math.min(100, morning.satiety + option.satiety) },
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      journal: [`Ngày ${game.day} · ${option.label} (${option.cost.toLocaleString('vi-VN')} ₫). ${dialogue}`, ...game.city.journal].slice(0, 24),
+      stories: { ...game.city.stories, bonds: { ...game.city.stories.bonds, lan: lanBond } },
+    },
+    notice: dialogue,
   };
 }
