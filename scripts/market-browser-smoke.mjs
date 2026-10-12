@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 const browser = await chromium.launch({headless:true});
 const page = await browser.newPage({viewport:{width:390,height:844}});
 try {
+  await page.addInitScript(()=>localStorage.setItem('tiem-tra-chibi-ui-v1',JSON.stringify({renderEngine:'three',graphics:'light',coachCompleted:true,motion:false,sound:false,music:false})));
   await page.goto('http://127.0.0.1:5192');
   for(const [width,height] of [[360,800],[390,844],[844,390],[1280,800]]){
     await page.setViewportSize({width,height});
