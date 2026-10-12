@@ -25,6 +25,11 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
   const {morning} = game;
   const finished = morning.step === 'finished';
   const visited = marketChoice(game);
+  const marketReply = visited === 'fruit'
+    ? 'Cô Hạnh: Trái cây mới về sáng nay, nhớ ăn giữa ca nhé!'
+    : visited === 'chat'
+      ? 'Cô Hạnh: Hôm nay chợ vắng. Cảm ơn cháu đã hỏi thăm.'
+      : 'Bạn chào cô Hạnh rồi đi mở cửa tiệm.';
   return <section className="life-morning" aria-label="Sinh hoạt buổi sáng" data-step={morning.step}>
     <header className="life-morning-heading">
       <span className="life-morning-sun" aria-hidden="true">{morning.plan.wakeVariant==='overslept'?'⏰':'🌤️'}</span>
@@ -80,7 +85,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         </div>
       </> : <div className="life-market-reply" role="status">
         <strong>✓ Đã ghé chợ hôm nay</strong>
-        <p>{game.notice}</p>
+        <p>{marketReply}</p>
         <small>Độ no {morning.satiety}/100 · Mỗi ngày chỉ chọn một lần.</small>
       </div>}
     </section>}
