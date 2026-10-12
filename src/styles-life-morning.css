@@ -34,3 +34,10 @@
  .life-morning-done small{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){.life-morning *,.life-morning{animation:none!important;transition:none!important}}
+
+/* Daily market UI reuses existing responsive choice buttons. */
+.life-market{margin-top:12px;padding:12px;border:1px solid #e4b88c;border-radius:15px;background:#fff9ee}
+.life-market h4{margin:0 0 7px;color:#794e2f}
+.life-market p{font-size:12px;line-height:1.5}
+.life-market-reply{padding:10px;border-radius:12px;background:#eff9ec;color:#326344}
+.life-market-reply p{margin:6px 0}
