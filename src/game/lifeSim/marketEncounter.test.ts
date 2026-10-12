@@ -52,7 +52,7 @@ describe('playable market encounter', () => {
     const blocked = visitMorningMarket(game, 'fruit');
     expect(blocked.cash).toBe(0);
     expect(marketChoice(blocked)).toBeNull();
-    expect(visitMorningMarket(blocked, 'chat').morning.marketVisit).toBe('chat');
+    expect(marketChoice(visitMorningMarket(blocked, 'chat'))).toBe('chat');
   });
 
   it('cannot visit before breakfast or after opening the shop', () => {
@@ -66,7 +66,7 @@ describe('playable market encounter', () => {
     const bought = visitMorningMarket(ready(), 'fruit');
     const restored = hydrateMorning(JSON.parse(JSON.stringify(bought.morning)),
       { day: bought.day, city: bought.city }, 'prep');
-    expect(restored.marketVisit).toBe('fruit');
+    expect(marketChoice({ ...bought, morning: restored })).toBe('fruit');
     const reloaded = { ...bought, morning: restored };
     expect(visitMorningMarket(reloaded, 'fruit')).toBe(reloaded);
   });
