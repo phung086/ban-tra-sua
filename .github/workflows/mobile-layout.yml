@@ -1,11 +1,14 @@
 name: Mobile orientation and autofit
 on:
   push:
-    branches: [main, codex/mobile-beta-foundation, codex/integrate-game-20261009]
+    branches: [main, 'codex/**']
     paths:
       - 'src/styles-responsive-play.css'
       - 'src/main.tsx'
       - 'src/App.tsx'
+      - 'src/game/lifeSim/morning.ts'
+      - 'src/components/life/MorningRoutine.tsx'
+      - 'src/styles-life-morning.css'
       - 'src/game/playLayout*'
       - 'src/components/MovementStick.tsx'
       - 'src/components/StreetWorld.tsx'
@@ -16,6 +19,8 @@ on:
       - 'src/styles-street.css'
       - 'scripts/mobile-layout-smoke.mjs'
       - '.github/workflows/mobile-layout.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
