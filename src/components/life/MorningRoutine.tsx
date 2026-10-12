@@ -1,4 +1,5 @@
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { MARKET_OPTIONS, marketChoice, visitMorningMarket, type MarketChoice } from '../../game/lifeSim/marketEncounter';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -23,6 +24,7 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
 export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:GameState)=>void}) {
   const {morning} = game;
   const finished = morning.step === 'finished';
+  const visited = marketChoice(game);
   return <section className="life-morning" aria-label="Sinh hoạt buổi sáng" data-step={morning.step}>
     <header className="life-morning-heading">
       <span className="life-morning-sun" aria-hidden="true">{morning.plan.wakeVariant==='overslept'?'⏰':'🌤️'}</span>
@@ -60,5 +62,27 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
       <small>Đã lưu trong ngày, không tính tiền lần hai.</small>
     </div>}
+    {finished&&<section className="life-market" aria-label="Ghé chợ buổi sáng">
+      <h4>🧺 Ghé chợ đầu ngõ</h4>
+      {visited === null ? <>
+        <p>Cô Hạnh đang xếp hoa quả. Mua trái cây, hỏi thăm hay đi thẳng tới tiệm?</p>
+        <div className="life-morning-options">
+          {(['fruit','chat','leave'] as MarketChoice[]).map(choice=>{
+            const option=MARKET_OPTIONS[choice];
+            return <button key={choice} type="button" className="life-morning-option"
+              disabled={game.cash<option.cost} onClick={()=>onGame(visitMorningMarket(game,choice))}>
+              <span aria-hidden="true">{choice==='fruit'?'🍎':choice==='chat'?'💬':'🏪'}</span>
+              <strong>{option.label}</strong>
+              <small>{option.minutes} phút · {choice==='fruit'?'No +12':choice==='chat'?'Thân cô Hạnh +2':'Mở tiệm ngay'}</small>
+              <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+            </button>;
+          })}
+        </div>
+      </> : <div className="life-market-reply" role="status">
+        <strong>✓ Đã ghé chợ hôm nay</strong>
+        <p>{game.notice}</p>
+        <small>Độ no {morning.satiety}/100 · Mỗi ngày chỉ chọn một lần.</small>
+      </div>}
+    </section>}
   </section>;
 }
