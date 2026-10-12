@@ -75,6 +75,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
               <strong>{option.label}</strong>
               <small>{option.minutes} phút · {choice==='fruit'?'No +12':choice==='chat'?'Thân cô Hạnh +2':'Mở tiệm ngay'}</small>
               <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+              {game.cash<option.cost&&<small>Chưa đủ tiền · Có thể hỏi thăm miễn phí.</small>}
             </button>;
           })}
         </div>
