@@ -380,7 +380,7 @@ export class StreetRuntime {
         getCustomer(visit.order.customerId),
       );
       const cup = makeCup(this.workshop);
-      cup.root.rotation.x = Math.PI / 2;
+      // Cup is already modeled upright along +Y.
       person.hand.add(cup.root);
       this.scene.add(person.root);
       actor = { person, cup, locomotion:initialNpcLocomotion() };
@@ -447,6 +447,7 @@ export class StreetRuntime {
         state.sitting,
         this.motion,
         locomotion.next.gaitPhase,
+        state.cup,
       );
       // Keep the whole actor's height in sync with its knee bend.
       actor.person.root.position.y = seatedRootY(

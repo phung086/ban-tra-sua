@@ -5,6 +5,7 @@ import { mergeRigid } from './batching';
 import {makeSurface,type SurfaceKind} from './materials';
 import {continuousTorso,continuousHips,continuousLimb,faceGeometry} from './actorGeometry';
 import {advanceSeatBlend} from './seatTransition';
+import {carryGripPitch} from './carryGrip';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
@@ -745,6 +746,7 @@ export function pose(
   sitting: boolean,
   motion: boolean,
   gaitPhase=time*7,
+  holdingCup=false,
 ) {
   // Blend locomotion instead of snapping all limbs when a step starts/stops.
   // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
@@ -777,6 +779,7 @@ export function pose(
   });
   person.leftArm.rotation.x=-swing*.7;
   person.rightArm.rotation.x=gesture?-gesture:swing*.7;
+  person.hand.rotation.x=carryGripPitch(person.rightArm.rotation.x,person.elbows[1].rotation.x,holdingCup);
 
   const idle=motion?(1-weight)*(1-seated):0;
   const breath=motion?Math.sin(time*1.8+anim.seed*5)*.007:0;
