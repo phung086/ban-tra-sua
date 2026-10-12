@@ -7,6 +7,7 @@ import {continuousTorso,continuousHips,continuousLimb,faceGeometry} from './acto
 import {advanceSeatBlend} from './seatTransition';
 import {carryGripPitch} from './carryGrip';
 import {applyBlink} from './blinkMotion';
+import {idleEyeGaze} from './eyeGaze';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
@@ -511,6 +512,8 @@ export function makePerson(w: Workshop, customer: Customer): Person {
       [0.014, 0.014, 0.008],
     );
     eyes.push(white, pupil);
+    pupil.userData.gazeRestX = pupil.position.x;
+    pupil.userData.gazeRestY = pupil.position.y;
     white.userData.blinkHeight = 0.016; pupil.userData.blinkHeight = 0.014;
     w.ball(head, '#ffffff', [side * 0.086 - 0.004, 0.028 + (side === 1 ? 0.008 : 0), 0.218], [0.004, 0.004, 0.002]);
     w.line(head, '#8b6650', [[side*0.055,0.042,0.204],[side*0.086,0.05,0.206],[side*0.115,0.039,0.198]],0.0035);
@@ -771,6 +774,13 @@ export function pose(
   // Distinct, deterministic eye/idle rhythms keep nearby residents from
   // blinking and turning their heads together; paused motion stays still.
   applyBlink(person.eyes,time,anim.seed,motion);
+  const gaze=idleEyeGaze(time,anim.seed,motion&&!walking&&gesture===0);
+  person.eyes.forEach((eye,i)=>{
+    if(i%2===1){
+      eye.position.x=(eye.userData.gazeRestX as number)+gaze.x;
+      eye.position.y=(eye.userData.gazeRestY as number)+gaze.y;
+    }
+  });
   person.elbows.forEach((elbow,i)=>{
     elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):
       -.12-Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.15*weight;

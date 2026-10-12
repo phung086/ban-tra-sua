@@ -120,4 +120,29 @@ describe('continuous character deformation',()=>{
     w.dispose();
   });
 
+  it('keeps both pupil meshes aligned and returns to center on walking or reduced motion',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    const pupils=[person.eyes[1],person.eyes[3]];
+    const rest=pupils.map(eye=>({x:eye.position.x,y:eye.position.y}));
+    const whites= [person.eyes[0],person.eyes[2]].map(eye=>eye.position.x);
+    let moved=false;
+    for(let frame=0;frame<360;frame++){
+      pose(person,frame/30,false,0,false,true);
+      const dx=pupils[0].position.x-rest[0].x;
+      if(Math.abs(dx)>0.001){
+        expect(pupils[1].position.x-rest[1].x).toBeCloseTo(dx,8);
+        expect(pupils[1].position.y-rest[1].y).toBeCloseTo(pupils[0].position.y-rest[0].y,8);
+        moved=true;
+        break;
+      }
+    }
+    expect(moved).toBe(true);
+    expect([person.eyes[0],person.eyes[2]].map(eye=>eye.position.x)).toEqual(whites);
+    pose(person,20,true,0,false,true);
+    expect(pupils.map(eye=>eye.position.x)).toEqual(rest.map(eye=>eye.x));
+    pose(person,20.1,false,0,false,false);
+    expect(pupils.map(eye=>eye.position.y)).toEqual(rest.map(eye=>eye.y));
+    w.dispose();
+  });
+
 });
