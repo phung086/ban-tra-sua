@@ -1,6 +1,7 @@
 import { deliveryFor, type Place } from "../game/service";
 import type { DrinkDraft, GameState, Order } from "../game/types";
 import { greetingGesture } from "./greetingGesture";
+import { sampleRouteByDistance } from "./routePacing";
 
 export type Visit = {
   order: Order;
@@ -23,18 +24,7 @@ export type VisitPose = {
 const seat = (place: Place): [number, number] =>
   place === "counter" ? [0, -0.3] : [place === "table-1" ? -2.8 : 2.8, -3.45];
 function along(points: number[][], amount: number) {
-  const segment = Math.min(
-    points.length - 2,
-    Math.floor(amount * (points.length - 1)),
-  );
-  const local = Math.min(1, amount * (points.length - 1) - segment);
-  const a = points[segment],
-    b = points[segment + 1];
-  return {
-    x: a[0] + (b[0] - a[0]) * local,
-    z: a[1] + (b[1] - a[1]) * local,
-    rotation: Math.atan2(b[0] - a[0], b[1] - a[1]),
-  };
+  return sampleRouteByDistance(points as [number, number][], amount);
 }
 export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
   const [x, z] = seat(visit.location);
