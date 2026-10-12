@@ -11,6 +11,8 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** One visit per day; persisted inside the existing v3 morning save. */
+  marketVisit?: 'fruit' | 'chat' | 'leave' | null;
 }
 
 export const BREAKFAST_OPTIONS = {
@@ -32,6 +34,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    marketVisit: null,
   };
 }
 
@@ -56,7 +59,8 @@ export function hydrateMorning(
     ['asleep', 'awake', 'finished'].includes(String(value.step)) &&
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
-    value.satiety >= 0 && value.satiety <= 100) {
+    value.satiety >= 0 && value.satiety <= 100 &&
+    (value.marketVisit == null || ['fruit', 'chat', 'leave'].includes(String(value.marketVisit)))) {
     return value as unknown as MorningRoutineState;
   }
   // Existing saves have no morning session. A currently-open shift must never
