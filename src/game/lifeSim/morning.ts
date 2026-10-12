@@ -3,6 +3,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
+export type MotherCallChoice = 'listen' | 'promise' | 'later' | 'photo';
 
 export interface MorningRoutineState {
   day: number;
@@ -11,6 +12,60 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** Optional on older v3 saves; one family decision per day. */
+  motherCall?: MotherCallChoice | null;
+}
+
+export const MOTHER_CALL_OPTIONS = {
+  listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
+  promise: { label: 'Hẹn cuối tuần về ăn cơm', minutes: 5, bond: 1 },
+  later: { label: 'Nhắn mẹ tối gọi lại', minutes: 0, bond: 0 },
+  photo: { label: 'Gửi ảnh tiệm cho mẹ', minutes: 2, bond: 1 },
+} as const;
+
+const MOTHER_KEY = 'family-mother-mai:';
+
+/** Day 1 introduces Mai; later calls use the persisted seeded planner. */
+export function shouldOfferMotherCall(morning: MorningRoutineState): boolean {
+  return morning.day === 1 || morning.day % 3 === 0 || morning.plan.socialHook === 'family-call';
+}
+
+export function motherCallMemory(game: Pick<GameState, 'city'>): { bond: number; promised: boolean } {
+  const memories = game.city.stories.choices.filter(item => item.startsWith(MOTHER_KEY));
+  return {
+    bond: memories.reduce((sum, item) => sum + (item.endsWith(':listen') ? 2 : (item.endsWith(':promise') || item.endsWith(':photo')) ? 1 : 0), 0),
+    promised: memories.some(item => item.endsWith(':promise')),
+  };
+}
+
+/** The story ledger is authoritative if an older partial save lacks the morning flag. */
+export function motherCallDecision(game: GameState): MotherCallChoice | null {
+  const prefix = MOTHER_KEY + game.day + ':';
+  const entry = game.city.stories.choices.find(item => item.startsWith(prefix))?.slice(prefix.length);
+  if (entry === 'listen' || entry === 'promise' || entry === 'later' || entry === 'photo') return entry;
+  const choice = game.morning.motherCall;
+  return choice === 'listen' || choice === 'promise' || choice === 'later' || choice === 'photo' ? choice : null;
+}
+
+export function motherCallPrompt(game: GameState): string {
+  if (motherCallMemory(game).promised)
+    return 'Mẹ Mai: Mẹ nhớ con hẹn về ăn cơm. Không cần vội, chỉ muốn biết con vẫn ổn.';
+  if (game.morning.breakfast === 'skip') return 'Mẹ Mai: Con lại bỏ bữa sáng à? Nhớ ăn gì đó khi rảnh nhé.';
+  if (game.morning.breakfast === 'cook') return 'Mẹ Mai: Nghe con tự nấu cơm sáng mẹ vui lắm. Giữ sức khỏe nhé!';
+  if (game.morning.breakfast === 'street') return 'Mẹ Mai: Bánh mì đầu ngõ ngon không? Hôm nào dẫn mẹ ra ăn với.';
+  return game.day === 1
+    ? 'Mẹ Mai: Sáng đầu tiên tự mở tiệm thế nào rồi con? Mẹ gọi hỏi thăm thôi.'
+    : 'Mẹ Mai: Hôm nay tiệm thế nào? Con có thời gian nói chuyện một chút không?';
+}
+
+export function motherCallDialogue(choice: MotherCallChoice, bond: number): string {
+  if (choice === 'listen') return bond >= 4
+    ? 'Mẹ Mai: Dạo này con hay gọi về, mẹ vui lắm. Nhớ ăn uống đều nhé.'
+    : 'Mẹ Mai: Nghe giọng con là mẹ yên tâm rồi. Khi nào rảnh mình lại trò chuyện.';
+  if (choice === 'promise')
+    return 'Mẹ Mai: Cuối tuần nếu sắp xếp được thì về ăn cơm nhé. Không cần cố quá đâu.';
+  if (choice === 'photo') return 'Mẹ Mai: Mẹ xem ảnh tiệm rồi, góc cửa sổ dễ thương quá! Chúc con bán đắt hàng.';
+  return 'Mẹ Mai: Ừ, con cứ lo cho tiệm trước. Tối rảnh thì nhắn mẹ một câu nhé.';
 }
 
 export const BREAKFAST_OPTIONS = {
@@ -32,6 +87,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    motherCall: null,
   };
 }
 
@@ -57,7 +113,9 @@ export function hydrateMorning(
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100) {
-    return value as unknown as MorningRoutineState;
+    const restored = value as unknown as MorningRoutineState;
+    const call = value.motherCall;
+    return { ...restored, motherCall: call === 'listen' || call === 'promise' || call === 'later' || call === 'photo' ? call : null };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -101,5 +159,31 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** A player-confirmed call commits game time, a dialogue and NPC memory once. */
+export function chooseMotherCall(game: GameState, choice: MotherCallChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' ||
+      motherCallDecision(game) !== null || !shouldOfferMotherCall(morning)) return game;
+  const option = MOTHER_CALL_OPTIONS[choice];
+  if (!option) return game;
+  const dayKey = MOTHER_KEY + game.day + ':';
+  if (game.city.stories.choices.some(item => item.startsWith(dayKey))) return game;
+  const reply = motherCallDialogue(choice, motherCallMemory(game).bond + option.bond);
+  return {
+    ...game,
+    morning: { ...morning, motherCall: choice },
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      stories: {
+        ...game.city.stories,
+        choices: [...game.city.stories.choices, dayKey + choice].slice(-100),
+      },
+      journal: [`Ngày ${game.day} · Gọi mẹ Mai: ${option.label}. ${reply}`, ...game.city.journal].slice(0, 24),
+    },
+    notice: reply,
   };
 }
