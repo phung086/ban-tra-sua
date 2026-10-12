@@ -14,7 +14,7 @@ describe('QC-07 cup grip',()=>{
   const w=new Workshop(),p=makePerson(w,CUSTOMERS[0]);
   // The production label uses a canvas; mock only that texture surface in Node.
   vi.spyOn(w,'label').mockImplementation(parent=>{
-   const label=new T.Mesh(new T.PlaneGeometry(.2,.08),new T.MeshBasicMaterial());
+   const label=new T.Mesh(new T.PlaneGeometry(.2,.08),new T.MeshStandardMaterial());
    parent.add(label);
    return label;
   });
