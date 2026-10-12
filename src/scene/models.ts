@@ -6,6 +6,7 @@ import {makeSurface,type SurfaceKind} from './materials';
 import {continuousTorso,continuousHips,continuousLimb,faceGeometry} from './actorGeometry';
 import {advanceSeatBlend} from './seatTransition';
 import {carryGripPitch} from './carryGrip';
+import {applyBlink} from './blinkMotion';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
@@ -769,10 +770,7 @@ export function pose(
 
   // Distinct, deterministic eye/idle rhythms keep nearby residents from
   // blinking and turning their heads together; paused motion stays still.
-  const blinkInterval=3.7+anim.seed*1.4;
-  const blinkPhase=(time+anim.seed*blinkInterval)%blinkInterval;
-  const blinking=motion&&blinkPhase>blinkInterval-0.135;
-  person.eyes.forEach(eye=>{eye.scale.y=blinking?0.002:eye.userData.blinkHeight;});
+  applyBlink(person.eyes,time,anim.seed,motion);
   person.elbows.forEach((elbow,i)=>{
     elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):
       -.12-Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.15*weight;

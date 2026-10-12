@@ -100,4 +100,24 @@ describe('continuous character deformation',()=>{
     w.dispose();
   });
 
+  it('animates real eye meshes through a blink and restores them for reduced motion',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    const interval=3.7+person.animation.seed*1.4;
+    const start=(2-person.animation.seed)*interval-.22;
+    const white=person.eyes[0],pupil=person.eyes[1];
+    const whiteHeight=white.userData.blinkHeight as number;
+    const pupilHeight=pupil.userData.blinkHeight as number;
+    pose(person,start,false,0,false,true);
+    expect(white.scale.y).toBeCloseTo(whiteHeight);
+    pose(person,start+.22*.43,false,0,false,true);
+    expect(white.scale.y).toBeCloseTo(whiteHeight*.12);
+    expect(pupil.scale.y).toBeCloseTo(pupilHeight*.12);
+    pose(person,start+.22,false,0,false,true);
+    expect(white.scale.y).toBeCloseTo(whiteHeight);
+    pose(person,start+.22*.43,false,0,false,false);
+    expect(white.scale.y).toBeCloseTo(whiteHeight);
+    expect(pupil.scale.y).toBeCloseTo(pupilHeight);
+    w.dispose();
+  });
+
 });
