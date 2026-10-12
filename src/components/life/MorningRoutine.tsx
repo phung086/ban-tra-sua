@@ -80,7 +80,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         </div>
       </> : <div className="life-market-reply" role="status">
         <strong>✓ Đã ghé chợ hôm nay</strong>
-        <p>{marketDialogue(visited)}</p>
+        <p>{marketDialogue(visited, game.city.stories.bonds.hanh ?? 0)}</p>
         <small>Độ no {morning.satiety}/100 · Mỗi ngày chỉ chọn một lần.</small>
       </div>}
     </section>}
