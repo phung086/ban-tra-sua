@@ -6,6 +6,7 @@ try {
   for (const [width,height] of sizes) {
     const page = await browser.newPage({ viewport: { width, height } });
     await page.goto('http://127.0.0.1:5193', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Bỏ qua' }).click();
     await page.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click();
     await page.getByRole('button', { name: /Đi làm luôn/ }).click();
     await page.getByRole('button', { name: /Chia đôi hóa đơn với Lan/ }).click();
