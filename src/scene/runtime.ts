@@ -22,6 +22,7 @@ import { CITY_PLACES, type CityPlace } from '../game/cityMap';
 import { cityWeather } from '../game/city';
 import { deliveryBag, dressBarista,errandCargo,fishingRod } from './cityDetails';
 import {movementVector,slideMove,type Stick} from '../game/movement';
+import {advanceNpcLocomotion,initialNpcLocomotion,type NpcLocomotion} from './npcLocomotion';
 import {RESIDENTS,missionDefinition,type ResidentId} from '../game/neighborhoodStories';
 import {nearCityPlace} from '../game/cityMap';
 
@@ -40,7 +41,7 @@ type Input = {
   paused:boolean;
   onTalk:(id:ResidentId)=>void;
 };
-type Actor = { person: Person; cup: ReturnType<typeof makeCup> };
+type Actor = { person: Person; cup: ReturnType<typeof makeCup>; locomotion:NpcLocomotion };
 export class StreetRuntime {
   renderer: SceneRenderer;
   qualityController:AdaptiveQuality;
@@ -381,7 +382,7 @@ export class StreetRuntime {
       cup.root.rotation.x = Math.PI / 2;
       person.hand.add(cup.root);
       this.scene.add(person.root);
-      actor = { person, cup };
+      actor = { person, cup, locomotion:initialNpcLocomotion() };
       this.actors.set(visit.order.id, actor);
     }
     return actor;
@@ -429,15 +430,22 @@ export class StreetRuntime {
     for (const visit of visits) {
       const actor = this.actor(visit),
         state = visitPose(visit, now, this.motion);
+      // QC-06: cadence follows the actual path travelled, not the wall clock.
+      // Keep this ephemeral state per actor; never mutate the player's save.
+      const locomotion=advanceNpcLocomotion(
+        actor.locomotion,state.x,state.z,state.rotation,state.walking,this.motion,dt,
+      );
+      actor.locomotion=locomotion.next;
       actor.person.root.position.set(state.x, state.y, state.z);
-      actor.person.root.rotation.y = state.rotation;
+      actor.person.root.rotation.y = locomotion.next.heading;
       pose(
         actor.person,
         now / 1000,
-        state.walking,
+        locomotion.stepping,
         state.gesture,
         state.sitting,
         this.motion,
+        locomotion.next.gaitPhase,
       );
       actor.cup.root.visible = state.cup;
       if (state.cup) actor.cup.update({ ...visit.drink, sealed: true });
