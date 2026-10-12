@@ -8,6 +8,7 @@ import {advanceSeatBlend} from './seatTransition';
 import {carryGripPitch} from './carryGrip';
 import {applyBlink} from './blinkMotion';
 import {idleEyeGaze} from './eyeGaze';
+import {footGroundLift} from './footContact';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
@@ -774,6 +775,11 @@ export function pose(
     const stepBend=Math.max(0,Math.sin(gaitPhase+i*Math.PI))*0.43*legWeight;
     knee.rotation.x=stepBend*(1-seated)+1.35*seated;
   });
+  // Keep each shoe's sole above the pavement during toe-off and tight turns.
+  // The knee and shoe share a rigid socket, so correct the leg pivot rather
+  // than bobbing the whole character or adding a per-frame ground raycast.
+  person.leftLeg.position.y=.83+footGroundLift(person.leftLeg.rotation.x,person.knees[0].rotation.x,seated);
+  person.rightLeg.position.y=.83+footGroundLift(person.rightLeg.rotation.x,person.knees[1].rotation.x,seated);
 
   // Distinct, deterministic eye/idle rhythms keep nearby residents from
   // blinking and turning their heads together; paused motion stays still.
