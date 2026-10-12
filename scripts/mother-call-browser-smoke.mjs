@@ -20,6 +20,7 @@ try {
     },null,{timeout:10000});
     await page.reload({waitUntil:'domcontentloaded'});
     await page.locator('.life-mother-reply').waitFor({timeout:15000});
+    await page.getByText('Gắn kết gia đình: 2 điểm').waitFor({timeout:15000});
     if (await page.getByRole('button',{name:/Nghe mẹ kể chuyện/}).count()) throw Error('Call offered twice');
     const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}'));
     if (saved.cash!==220000||saved.morning.motherCall!=='listen') throw Error('Reload changed state');
