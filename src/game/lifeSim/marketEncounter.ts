@@ -29,7 +29,7 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
     morning: {
       ...game.morning, marketVisit: choice,
       satiety: Math.min(100, game.morning.satiety + option.food),
-    },
+    } as GameState['morning'],
     city: {
       ...game.city,
       minutes: Math.min(1260, game.city.minutes + option.minutes),
