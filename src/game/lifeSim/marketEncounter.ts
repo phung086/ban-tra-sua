@@ -6,7 +6,7 @@ export const MARKET_OPTIONS = {
   leave: { label: 'Đi thẳng tới tiệm', cost: 0, minutes: 0, food: 0, bond: 0 },
 } as const;
 export function marketChoice(game: GameState): MarketChoice | null {
-  const value = game.morning.marketVisit;
+  const value = (game.morning as typeof game.morning & { marketVisit?: MarketChoice | null }).marketVisit;
   return value === 'fruit' || value === 'chat' || value === 'leave' ? value : null;
 }
 
