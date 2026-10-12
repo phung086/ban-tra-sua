@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, LAN_MEAL_OPTIONS, chooseBreakfast, chooseLanMeal, lanMealDialogue, wakeMorning, type BreakfastChoice, type LanMealChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -17,6 +17,12 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
   {id:'cook',emoji:'🍳',hint:'Bữa cơm ấm bụng · 20 phút'},
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
+];
+
+const lanChoices: {id:LanMealChoice;emoji:string;hint:string}[] = [
+  {id:'split',emoji:'🍜',hint:'40 phút · mỗi người tự trả phần mình'},
+  {id:'treat',emoji:'💝',hint:'40 phút · mình trả cả hóa đơn'},
+  {id:'decline',emoji:'💬',hint:'Không tốn tiền · hẹn dịp khác'},
 ];
 
 /** Uses an existing pre-shop panel, not an additional WebGL scene. */
@@ -55,6 +61,27 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         })}
       </div>
     </>}
+    {finished&&<section className="life-lan-invite" aria-label="Lời mời của Lan">
+      <p className="life-morning-prompt">💌 Lan nhắn: “Trước khi mở tiệm, đi ăn cùng mình nhé?”</p>
+      {morning.lanMeal == null ? <>
+        <p className="life-lan-hint">Chọn cách thanh toán trước khi đi. Không bắt buộc phải nhận lời.</p>
+        <div className="life-morning-options">
+          {lanChoices.map(({id,emoji,hint})=>{
+            const option=LAN_MEAL_OPTIONS[id],enough=game.cash>=option.cost;
+            return <button key={id} type="button" className="life-morning-option" disabled={!enough}
+              onClick={()=>onGame(chooseLanMeal(game,id))}>
+              <span aria-hidden="true">{emoji}</span>
+              <strong>{option.label}</strong>
+              <small>{hint}</small>
+              <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+              {!enough&&<small>Chưa đủ tiền</small>}
+            </button>;
+          })}
+        </div>
+      </> : <p className="life-lan-reply" aria-live="polite">
+        {lanMealDialogue(morning.lanMeal,game.city.stories.bonds.lan ?? 0)}
+      </p>}
+    </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
