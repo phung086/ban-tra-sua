@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {describe,it,expect} from 'vitest';
+import {describe,it,expect,vi} from 'vitest';
 import {carryGripPitch} from './carryGrip';
 import {Workshop,makePerson,makeCup,pose} from './models';
 import {CUSTOMERS} from '../game/content';
@@ -11,7 +11,14 @@ describe('QC-07 cup grip',()=>{
   expect(carryGripPitch(-.6,-.36,false)).toBe(0);
  });
  it('keeps cup upright in receiving and walking poses',()=>{
-  const w=new Workshop(),p=makePerson(w,CUSTOMERS[0]),cup=makeCup(w);
+  const w=new Workshop(),p=makePerson(w,CUSTOMERS[0]);
+  // The production label uses a canvas; mock only that texture surface in Node.
+  vi.spyOn(w,'label').mockImplementation(parent=>{
+   const label=new T.Mesh(new T.PlaneGeometry(.2,.08),new T.MeshBasicMaterial());
+   parent.add(label);
+   return label;
+  });
+  const cup=makeCup(w);
   p.hand.add(cup.root);
   for(const [t,walking,gesture,phase] of [[0,false,1.05,0],[.05,true,.6,Math.PI/2],[.1,true,.6,3*Math.PI/2]] as const){
    pose(p,t,walking,gesture,false,true,phase,true);
