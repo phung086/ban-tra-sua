@@ -14,10 +14,14 @@ export function marketChoice(game: GameState): MarketChoice | null {
   return value === 'fruit' || value === 'chat' || value === 'leave' ? value : null;
 }
 
-export function marketDialogue(choice: MarketChoice): string {
+export function marketDialogue(choice: MarketChoice, hanhBond = 0): string {
   switch (choice) {
-    case 'fruit': return 'Cô Hạnh: Trái cây mới về sáng nay, nhớ ăn giữa ca nhé!';
-    case 'chat': return 'Cô Hạnh: Hôm nay chợ vắng. Cảm ơn cháu đã hỏi thăm.';
+    case 'fruit': return hanhBond >= 4
+      ? 'Cô Hạnh: Khách quen của cô đây rồi! Cô chọn trái cây tươi nhất cho cháu nhé.'
+      : 'Cô Hạnh: Trái cây mới về sáng nay, nhớ ăn giữa ca nhé!';
+    case 'chat': return hanhBond >= 4
+      ? 'Cô Hạnh: Lại gặp cháu rồi! Hôm qua cháu hỏi thăm, cô vui cả ngày đấy.'
+      : 'Cô Hạnh: Hôm nay chợ vắng. Cảm ơn cháu đã hỏi thăm.';
     case 'leave': return 'Bạn chào cô Hạnh rồi đi mở cửa tiệm.';
   }
 }
@@ -30,7 +34,8 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
   if (game.cash < option.cost) return {
     ...game, notice: 'Chưa đủ tiền mua trái cây; có thể hỏi thăm miễn phí.',
   };
-  const reply = marketDialogue(choice);
+  const hanhBond = Math.min(1000, (game.city.stories.bonds.hanh ?? 0) + option.bond);
+  const reply = marketDialogue(choice, hanhBond);
   return {
     ...game,
     cash: game.cash - option.cost,
@@ -46,7 +51,7 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
         ...game.city.stories,
         bonds: {
           ...game.city.stories.bonds,
-          hanh: Math.min(1000, (game.city.stories.bonds.hanh ?? 0) + option.bond),
+          hanh: hanhBond,
         },
       },
     },
