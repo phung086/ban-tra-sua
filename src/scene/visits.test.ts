@@ -24,6 +24,15 @@ describe("customer choreography", () => {
       cup: false,
     });
   });
+  it("eases the customer greeting before the guest heads to a table", () => {
+    const customer = visit("table-1");
+    expect(visitPose(customer, 1600).gesture).toBe(0);
+    expect(visitPose(customer, 1610).gesture).toBeLessThan(0.05);
+    expect(visitPose(customer, 1900).gesture).toBeGreaterThan(0.65);
+    expect(visitPose(customer, 2690).gesture).toBeLessThan(0.02);
+    expect(visitPose(customer, 2700)).toMatchObject({ gesture: 0, walking: true });
+    expect(visitPose(customer, 1900, false).gesture).toBe(0);
+  });
   it("keeps takeaway guests at the counter", () => {
     expect(visitPose(visit("counter"), 6000)).toMatchObject({
       x: 0,

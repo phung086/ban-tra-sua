@@ -1,5 +1,6 @@
 import { deliveryFor, type Place } from "../game/service";
 import type { DrinkDraft, GameState, Order } from "../game/types";
+import { greetingGesture } from "./greetingGesture";
 
 export type Visit = {
   order: Order;
@@ -99,7 +100,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
       z: -0.3,
       y: 0,
       sitting: false,
-      gesture: 0.8 + Math.sin(elapsed * 6) * 0.15,
+      gesture: greetingGesture(elapsed, visit.order.customerId),
     };
   if (dineIn && elapsed < 4.6)
     return {
