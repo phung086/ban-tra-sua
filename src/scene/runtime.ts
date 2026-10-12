@@ -448,6 +448,7 @@ export class StreetRuntime {
         this.motion,
         locomotion.next.gaitPhase,
         state.cup,
+        locomotion.strideScale,
       );
       // Keep the whole actor's height in sync with its knee bend.
       actor.person.root.position.y = seatedRootY(

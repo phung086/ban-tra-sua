@@ -145,4 +145,19 @@ describe('continuous character deformation',()=>{
     w.dispose();
   });
 
+  it('reduces real leg swing and knee bend during a pivot without changing walk cadence',()=>{
+    const w=new Workshop(),straight=makePerson(w,CUSTOMERS[0]),turn=makePerson(w,CUSTOMERS[0]);
+    for(let frame=0;frame<=30;frame++){
+      const time=frame/30;
+      pose(straight,time,true,0,false,true,Math.PI/2,false,1);
+      pose(turn,time,true,0,false,true,Math.PI/2,false,.45);
+    }
+    expect(turn.animation.walkWeight).toBeCloseTo(straight.animation.walkWeight);
+    expect(Math.abs(turn.leftLeg.rotation.x)).toBeLessThan(Math.abs(straight.leftLeg.rotation.x)*.6);
+    expect(turn.knees[0].rotation.x).toBeLessThan(straight.knees[0].rotation.x*.6);
+    expect(turn.animation.turnStride).toBeLessThan(.55);
+    pose(turn,1.1,true,0,false,false,Math.PI/2,false,.45);
+    expect(turn.leftLeg.rotation.x).toBe(0);
+    w.dispose();
+  });
 });

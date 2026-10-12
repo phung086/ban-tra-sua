@@ -410,7 +410,7 @@ export interface Person {
   knees: T.Bone[];
   elbows:T.Bone[];
   // Per-actor blending/idle timing; no new GPU meshes or draw calls.
-  animation:{lastTime:number|null;walkWeight:number;seatWeight:number;seed:number;basePitch:number};
+  animation:{lastTime:number|null;walkWeight:number;seatWeight:number;seed:number;basePitch:number;turnStride:number};
 }
 
 export function makePerson(w: Workshop, customer: Customer): Person {
@@ -739,7 +739,7 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   parts.forEach((part,i)=>mergeRigid(part,[head,leftArm,rightArm,...knees,...elbows,...eyes].filter(p=>p!==part),register,`person:${customer.id}:${i}`));
   const seed=Array.from(customer.id).reduce((value,char)=>(value*31+char.charCodeAt(0))%997,0)/997;
   return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows,
-    animation:{lastTime:null,walkWeight:0,seatWeight:0,seed,basePitch:body.rotation.x} };
+    animation:{lastTime:null,walkWeight:0,seatWeight:0,seed,basePitch:body.rotation.x,turnStride:1} };
 }
 
 export function pose(
@@ -751,6 +751,7 @@ export function pose(
   motion: boolean,
   gaitPhase=time*7,
   holdingCup=false,
+  strideScale=1,
 ) {
   // Blend locomotion instead of snapping all limbs when a step starts/stops.
   // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
@@ -763,11 +764,14 @@ export function pose(
   const target=motion&&!sitting&&walking?1:0;
   anim.walkWeight=!motion?0:anim.walkWeight+(target-anim.walkWeight)*(1-Math.exp(-14*dt));
   const weight=anim.walkWeight,seated=anim.seatWeight;
-  const phase=Math.sin(gaitPhase),swing=phase*0.39*weight;
+  const targetStride=motion&&Number.isFinite(strideScale)?Math.max(.45,Math.min(1,strideScale)):1;
+  anim.turnStride=firstFrame?targetStride:anim.turnStride+(targetStride-anim.turnStride)*(1-Math.exp(-12*dt));
+  const legWeight=weight*anim.turnStride;
+  const phase=Math.sin(gaitPhase),swing=phase*0.39*legWeight;
   person.leftLeg.rotation.x=swing*(1-seated)-1.35*seated;
   person.rightLeg.rotation.x=-swing*(1-seated)-1.35*seated;
   person.knees.forEach((knee,i)=>{
-    const stepBend=Math.max(0,Math.sin(gaitPhase+i*Math.PI))*0.43*weight;
+    const stepBend=Math.max(0,Math.sin(gaitPhase+i*Math.PI))*0.43*legWeight;
     knee.rotation.x=stepBend*(1-seated)+1.35*seated;
   });
 
@@ -791,7 +795,7 @@ export function pose(
 
   const idle=motion?(1-weight)*(1-seated):0;
   const breath=motion?Math.sin(time*1.8+anim.seed*5)*.007:0;
-  person.body.position.y=Math.abs(phase)*.024*weight*(1-seated)+breath*idle;
+  person.body.position.y=Math.abs(phase)*.024*legWeight*(1-seated)+breath*idle;
   // Preserve the base posture of older characters rather than overwriting it.
   person.body.rotation.x=anim.basePitch+weight*.035;
   person.body.rotation.z=motion?Math.sin(gaitPhase*.5)*.022*weight*(1-seated):0;

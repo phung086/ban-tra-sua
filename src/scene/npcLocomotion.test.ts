@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advanceNpcLocomotion, initialNpcLocomotion } from './npcLocomotion';
+import { advanceNpcLocomotion, initialNpcLocomotion, turnStrideScale } from './npcLocomotion';
 
 const step = (state: ReturnType<typeof initialNpcLocomotion>, x: number, z: number,
   heading = 0, walking = true, motion = true, dt = 1 / 30) =>
@@ -56,5 +56,26 @@ describe('QC-06 customer locomotion integration', () => {
     const invalid = step(initial, Number.NaN, 0);
     expect(invalid.next).toBe(initial);
     expect(invalid.stepping).toBe(false);
+  });
+  it('shortens steps during 45/90/180-degree pivots without stopping cadence', () => {
+    expect(turnStrideScale(0, 0)).toBe(1);
+    expect(turnStrideScale(0, Math.PI / 12)).toBeCloseTo(1);
+    expect(turnStrideScale(0, Math.PI / 4)).toBeLessThan(1);
+    expect(turnStrideScale(0, Math.PI / 2)).toBeCloseTo(0.45);
+    expect(turnStrideScale(0, Math.PI)).toBeCloseTo(0.45);
+    expect(turnStrideScale(Number.NaN, 0)).toBe(1);
+
+    const spawn = step(initialNpcLocomotion(), 0, 0).next;
+    const straight = step(spawn, 0, 0.08);
+    const firstTurn = step(straight.next, 0, 0.16, Math.PI / 2);
+    const secondTurn = step(firstTurn.next, 0, 0.24, Math.PI / 2);
+    expect(straight.strideScale).toBe(1);
+    expect(secondTurn.stepping).toBe(true);
+    expect(secondTurn.strideScale).toBeGreaterThanOrEqual(0.45);
+    expect(secondTurn.strideScale).toBeLessThan(1);
+    expect(secondTurn.next.gaitPhase).toBeCloseTo(3 * 0.08 * 3.6);
+    expect(step(secondTurn.next, 0, 0.24, Math.PI / 2, false).strideScale).toBe(1);
+    expect(step(secondTurn.next, 10, 10, Math.PI / 2).strideScale).toBe(1);
+    expect(step(secondTurn.next, 0, 0.32, Math.PI / 2, true, false).strideScale).toBe(1);
   });
 });
