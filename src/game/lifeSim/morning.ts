@@ -3,6 +3,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
+export type LanMealChoice = 'split' | 'treat' | 'walk' | 'decline';
 
 export interface MorningRoutineState {
   day: number;
@@ -11,6 +12,28 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** Optional in older v3 saves. Settled at most once per in-game day. */
+  lanMeal?: LanMealChoice | null;
+}
+
+export const LAN_MEAL_OPTIONS = {
+  split: { label: 'Chia đôi hóa đơn với Lan', cost: 65000, minutes: 40, satiety: 20, bond: 2 },
+  treat: { label: 'Mời Lan ăn · mình trả cả hai', cost: 130000, minutes: 40, satiety: 20, bond: 3 },
+  walk: { label: 'Đi dạo công viên cùng Lan', cost: 0, minutes: 15, satiety: 0, bond: 1 },
+  decline: { label: 'Hẹn Lan hôm khác', cost: 0, minutes: 0, satiety: 0, bond: 0 },
+} as const;
+
+export function lanMealDialogue(choice: LanMealChoice, bond: number): string {
+  if (choice === 'split') return bond >= 4
+    ? 'Lan: Lại đi ăn cùng nhau rồi! Chia đôi như lần trước nhé.'
+    : 'Lan: Chia đôi nhé, vậy cả hai đều thoải mái!';
+  if (choice === 'treat') return bond >= 4
+    ? 'Lan: Bạn đã mời mình nhiều rồi. Hôm khác nhất định để mình trả nhé!'
+    : 'Lan: Cảm ơn bạn đã mời. Hôm khác để mình mời lại nhé!';
+  if (choice === 'walk') return bond >= 4
+    ? 'Lan: Mình thích những buổi đi dạo thế này. Không phải lúc nào gặp nhau cũng cần tiêu tiền!'
+    : 'Lan: Đi dạo một vòng cũng vui mà! Lần sau mình lại gặp nhé.';
+  return 'Lan: Không sao đâu, để hôm khác tụi mình đi ăn nhé!';
 }
 
 export const BREAKFAST_OPTIONS = {
@@ -32,6 +55,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    lanMeal: null,
   };
 }
 
@@ -57,7 +81,9 @@ export function hydrateMorning(
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100) {
-    return value as unknown as MorningRoutineState;
+    const restored = value as unknown as MorningRoutineState;
+    const choice = value.lanMeal;
+    return { ...restored, lanMeal: choice === 'split' || choice === 'treat' || choice === 'walk' || choice === 'decline' ? choice : null };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -101,5 +127,28 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** The player confirms the bill before the expense is applied; no double charges. */
+export function chooseLanMeal(game: GameState, choice: LanMealChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.lanMeal != null) return game;
+  const option = LAN_MEAL_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return { ...game, notice: 'Chưa đủ tiền đi ăn. Có thể hẹn Lan hôm khác, không mất phí.' };
+  const bond = Math.min(1000, (game.city.stories.bonds.lan ?? 0) + option.bond);
+  const dialogue = lanMealDialogue(choice, bond);
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    morning: { ...morning, lanMeal: choice, satiety: Math.min(100, morning.satiety + option.satiety) },
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      stories: { ...game.city.stories, bonds: { ...game.city.stories.bonds, lan: bond } },
+      journal: [`Ngày ${game.day} · ${option.label} (${option.cost.toLocaleString('vi-VN')} ₫). ${dialogue}`, ...game.city.journal].slice(0, 24),
+    },
+    notice: dialogue,
   };
 }

@@ -117,6 +117,32 @@ try{
   report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  // Exercise the newly playable life-simulation morning before opening shop.
+  // This doubles as a production-browser save/reload and landscape interaction smoke.
+  const openShop = page.getByRole('button',{name:/Mở cửa tiệm/});
+  assert(await openShop.isDisabled(),'Opening shop must wait for the daily morning choice');
+  await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
+  await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).click({timeout:15000});
+  assert(await openShop.isEnabled(),'Opening shop must unlock after breakfast');
+  await page.waitForFunction(()=>{
+    try {
+      const state=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return state.morning?.step==='finished'&&state.morning?.breakfast==='street'&&state.cash===200000;
+    }catch{return false;}
+  },null,{timeout:10000});
+  report.passes.push('landscape: waking, buying breakfast once and unlocking the tea shop');
+  // Prove hydration on a real page reload, not just the initial localStorage write.
+  await page.reload({waitUntil:'domcontentloaded',timeout:90000});
+  await page.locator('.life-morning-done').waitFor({timeout:90000});
+  assert(await page.getByRole('button',{name:/Mở cửa tiệm/}).isEnabled(),'Shop must remain unlocked after reload');
+  assert(await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).count()===0,'Breakfast must not be offered again');
+  await page.waitForFunction(()=>{
+    try{
+      const save=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return save.morning?.step==='finished'&&save.morning?.breakfast==='street'&&save.cash===200000;
+    }catch{return false;}
+  },null,{timeout:30000});
+  report.passes.push('morning breakfast and wallet restored after reload');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});
@@ -131,10 +157,12 @@ try{
   // Rotate with a prepared cup in hand. Serving must stay possible afterwards;
   // the game state must not reset because the responsive UI changed.
   await page.locator('.serve-button').click({timeout:15000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:15000});
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait',null,{timeout:10000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:10000});
+  // Software WebGL can stall CSS visibility/layout even when React has already
+  // produced the correct carrying state; assert DOM state instead of paint timing.
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.screenshot({path:path.join(output,'carrying-after-rotate-390x844.png'),animations:'disabled'});
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape',null,{timeout:10000});
