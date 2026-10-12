@@ -10,5 +10,6 @@ export function advanceSeatBlend(current:number,sitting:boolean,motion:boolean,e
 export const TABLE_SEAT_DROP=-.27;
 export function seatedRootY(dineIn:boolean,seatWeight:number):number {
   if(!dineIn||!Number.isFinite(seatWeight))return 0;
-  return TABLE_SEAT_DROP*Math.max(0,Math.min(1,seatWeight));
+  const weight=Math.max(0,Math.min(1,seatWeight));
+  return weight===0?0:TABLE_SEAT_DROP*weight;
 }
