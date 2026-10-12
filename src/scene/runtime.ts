@@ -15,6 +15,7 @@ import {
 } from "../game/service";
 import type { GameState, Screen } from "../game/types";
 import { makeCup, makePerson, pose, Workshop, type Person } from "./models";
+import { seatedRootY } from "./seatTransition";
 import { buildShop } from "./shop";
 import { Visits, visitPose, type Visit } from "./visits";
 import { CityWorld } from './city';
@@ -446,6 +447,10 @@ export class StreetRuntime {
         state.sitting,
         this.motion,
         locomotion.next.gaitPhase,
+      );
+      // Keep the whole actor's height in sync with its knee bend.
+      actor.person.root.position.y = seatedRootY(
+        visit.location !== "counter", actor.person.animation.seatWeight,
       );
       actor.cup.root.visible = state.cup;
       if (state.cup) actor.cup.update({ ...visit.drink, sealed: true });

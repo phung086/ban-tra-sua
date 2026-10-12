@@ -54,15 +54,36 @@ describe('continuous character deformation',()=>{
     pose(person,1,false,0,false,true);
     expect(Math.abs(person.head.rotation.y)+Math.abs(person.head.rotation.z)).toBeGreaterThan(0);
     pose(person,1.1,true,0,true,true);
-    expect(person.leftLeg.rotation.x).toBeCloseTo(-1.35);
-    expect(person.rightLeg.rotation.x).toBeCloseTo(-1.35);
-    expect(person.knees.every(k=>Math.abs(k.rotation.x-1.35)<1e-5)).toBe(true);
-    pose(person,1.2,true,0,false,false);
+    expect(person.animation.seatWeight).toBeGreaterThan(0);
+    expect(person.animation.seatWeight).toBeLessThan(1);
+    expect(person.leftLeg.rotation.x).toBeLessThan(0);
+    for(let i=1;i<=30;i++)pose(person,1.1+i/30,false,0,true,true);
+    expect(person.animation.seatWeight).toBeGreaterThan(.99);
+    expect(person.leftLeg.rotation.x).toBeCloseTo(-1.35,2);
+    expect(person.rightLeg.rotation.x).toBeCloseTo(-1.35,2);
+    expect(person.knees.every(k=>Math.abs(k.rotation.x-1.35)<.01)).toBe(true);
+    pose(person,2.2,true,0,false,false);
+    expect(person.animation.seatWeight).toBe(0);
     expect(person.animation.walkWeight).toBe(0);
     expect(person.head.rotation.y).toBeCloseTo(0,5);
     expect(person.head.rotation.x).toBeCloseTo(0,5);
     expect(person.body.position.y).toBeCloseTo(0,5);
     expect(person.eyes.every(eye=>eye.scale.y===eye.userData.blinkHeight)).toBe(true);
+    w.dispose();
+  });
+
+  it('eases out of sitting without breaking first-frame seated spawns',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    pose(person,0,false,0,true,true);
+    expect(person.animation.seatWeight).toBe(1);
+    expect(person.leftLeg.rotation.x).toBeCloseTo(-1.35);
+    pose(person,1/30,false,0,false,true);
+    expect(person.animation.seatWeight).toBeGreaterThan(0);
+    expect(person.animation.seatWeight).toBeLessThan(1);
+    expect(person.leftLeg.rotation.x).toBeGreaterThan(-1.35);
+    for(let i=2;i<=32;i++)pose(person,i/30,false,0,false,true);
+    expect(person.animation.seatWeight).toBeLessThan(.01);
+    expect(person.leftLeg.rotation.x).toBeCloseTo(0,2);
     w.dispose();
   });
 

@@ -1,6 +1,7 @@
 import { deliveryFor, type Place } from "../game/service";
 import type { DrinkDraft, GameState, Order } from "../game/types";
 import { greetingGesture } from "./greetingGesture";
+import { TABLE_SEAT_DROP } from "./seatTransition";
 import { sampleRouteByDistance } from "./routePacing";
 
 export type Visit = {
@@ -32,7 +33,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
   const base = {
     x,
     z,
-    y: dineIn ? -0.27 : 0,
+    y: dineIn ? TABLE_SEAT_DROP : 0,
     rotation: 0,
     walking: false,
     sitting: dineIn,
@@ -44,6 +45,9 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
     const elapsed = (now - visit.receivedAt) / 1000;
     if (!motion) return { ...base, cup: true, finished: elapsed > 0.8 };
     if (elapsed < 1.15) return { ...base, gesture: 1.05, cup: true };
+    // Table guests stand at the chair before walking; takeaway timing is unchanged.
+    if (dineIn && elapsed < 1.45)
+      return { ...base, y: 0, sitting: false, gesture: 0.6, cup: true };
     const path = dineIn
       ? [
           [x, z],
@@ -55,7 +59,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
           [x, z],
           [0, -5.8],
         ];
-    const progress = Math.min(1, (elapsed - 1.15) / 2.5);
+    const progress = Math.min(1, (elapsed - (dineIn ? 1.45 : 1.15)) / 2.5);
     return {
       ...base,
       ...along(path, progress),

@@ -52,6 +52,18 @@ describe("customer choreography", () => {
       sitting: false,
     });
   });
+  it("stands at the table before walking away, without delaying takeaway guests", () => {
+    const table = { ...visit("table-1"), receivedAt: 7000 };
+    const takeaway = { ...visit("counter"), receivedAt: 7000 };
+    const rising = visitPose(table, 8200);
+    expect(rising).toMatchObject({ walking: false, sitting: false, y: 0, cup: true });
+    expect(rising.x).toBeCloseTo(-2.8);
+    expect(rising.z).toBeCloseTo(-3.45);
+    expect(visitPose(table, 8450)).toMatchObject({ walking: true, sitting: false });
+    expect(visitPose(takeaway, 8200)).toMatchObject({ walking: true, sitting: false });
+    expect(visitPose(table, 10960).finished).toBe(true);
+  });
+
   it("receives a cup, stands up, carries it outside and finishes", () => {
     const customer = { ...visit("table-2"), receivedAt: 7000 };
     expect(visitPose(customer, 7400)).toMatchObject({
