@@ -31,7 +31,7 @@ describe('Lan meal invite: shared bill and save safety', () => {
     const game = { ...ready(), cash: 0 };
     const blocked = chooseLanMeal(game, 'split');
     expect(blocked.cash).toBe(0);
-    expect(blocked.morning.lanMeal).toBeUndefined();
+    expect(blocked.morning.lanMeal).toBeNull();
     const declined = chooseLanMeal(blocked, 'decline');
     expect(declined.cash).toBe(0);
     expect(declined.morning.lanMeal).toBe('decline');
