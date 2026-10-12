@@ -1,7 +1,7 @@
 name: Morning market browser
 on:
   push:
-    branches: ['codex/playable-market-qa-20261012-0743']
+    branches: ['codex/playable-market-final-20261012']
 jobs:
   smoke:
     runs-on: ubuntu-latest
