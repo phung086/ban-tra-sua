@@ -17,3 +17,25 @@ export function friendMealForDay(game: GameState): FriendMealChoice | null {
   const choice = entry?.slice(marker.length);
   return choice === 'split' || choice === 'host' || choice === 'decline' ? choice : null;
 }
+
+/** An invitation never spends money until the player explicitly confirms. */
+export function chooseFriendMeal(game: GameState, choice: FriendMealChoice): GameState {
+  if (game.phase !== 'prep' || game.morning.day !== game.day ||
+      game.morning.step !== 'finished' || friendMealForDay(game) !== null) return game;
+  const option = FRIEND_MEAL_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return {
+    ...game, notice: 'Chưa đủ tiền. Mình có thể chia hóa đơn hoặc hẹn Thảo hôm khác.',
+  };
+  const response = choice === 'decline'
+    ? 'Thảo: Không sao, khi nào rảnh mình gặp nhé.'
+    : choice === 'split'
+      ? 'Thảo: Chia đôi rõ ràng thế này thoải mái cho cả hai!'
+      : 'Thảo: Cảm ơn nhé, lần sau để mình mời lại!';
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    relationshipRewardIds: [...game.relationshipRewardIds, PREFIX + game.day + ':' + choice],
+    notice: response,
+  };
+}
