@@ -5,6 +5,7 @@ import {GameIcon} from '../GameIcon';
 import {MorningRoutine} from '../life/MorningRoutine';
 import {WeekTwoEpisodePanel} from '../life/WeekTwoEpisodePanel';
 import {WeekThreeEpisodePanel} from '../life/WeekThreeEpisodePanel';
+import {WeekFourEpisodePanel} from '../life/WeekFourEpisodePanel';
 
 
 interface Props {
@@ -27,6 +28,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
     <MorningRoutine game={game} onGame={onGame}/>
     <WeekTwoEpisodePanel game={game} onGame={onGame}/>
     <WeekThreeEpisodePanel game={game} onGame={onGame}/>
+    <WeekFourEpisodePanel game={game} onGame={onGame}/>
     <button className="primary-button prep-open" disabled={game.morning.step!=='finished'} onClick={()=>onGame(startDay(game))}><GameIcon name="home"/><span>Mở cửa tiệm<small>Bắt đầu ca · {game.targetOrders} đơn</small></span></button>
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
     <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
