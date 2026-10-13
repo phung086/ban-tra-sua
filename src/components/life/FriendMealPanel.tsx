@@ -1,3 +1,4 @@
+import '../../styles-friend-meal.css';
 import type { GameState } from '../../game/types';
 import { formatMoney } from '../../game/engine';
 import { chooseFriendMeal, friendMealForDay, FRIEND_MEAL_OPTIONS } from '../../game/lifeSim/friendMeal';
