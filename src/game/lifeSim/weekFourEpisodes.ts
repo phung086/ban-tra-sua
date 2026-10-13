@@ -53,6 +53,12 @@ export function getWeekFourEpisode(game: GameState): Episode | null {
   if (game.day === 25 && has(game, key(24, 'takeTime'))) return { ...episode, prompt: 'Sau bữa canh cùng mẹ, Lan nhắn lịch hẹn nhóm thay đổi. Bạn muốn phản hồi thế nào?' };
   if (game.day === 26 && has(game, key(22, 'takeTime'))) return { ...episode, prompt: 'Nhớ điểm hẹn trạm xe hôm trước, bác Minh gọi nhờ bạn xác nhận tuyến an toàn.' };
   if (game.day === 27 && has(game, key(25, 'keepSimple'))) return { ...episode, prompt: 'Nhóm bạn đã hẹn lại sau hôm Thảo bận. Hôm nay là sinh nhật Thảo, bạn muốn gửi lời chúc thế nào?' };
+  if (game.day === 28 && has(game, key(27, 'keepSimple')))
+    return { ...episode, prompt: 'Thảo vẫn giữ tấm thiệp bạn viết. Mẹ Mai thấy bạn có chuyện buồn và muốn lắng nghe.' };
+  if (game.day === 29 && has(game, key(28, 'takeTime')))
+    return { ...episode, prompt: 'Sau khi gọi cho mẹ và nghỉ ngơi, bạn cùng Lan lên kế hoạch đi chơi. Thành phố bên cạnh vẫn chưa mở.' };
+  if (game.day === 30 && has(game, key(29, 'takeTime')))
+    return { ...episode, prompt: 'Lan đã giữ bản đồ bến xe cho tương lai. Cô Hạnh hỏi bạn muốn khép lại tháng đầu thế nào.' };
   return episode;
 }
 export function getWeekFourDecision(game: GameState): WeekFourChoice | null {
@@ -62,6 +68,25 @@ export function getWeekFourCallback(game: GameState): string | null {
   const yesterday = episodes[game.day - 1];
   const choice = (['takeTime', 'keepSimple'] as const).find(c => has(game, key(game.day - 1, c)));
   return yesterday && choice ? yesterday[choice].callback : null;
+}
+export function getWeekFourMilestone(game: GameState): string | null {
+  if (game.day !== 30) return null;
+  const family = has(game, key(28, 'takeTime'))
+    ? 'Bạn đã dành thời gian nghỉ ngơi và gọi về nhà.'
+    : has(game, key(28, 'keepSimple'))
+      ? 'Bạn đã nói rõ khi mình cần một khoảng lặng.'
+      : 'Bạn vẫn có thể dành thời gian cho gia đình vào những ngày tới.';
+  const friends = has(game, key(29, 'takeTime'))
+    ? 'Lan và bạn đã tìm hiểu tuyến xe cho chuyến đi tương lai.'
+    : has(game, key(29, 'keepSimple'))
+      ? 'Nhóm bạn đã hẹn lịch để cùng lên kế hoạch.'
+      : 'Chuyến đi cùng bạn bè vẫn còn ở phía trước.';
+  const ending = has(game, key(30, 'takeTime'))
+    ? 'Khu phố đã ghé buổi trà nhỏ của bạn.'
+    : has(game, key(30, 'keepSimple'))
+      ? 'Lời cảm ơn cuối tháng đã được gửi tới mọi người.'
+      : 'Bạn có thể chọn cách khép lại tháng đầu theo khả năng của mình.';
+  return [family, friends, ending].join(' ');
 }
 export function canChooseWeekFour(game: GameState, choice: WeekFourChoice): boolean {
   const episode = episodes[game.day];
