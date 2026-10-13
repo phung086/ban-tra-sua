@@ -91,7 +91,7 @@ describe('chapter four playable days 22–27', () => {
     const day24Ready = chooseBreakfast(wakeMorning(day24), 'skip');
     const day25 = nextDay(chooseWeekFour(day24Ready, 'keepSimple'));
     expect(getWeekFourCallback(day25)).toContain('Mẹ Mai vui');
-    const html = renderToStaticMarkup(createElement(WeekFourEpisodePanel, { game: day25, onGame: () => undefined }));
+    const html = renderToStaticMarkup(createElement(WeekFourEpisodePanel, { game: chooseBreakfast(wakeMorning(day25), 'skip'), onGame: () => undefined }));
     expect(html).toContain('Mẹ Mai vui');
     expect(html).toContain('CHƯƠNG 4 · NGÀY 25');
   });
