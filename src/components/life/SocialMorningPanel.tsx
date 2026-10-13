@@ -1,4 +1,5 @@
 import type { GameState } from '../../game/types';
+import { SocialRepairPanel } from './SocialRepairPanel';
 import { canChooseSocialMorning, chooseSocialMorning, getSocialMorningCallback, getSocialMorningDecision, getSocialMorningEvent } from '../../game/lifeSim/socialMorning';
 import { canChooseSocialPromise, chooseSocialPromise, getSocialPromise, getSocialPromiseCallback, getSocialPromiseChoice } from '../../game/lifeSim/socialPromise';
 
@@ -10,7 +11,7 @@ export function SocialMorningPanel({ game, onGame }: { game: GameState; onGame: 
   const promiseDecision = promise ? getSocialPromiseChoice(game, promise) : null;
   const promiseCallback = getSocialPromiseCallback(game);
   if (!event && !callback && !promise && !promiseCallback) return null;
-  return <section className="life-morning" aria-label="Tin nhắn người thân và bạn bè">
+  return <><SocialRepairPanel game={game} onGame={onGame}/><section className="life-morning" aria-label="Tin nhắn người thân và bạn bè">
     {callback && <p aria-live="polite">💌 Hôm nay có lời nhắn: {callback}</p>}
     {promiseCallback && <p aria-live="polite">💌 Lời nhắn về cuộc hẹn: {promiseCallback}</p>}
     {promise && game.morning.step === 'finished' && <>
@@ -51,5 +52,5 @@ export function SocialMorningPanel({ game, onGame }: { game: GameState; onGame: 
       {!decision && !canChooseSocialMorning(game, 'visit') &&
         <p role="status">Đã quá giờ hẹn, thiếu tiền hoặc cần nghỉ ngơi. Bạn vẫn có thể nhắn lại miễn phí.</p>}
     </>}
-  </section>;
+  </section></>;
 }
