@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, chooseBreakfast, choosePlantCare, wakeMorning, PLANT_CARE_OPTIONS, type BreakfastChoice, type PlantCareChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -55,6 +55,25 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         })}
       </div>
     </>}
+    {finished&&game.phase==='prep'&&<section className="life-plant-care" aria-label="Chăm cây trước tiệm">
+      <strong>🌿 Góc cây trước tiệm</strong>
+      <p>{morning.lastPlantCare==='water'
+        ? 'Bác Bình: “Hôm qua cháu tưới cây khéo đấy, lá trông tươi hơn rồi!”'
+        : morning.lastPlantCare==='ask-binh'
+          ? 'Bác Bình: “Nhớ lời bác dặn hôm qua nhé, đất khô rồi mới tưới.”'
+          : 'Bác Bình để lại một chậu cây nhỏ. Mình chăm cây hay hỏi bác một chút?'}</p>
+      {morning.plantCare == null ? <div className="life-plant-care-actions">
+        {(['water','ask-binh'] as PlantCareChoice[]).map(choice=>{
+          const option=PLANT_CARE_OPTIONS[choice];
+          return <button key={choice} disabled={game.city.energy<option.energy}
+            onClick={()=>onGame(choosePlantCare(game,choice))}>
+            {option.label} · {option.minutes} phút · +{option.goodwill} thiện cảm
+          </button>;
+        })}
+      </div> : <p role="status">{morning.plantCare==='water'
+        ? 'Đã tưới cây hôm nay. Bác Bình sẽ nhớ vào sáng mai.'
+        : 'Đã hỏi bác Bình hôm nay. Mai bác sẽ nhắc lại mẹo chăm cây.'}</p>}
+    </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
