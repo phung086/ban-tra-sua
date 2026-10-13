@@ -7,7 +7,7 @@ import { createInitialState, nextDay } from '../engine';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import {
   canChooseWeekFour, chooseWeekFour, getWeekFourCallback,
-  getWeekFourDecision, getWeekFourEpisode,
+  getWeekFourDecision, getWeekFourEpisode, getWeekFourMilestone,
 } from './weekFourEpisodes';
 
 function ready(day: number) {
@@ -16,13 +16,13 @@ function ready(day: number) {
   return chooseBreakfast(wakeMorning(game), 'skip');
 }
 
-describe('chapter four playable days 22–27', () => {
+describe('chapter four playable days 22–30', () => {
   it('has six distinct day stories and no phantom chapter outside range', () => {
     const episodes = [22, 23, 24, 25, 26, 27].map(day => getWeekFourEpisode(ready(day)));
     expect(episodes.every(Boolean)).toBe(true);
     expect(new Set(episodes.map(episode => episode?.title)).size).toBe(6);
     expect(getWeekFourEpisode(ready(21))).toBeNull();
-    expect(getWeekFourEpisode(ready(28))).toBeNull();
+    expect(getWeekFourEpisode(ready(31))).toBeNull();
   });
 
   it('connects the new chapter to the actual pre-shop screen', () => {
@@ -154,4 +154,52 @@ describe('chapter four playable days 22–27', () => {
     expect(after.city.goodwill).toBe(before.city.goodwill + 2);
   });
 
+  it('renders playable days 28, 29 and 30 inside PrepWorld', () => {
+    for (const [day, title] of [[28, 'Một ngày buồn'], [29, 'Gió từ phương xa'], [30, 'Tiệm còn sáng đèn']] as const) {
+      const html = renderToStaticMarkup(createElement(PrepWorld, {
+        game: ready(day), onGame: () => undefined, onNavigate: () => undefined,
+      }));
+      expect(html).toContain(title);
+      expect(html).toContain('Mở cửa tiệm');
+    }
+    expect(getWeekFourEpisode(ready(31))).toBeNull();
+  });
+
+  it('day 28 rest is free, restores energy and survives save/reload once', () => {
+    const before = { ...ready(28), cash: 0, city: { ...ready(28).city, energy: 40 } };
+    const after = chooseWeekFour(before, 'takeTime');
+    expect(after.cash).toBe(0);
+    expect(after.city.energy).toBe(55);
+    expect(after.city.minutes).toBe(before.city.minutes + 20);
+    const loaded = JSON.parse(JSON.stringify(after)) as typeof after;
+    expect(getWeekFourDecision(loaded)).toBe('takeTime');
+    expect(chooseWeekFour(loaded, 'takeTime')).toBe(loaded);
+    expect(getWeekFourCallback(nextDay(after))).toContain('Mẹ Mai');
+  });
+
+  it('day 29 does not unlock an unbuilt city and has a free alternative', () => {
+    const before = { ...ready(29), cash: 0 };
+    expect(canChooseWeekFour(before, 'takeTime')).toBe(false);
+    expect(canChooseWeekFour(before, 'keepSimple')).toBe(true);
+    const after = chooseWeekFour(before, 'keepSimple');
+    expect(after.cash).toBe(0);
+    expect(getWeekFourDecision(after)).toBe('keepSimple');
+    expect(getWeekFourCallback(nextDay(after))).toContain('Lan');
+  });
+
+  it('day 30 month recap reflects earlier choices and remains saved', () => {
+    const rested = chooseWeekFour(ready(28), 'takeTime');
+    const planned = chooseWeekFour({ ...ready(29), relationshipRewardIds: rested.relationshipRewardIds }, 'keepSimple');
+    const before = { ...ready(30), cash: 0, relationshipRewardIds: planned.relationshipRewardIds };
+    expect(getWeekFourMilestone(before)).toContain('nghỉ ngơi');
+    expect(getWeekFourMilestone(before)).toContain('hẹn lịch');
+    const after = chooseWeekFour(before, 'keepSimple');
+    const html = renderToStaticMarkup(createElement(WeekFourEpisodePanel, { game: after, onGame: () => undefined }));
+    expect(html).toContain('Tổng kết tháng đầu');
+    expect(html).toContain('Lời cảm ơn cuối tháng');
+    const loaded = JSON.parse(JSON.stringify(after)) as typeof after;
+    expect(getWeekFourDecision(loaded)).toBe('keepSimple');
+    expect(chooseWeekFour(loaded, 'takeTime')).toBe(loaded);
+    expect(getWeekFourCallback(nextDay(after))).toContain('Cô Hạnh');
+  });
 });
