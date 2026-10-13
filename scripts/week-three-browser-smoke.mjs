@@ -36,7 +36,7 @@ try {
   }, saveKey, { timeout: 20000 });
   const initial = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
 
-  async function fixture(day, data = initial) {
+  async function fixture(day, data = initial, panelName = 'Câu chuyện tuần ba') {
     await page.evaluate(({ day, data, key }) => {
       const game = structuredClone(data);
       game.day = day;
@@ -50,7 +50,7 @@ try {
       localStorage.setItem(key, JSON.stringify(game));
     }, { day, data, key: saveKey });
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
-    await page.getByRole('region', { name: 'Câu chuyện tuần ba' }).waitFor({ timeout: 45000 });
+    await page.getByRole('region', { name: panelName }).waitFor({ timeout: 45000 });
   }
 
   for (const [width, height] of viewports) {
@@ -90,6 +90,51 @@ try {
   const callback = page.getByRole('region', { name: 'Câu chuyện tuần ba' });
   assert(await callback.getByText(/Bố Quang hỏi thùng đá/).isVisible(), 'NPC did not remember day 20 on day 21');
   report.cases.push('day20 reserve ice -> day21 father callback');
+  // Chapter IV: interact with the real React UI, persist once, and check NPC memory.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture(22, initial, 'Câu chuyện tuần bốn');
+  const weekFour = page.getByRole('region', { name: 'Câu chuyện tuần bốn' });
+  assert(await weekFour.getByText('Con đường ra ngoại ô').isVisible(), 'Day 22 episode missing');
+  await weekFour.getByRole('button', { name: /Hẹn ở trạm xe/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-22-takeTime'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day22 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  assert(day22.cash === initial.cash - 6000, 'Day 22 transport charge incorrect');
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+  await weekFour.getByText(/Đã lưu quyết định/).waitFor({ timeout: 30000 });
+  assert(await weekFour.getByRole('button').count() === 0, 'Day 22 reload duplicated choices');
+  report.cases.push('day22 transport and once-only save/reload');
+
+  await fixture(23, day22, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Bác Minh đã báo điểm hẹn/).isVisible(), 'Day 23 NPC memory missing');
+  await fixture(23, { ...day22, cash: 0 }, 'Câu chuyện tuần bốn');
+  assert(!await weekFour.getByRole('button', { name: /Thanh toán 38.000đ/ }).isEnabled(), 'Unaffordable bill should be disabled');
+  await weekFour.getByRole('button', { name: /Cùng mẹ rà soát/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-23-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day23 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  assert(day23.cash === 0, 'Free bill review charged cash');
+  report.cases.push('day23 zero-cash fallback and NPC callback');
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await fixture(24, initial, 'Câu chuyện tuần bốn');
+  const beforeDay24 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await weekFour.getByRole('button', { name: /Đi chợ và nấu canh/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-24-takeTime'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day24 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  assert(day24.cash === beforeDay24.cash - 26000, 'Cooking cost incorrect');
+  assert(day24.morning.satiety > beforeDay24.morning.satiety, 'Cooking did not restore satiety');
+  await fixture(25, day24, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Mẹ Mai hỏi có muốn nấu/).isVisible(), 'Day 25 cooking callback missing');
+  report.cases.push('day24 cook -> day25 callback on desktop');
+
   assert(report.errors.length === 0, 'Uncaught browser errors: ' + report.errors.join('; '));
   await context.close();
 } catch (error) {

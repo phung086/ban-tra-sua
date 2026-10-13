@@ -16,6 +16,7 @@ on:
       - 'src/styles-street.css'
       - 'scripts/mobile-layout-smoke.mjs'
       - 'scripts/week-three-browser-smoke.mjs'
+      - 'src/game/lifeSim/weekFourEpisodes.ts'
       - '.github/workflows/mobile-layout.yml'
   workflow_dispatch:
 
@@ -53,8 +54,10 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:5192/ >/dev/null
-          node scripts/mobile-layout-smoke.mjs
-          node scripts/week-three-browser-smoke.mjs
+          SMOKE_FAILED=0
+          node scripts/week-three-browser-smoke.mjs || SMOKE_FAILED=1
+          node scripts/mobile-layout-smoke.mjs || SMOKE_FAILED=1
+          exit "$SMOKE_FAILED"
       - name: Upload screenshots and measured layout boxes
         if: always()
         uses: actions/upload-artifact@v4
