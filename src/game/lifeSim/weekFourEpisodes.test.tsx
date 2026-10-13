@@ -16,13 +16,13 @@ function ready(day: number) {
   return chooseBreakfast(wakeMorning(game), 'skip');
 }
 
-describe('chapter four playable days 22–24', () => {
-  it('has three distinct day stories and no phantom chapter outside range', () => {
-    const episodes = [22, 23, 24].map(day => getWeekFourEpisode(ready(day)));
+describe('chapter four playable days 22–27', () => {
+  it('has six distinct day stories and no phantom chapter outside range', () => {
+    const episodes = [22, 23, 24, 25, 26, 27].map(day => getWeekFourEpisode(ready(day)));
     expect(episodes.every(Boolean)).toBe(true);
-    expect(new Set(episodes.map(episode => episode?.title)).size).toBe(3);
+    expect(new Set(episodes.map(episode => episode?.title)).size).toBe(6);
     expect(getWeekFourEpisode(ready(21))).toBeNull();
-    expect(getWeekFourEpisode(ready(25))).toBeNull();
+    expect(getWeekFourEpisode(ready(28))).toBeNull();
   });
 
   it('connects the new chapter to the actual pre-shop screen', () => {
@@ -93,7 +93,7 @@ describe('chapter four playable days 22–24', () => {
     expect(getWeekFourCallback(day25)).toContain('Mẹ Mai vui');
     const html = renderToStaticMarkup(createElement(WeekFourEpisodePanel, { game: day25, onGame: () => undefined }));
     expect(html).toContain('Mẹ Mai vui');
-    expect(html).not.toContain('CHƯƠNG 4 · NGÀY 25');
+    expect(html).toContain('CHƯƠNG 4 · NGÀY 25');
   });
 
   it('recovers choice from story log if legacy save lost reward ledger', () => {
@@ -102,4 +102,56 @@ describe('chapter four playable days 22–24', () => {
     expect(getWeekFourDecision(legacy)).toBe('keepSimple');
     expect(chooseWeekFour(legacy, 'takeTime')).toBe(legacy);
   });
+  it('renders friend plans on day 25 in the actual preparation UI', () => {
+    const html = renderToStaticMarkup(createElement(PrepWorld, {
+      game: ready(25), onGame: () => undefined, onNavigate: () => undefined,
+    }));
+    expect(html).toContain('Bạn đã có hẹn khác');
+    expect(html).toContain('Hẹn lại cả nhóm');
+    expect(html).toContain('Mở cửa tiệm');
+  });
+
+  it('day 25 allows free rescheduling and remembers the plan after reload', () => {
+    const before = { ...ready(25), cash: 0 };
+    expect(canChooseWeekFour(before, 'takeTime')).toBe(false);
+    expect(canChooseWeekFour(before, 'keepSimple')).toBe(true);
+    const chosen = chooseWeekFour(before, 'keepSimple');
+    const loaded = JSON.parse(JSON.stringify(chosen)) as typeof chosen;
+    expect(loaded.cash).toBe(0);
+    expect(getWeekFourDecision(loaded)).toBe('keepSimple');
+    expect(chooseWeekFour(loaded, 'takeTime')).toBe(loaded);
+    const next = nextDay(chosen);
+    expect(getWeekFourCallback(next)).toContain('Lan đã nhắn Thảo');
+  });
+
+  it('day 26 uses the day 22 transit memory without unlocking an unbuilt map', () => {
+    const traveled = chooseWeekFour(ready(22), 'takeTime');
+    const day26 = { ...ready(26), relationshipRewardIds: traveled.relationshipRewardIds };
+    expect(getWeekFourEpisode(day26)?.prompt).toContain('Nhớ điểm hẹn trạm xe');
+    const safe = chooseWeekFour({ ...day26, cash: 0 }, 'keepSimple');
+    expect(safe.cash).toBe(0);
+    expect(safe.storyLog[0].id).toBe('week-four-26-keepSimple');
+    expect(getWeekFourCallback(nextDay(safe))).toContain('Bác Minh');
+  });
+
+  it('day 27 birthday remembers the rescheduled group and charges a gift once', () => {
+    const previous = chooseWeekFour(ready(25), 'keepSimple');
+    const birthday = { ...ready(27), relationshipRewardIds: previous.relationshipRewardIds };
+    expect(getWeekFourEpisode(birthday)?.prompt).toContain('Nhóm bạn đã hẹn lại');
+    const gifted = chooseWeekFour(birthday, 'takeTime');
+    expect(gifted.cash).toBe(birthday.cash - 24000);
+    const loaded = JSON.parse(JSON.stringify(gifted)) as typeof gifted;
+    expect(getWeekFourDecision(loaded)).toBe('takeTime');
+    expect(chooseWeekFour(loaded, 'takeTime')).toBe(loaded);
+    expect(getWeekFourCallback(nextDay(gifted))).toContain('Thảo đặt món trà');
+  });
+
+  it('birthday card remains available for zero cash', () => {
+    const before = { ...ready(27), cash: 0 };
+    const after = chooseWeekFour(before, 'keepSimple');
+    expect(after.cash).toBe(0);
+    expect(after.city.minutes).toBe(before.city.minutes + 8);
+    expect(after.city.goodwill).toBe(before.city.goodwill + 2);
+  });
+
 });

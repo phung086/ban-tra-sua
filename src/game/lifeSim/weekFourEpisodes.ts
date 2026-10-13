@@ -18,6 +18,18 @@ const episodes: Record<number, Episode> = {
     prompt: 'Mẹ rủ đi chợ mua đồ nấu canh cho bữa trưa. Bạn muốn nấu cùng mẹ?',
     takeTime: result('🥬 Đi chợ và nấu canh', 26000, 35, -5, 3, 30, 'Hai mẹ con nấu bữa canh nóng; bạn no hơn.', 'Mẹ Mai hỏi có muốn nấu món canh ấy lần nữa không.'),
     keepSimple: result('🍚 Ăn cơm có sẵn', 0, 0, 0, 1, 10, 'Bạn ăn cơm có sẵn, không phát sinh chi phí.', 'Mẹ Mai vui vì bạn đã ăn trước khi mở tiệm.') },
+  25: { title: 'Bạn đã có hẹn khác', character: 'Lan', characterId: 'lan',
+    prompt: 'Lan nhắn nhóm bạn đổi giờ ăn vì Thảo bận. Bạn muốn điều chỉnh cuộc hẹn thế nào?',
+    takeTime: result('🥢 Hẹn Lan ăn bún sau ca', 18000, 25, -2, 3, 15, 'Bạn cùng Lan ăn bún và để Thảo chọn dịp khác.', 'Lan nhớ bạn đã linh hoạt đổi lịch để cả nhóm thoải mái.'),
+    keepSimple: result('💬 Hẹn lại cả nhóm', 0, 0, 0, 1, 0, 'Bạn nhắn nhóm chọn một buổi khác, không ai phải vội.', 'Lan đã nhắn Thảo lịch hẹn mới; cả nhóm vẫn giữ liên lạc.') },
+  26: { title: 'Chuyến xe lạc đường', character: 'Bác Minh', characterId: 'minh',
+    prompt: 'Bác Minh báo xe đi nhầm hướng. Tuyến ngoại ô chưa mở, bạn chỉ nhận đơn ở điểm hẹn an toàn.',
+    takeTime: result('🗺️ Hỏi đường đến trạm gần nhất', 4000, 20, -2, 2, 0, 'Bạn hỏi nhân viên trạm và hẹn lại điểm nhận trà trong khu đã mở.', 'Bác Minh cảm ơn vì bạn không mạo hiểm đi đường lạ.'),
+    keepSimple: result('📞 Hủy giao xa, hẹn tại tiệm', 0, 0, 0, 1, 0, 'Bạn báo rõ với khách và giữ đơn để nhận tại tiệm.', 'Bác Minh báo nhóm bạn vẫn muốn ghé tiệm lần sau.') },
+  27: { title: 'Quà sinh nhật nhỏ', character: 'Thảo', characterId: 'thao',
+    prompt: 'Hôm nay là sinh nhật Thảo. Lan rủ bạn gửi một món quà vừa sức trước ca bán.',
+    takeTime: result('🎁 Mua quà nhỏ tặng Thảo', 24000, 20, -2, 3, 0, 'Thảo vui vì món quà giản dị và lời chúc chân thành.', 'Thảo đặt món trà quen để cảm ơn lời chúc sinh nhật.'),
+    keepSimple: result('💌 Viết thiệp tay', 0, 8, 0, 2, 0, 'Bạn viết thiệp bằng giấy có sẵn; Thảo rất trân trọng.', 'Thảo cất tấm thiệp và nhắn bạn một lời cảm ơn.') },
 };
 const key = (day: number, choice: WeekFourChoice) => `week-four-${day}-${choice}`;
 const has = (game: GameState, id: string) => game.relationshipRewardIds?.includes(id) || game.storyLog?.some(item => item.id === id);
@@ -26,6 +38,9 @@ export function getWeekFourEpisode(game: GameState): Episode | null {
   if (!episode) return null;
   if (game.day === 23 && has(game, key(22, 'takeTime'))) return { ...episode, prompt: 'Sau chuyến hẹn ở trạm xe, mẹ Mai nhắc bạn xem lại hóa đơn và tiền đi lại.' };
   if (game.day === 24 && has(game, key(23, 'takeTime'))) return { ...episode, prompt: 'Hóa đơn đã thanh toán; mẹ Mai rủ bạn cùng nấu canh tại nhà.' };
+  if (game.day === 25 && has(game, key(24, 'takeTime'))) return { ...episode, prompt: 'Sau bữa canh cùng mẹ, Lan nhắn lịch hẹn nhóm thay đổi. Bạn muốn phản hồi thế nào?' };
+  if (game.day === 26 && has(game, key(22, 'takeTime'))) return { ...episode, prompt: 'Nhớ điểm hẹn trạm xe hôm trước, bác Minh gọi nhờ bạn xác nhận tuyến an toàn.' };
+  if (game.day === 27 && has(game, key(25, 'keepSimple'))) return { ...episode, prompt: 'Nhóm bạn đã hẹn lại sau hôm Thảo bận. Hôm nay là sinh nhật Thảo, bạn muốn gửi lời chúc thế nào?' };
   return episode;
 }
 export function getWeekFourDecision(game: GameState): WeekFourChoice | null {
