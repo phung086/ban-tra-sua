@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advanceNpcLocomotion, brakingStrideScale, initialNpcLocomotion, turnStrideScale } from './npcLocomotion';
+import { advanceNpcLocomotion, brakingStrideScale, launchStrideScale, initialNpcLocomotion, turnStrideScale } from './npcLocomotion';
 
 const step = (state: ReturnType<typeof initialNpcLocomotion>, x: number, z: number,
   heading = 0, walking = true, motion = true, dt = 1 / 30) =>
@@ -69,7 +69,7 @@ describe('QC-06 customer locomotion integration', () => {
     const straight = step(spawn, 0, 0.08);
     const firstTurn = step(straight.next, 0, 0.16, Math.PI / 2);
     const secondTurn = step(firstTurn.next, 0, 0.24, Math.PI / 2);
-    expect(straight.strideScale).toBe(1);
+    expect(straight.strideScale).toBeLessThan(1);
     expect(secondTurn.stepping).toBe(true);
     expect(secondTurn.strideScale).toBeGreaterThanOrEqual(0.45);
     expect(secondTurn.strideScale).toBeLessThan(1);
@@ -88,12 +88,48 @@ describe('QC-06 customer locomotion integration', () => {
     const spawn = step(initialNpcLocomotion(), 0, 0).next;
     const cruising = step(spawn, 0, .08);
     const braking = step(cruising.next, 0, .085);
-    expect(cruising.strideScale).toBe(1);
+    expect(cruising.strideScale).toBeLessThan(1);
     expect(braking.stepping).toBe(true);
     expect(braking.strideScale).toBeLessThan(.4);
     expect(braking.next.gaitPhase).toBeGreaterThan(cruising.next.gaitPhase);
     const stopped = step(braking.next, 0, .085, 0, false);
     expect(stopped.stepping).toBe(false);
     expect(stopped.next.gaitPhase).toBe(braking.next.gaitPhase);
+  });
+  it('plants the first step and reaches full swing by 24cm of travel', () => {
+    expect(launchStrideScale(0)).toBeCloseTo(.28);
+    expect(launchStrideScale(.12)).toBeCloseTo(.64);
+    expect(launchStrideScale(.24)).toBe(1);
+    expect(launchStrideScale(Number.NaN)).toBe(1);
+    const spawn = step(initialNpcLocomotion(), 0, 0).next;
+    const first = step(spawn, 0, .08);
+    const second = step(first.next, 0, .16);
+    const cruising = step(second.next, 0, .24);
+    expect(first.strideScale).toBeLessThan(second.strideScale);
+    expect(second.strideScale).toBeLessThan(cruising.strideScale);
+    expect(cruising.strideScale).toBeCloseTo(1);
+    expect(cruising.next.gaitPhase).toBeCloseTo(.24 * 3.6);
+    const stopped = step(cruising.next, 0, .24, 0, false);
+    expect(stopped.next.startDistance).toBe(0);
+    expect(step(stopped.next, 0, .32).strideScale).toBeCloseTo(first.strideScale);
+    expect(step(cruising.next, 10, 10).next.startDistance).toBe(0);
+    expect(step(cruising.next, 0, .32, 0, true, false).next.startDistance).toBe(0);
+  });
+  it('uses path distance rather than frame count to ramp the first stride', () => {
+    const run = (fps: number) => {
+      let state = step(initialNpcLocomotion(), 0, 0).next;
+      let last = 1;
+      for (let frame = 1; frame <= fps / 3; frame++) {
+        const result = step(state, 0, .36 * frame / fps, 0, true, true, 1 / fps);
+        state = result.next;
+        last = result.strideScale;
+      }
+      return { state, last };
+    };
+    const thirty = run(30), sixty = run(60);
+    expect(thirty.state.startDistance).toBeCloseTo(.12);
+    expect(sixty.state.startDistance).toBeCloseTo(.12);
+    expect(thirty.last).toBeCloseTo(sixty.last, 8);
+    expect(thirty.state.gaitPhase).toBeCloseTo(sixty.state.gaitPhase, 8);
   });
 });

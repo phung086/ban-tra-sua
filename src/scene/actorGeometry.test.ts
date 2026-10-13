@@ -2,6 +2,7 @@ import * as T from 'three';
 import {describe,it,expect} from 'vitest';
 import {Workshop,makePerson,pose} from './models';
 import {CUSTOMERS} from '../game/content';
+import {advanceNpcLocomotion,initialNpcLocomotion} from './npcLocomotion';
 
 describe('continuous character deformation',()=>{
   it('preserves a connected limb surface and smoothly weights both sides of every bend',()=>{
@@ -178,6 +179,20 @@ describe('continuous character deformation',()=>{
     expect(Math.abs(person.leftLeg.rotation.x)).toBeLessThan(.001);
     pose(person,1.6,false,0,false,false,Math.PI/2);
     expect(person.leftLeg.rotation.x).toBe(0);
+    w.dispose();
+  });
+  it('starts with smaller real mesh leg motion than a settled walking stride',()=>{
+    const w=new Workshop(),starting=makePerson(w,CUSTOMERS[0]),cruising=makePerson(w,CUSTOMERS[0]);
+    const spawn=advanceNpcLocomotion(initialNpcLocomotion(),0,0,0,true,true,1/30).next;
+    const launch=advanceNpcLocomotion(spawn,0,.08,0,true,true,1/30);
+    expect(launch.strideScale).toBeLessThan(.7);
+    for(let frame=0;frame<=30;frame++){
+      const time=frame/30;
+      pose(starting,time,true,0,false,true,Math.PI/2,false,launch.strideScale);
+      pose(cruising,time,true,0,false,true,Math.PI/2,false,1);
+    }
+    expect(Math.abs(starting.leftLeg.rotation.x)).toBeLessThan(Math.abs(cruising.leftLeg.rotation.x)*.75);
+    expect(starting.knees[0].rotation.x).toBeLessThan(cruising.knees[0].rotation.x*.75);
     w.dispose();
   });
 });

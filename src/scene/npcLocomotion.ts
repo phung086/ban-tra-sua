@@ -8,11 +8,12 @@ export type NpcLocomotion = {
   z: number;
   heading: number;
   gaitPhase: number;
+  startDistance: number;
   initialized: boolean;
 };
 
 export const initialNpcLocomotion = (): NpcLocomotion => ({
-  x: 0, z: 0, heading: 0, gaitPhase: 0, initialized: false,
+  x: 0, z: 0, heading: 0, gaitPhase: 0, startDistance: 0, initialized: false,
 });
 
 const wrap = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -38,6 +39,15 @@ export function brakingStrideScale(displacement: number, dt: number): number {
   return 0.3 + 0.7 * t * t * (3 - 2 * t);
 }
 
+/** Plant the feet at take-off, then restore a full swing over the first 24cm.
+ * Distance (not elapsed frames) keeps the launch consistent at 30/60 FPS.
+ */
+export function launchStrideScale(distanceSinceStart: number): number {
+  if (!Number.isFinite(distanceSinceStart)) return 1;
+  const t = Math.max(0, Math.min(1, distanceSinceStart / 0.24));
+  return 0.28 + 0.72 * t * t * (3 - 2 * t);
+}
+
 export function advanceNpcLocomotion(
   previous: NpcLocomotion,
   x: number,
@@ -52,7 +62,7 @@ export function advanceNpcLocomotion(
   }
   const target = wrap(targetHeading);
   if (!previous.initialized) {
-    return { next: { x, z, heading: target, gaitPhase: 0, initialized: true }, stepping: false, strideScale: 1 };
+    return { next: { x, z, heading: target, gaitPhase: 0, startDistance: 0, initialized: true }, stepping: false, strideScale: 1 };
   }
 
   const displacement = Math.hypot(x - previous.x, z - previous.z);
@@ -61,6 +71,7 @@ export function advanceNpcLocomotion(
   const gaitPhase = stepping
     ? (previous.gaitPhase + displacement * 3.6) % TAU
     : previous.gaitPhase;
+  const startDistance = stepping ? Math.min(0.24, previous.startDistance + displacement) : 0;
 
   // Keep the shortest angular arc through +/- PI, with both a rate cap and
   // exponential easing near the target. Clamp dt after tab suspension.
@@ -74,10 +85,11 @@ export function advanceNpcLocomotion(
   const strideScale = stepping
     ? turnStrideScale(Math.atan2(x - previous.x, z - previous.z), heading)
       * brakingStrideScale(displacement, dt)
+      * launchStrideScale(startDistance)
     : 1;
 
   return {
-    next: { x, z, heading, gaitPhase, initialized: true },
+    next: { x, z, heading, gaitPhase, startDistance, initialized: true },
     stepping,
     strideScale,
   };
