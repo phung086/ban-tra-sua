@@ -26,6 +26,15 @@ try {
       motion: false, sound: false, music: false,
     }));
   });
+  // App saves on pagehide; queue fixtures in sessionStorage and apply them
+  // before React initializes on the next navigation, avoiding stale-save overwrite.
+  await page.addInitScript(({ key, pendingKey }) => {
+    const pending = sessionStorage.getItem(pendingKey);
+    if (pending) {
+      localStorage.setItem(key, pending);
+      sessionStorage.removeItem(pendingKey);
+    }
+  }, { key: saveKey, pendingKey: 'tiem-tra-smoke-fixture' });
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForSelector('.street-world canvas', { timeout: 120000 });
   await page.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click({ timeout: 30000 });
@@ -47,7 +56,7 @@ try {
       game.morning.step = 'finished';
       game.morning.breakfast = 'skip';
       game.morning.satiety = 30;
-      localStorage.setItem(key, JSON.stringify(game));
+      sessionStorage.setItem('tiem-tra-smoke-fixture', JSON.stringify(game));
     }, { day, data, key: saveKey });
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
     await page.getByRole('region', { name: panelName }).waitFor({ timeout: 45000 });
@@ -134,6 +143,35 @@ try {
   await fixture(25, day24, 'Câu chuyện tuần bốn');
   assert(await weekFour.getByText(/Mẹ Mai hỏi có muốn nấu/).isVisible(), 'Day 25 cooking callback missing');
   report.cases.push('day24 cook -> day25 callback on desktop');
+
+  // New chapter-four choices must be available in the same production UI.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture(25, initial, 'Câu chuyện tuần bốn');
+  await weekFour.getByRole('button', { name: /Hẹn lại cả nhóm/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-25-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day25 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await fixture(26, day25, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Lan đã nhắn Thảo/).isVisible(), 'Day 26 missing Lan callback');
+  await weekFour.getByRole('button', { name: /Hủy giao xa, hẹn tại tiệm/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-26-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day26 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await fixture(27, day26, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Bác Minh báo nhóm bạn/).isVisible(), 'Day 27 missing Minh callback');
+  await weekFour.getByRole('button', { name: /Viết thiệp tay/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-27-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+  await weekFour.getByText(/Đã lưu quyết định/).waitFor({ timeout: 30000 });
+  assert(await weekFour.getByRole('button').count() === 0, 'Day 27 duplicated choice after reload');
+  report.cases.push('day25–27 friends, safe delivery, birthday and reload');
 
   assert(report.errors.length === 0, 'Uncaught browser errors: ' + report.errors.join('; '));
   await context.close();
