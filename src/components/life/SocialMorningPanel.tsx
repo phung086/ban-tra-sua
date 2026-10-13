@@ -10,7 +10,7 @@ export function SocialMorningPanel({ game, onGame }: { game: GameState; onGame: 
   const promise = getSocialPromise(game);
   const promiseDecision = promise ? getSocialPromiseChoice(game, promise) : null;
   const promiseCallback = getSocialPromiseCallback(game);
-  if (!event && !callback && !promise && !promiseCallback) return null;
+  if (!event && !callback && !promise && !promiseCallback) return <SocialRepairPanel game={game} onGame={onGame}/>;
   return <><SocialRepairPanel game={game} onGame={onGame}/><section className="life-morning" aria-label="Tin nhắn người thân và bạn bè">
     {callback && <p aria-live="polite">💌 Hôm nay có lời nhắn: {callback}</p>}
     {promiseCallback && <p aria-live="polite">💌 Lời nhắn về cuộc hẹn: {promiseCallback}</p>}
