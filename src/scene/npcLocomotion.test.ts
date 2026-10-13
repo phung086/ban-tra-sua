@@ -21,13 +21,13 @@ describe('QC-06 customer locomotion integration', () => {
     };
     expect(run(30)).toBeCloseTo(run(60), 7);
   });
-  it('holds foot phase while waiting and resumes on the next step', () => {
+  it('settles foot phase while waiting and resumes on the next step', () => {
     const initial = step(initialNpcLocomotion(), 0, 0).next;
     const walking = step(initial, .1, 0).next;
     const waiting = step(walking, .1, 0, 0, false);
     expect(waiting.stepping).toBe(false);
-    expect(waiting.next.gaitPhase).toBeCloseTo(walking.gaitPhase);
-    expect(step(waiting.next, .2, 0).next.gaitPhase).toBeGreaterThan(walking.gaitPhase);
+    expect(Math.abs(waiting.next.gaitPhase)).toBeLessThan(Math.abs(walking.gaitPhase));
+    expect(step(waiting.next, .2, 0).next.gaitPhase).toBeGreaterThan(waiting.next.gaitPhase);
   });
   it('turns 90 degrees without a sudden snap or long-way rotation', () => {
     const initial = step(initialNpcLocomotion(), 0, 0).next;
@@ -132,4 +132,36 @@ describe('QC-06 customer locomotion integration', () => {
     expect(thirty.last).toBeCloseTo(sixty.last, 8);
     expect(thirty.state.gaitPhase).toBeCloseTo(sixty.state.gaitPhase, 8);
   });
+
+  it('plants either foot at the nearest half-cycle before restarting at 30/60 FPS', () => {
+    const run = (fps: number, steps: number) => {
+      let state = step(initialNpcLocomotion(), 0, 0, 0, true, true, 1 / fps).next;
+      for (let i = 1; i <= steps; i++)
+        state = step(state, 0, i * .1, 0, true, true, 1 / fps).next;
+      const planted = Math.round(state.gaitPhase / Math.PI) * Math.PI;
+      for (let i = 0; i < fps / 2; i++) {
+        const next = step(state, 0, steps * .1, 0, false, true, 1 / fps).next;
+        expect(Math.abs(next.gaitPhase - planted)).toBeLessThanOrEqual(
+          Math.abs(state.gaitPhase - planted) + 1e-10,
+        );
+        state = next;
+      }
+      expect(state.gaitPhase).toBeCloseTo(planted, 2);
+      const restart = step(state, 0, steps * .1 + .01, 0, true, true, 1 / fps);
+      expect(restart.stepping).toBe(true);
+      expect(restart.next.startDistance).toBeCloseTo(.01);
+      expect(restart.strideScale).toBeLessThan(.35);
+      expect(Math.abs(Math.sin(restart.next.gaitPhase))).toBeLessThan(.05);
+      return state.gaitPhase;
+    };
+    for (const steps of [3, 5])
+      expect(run(30, steps)).toBeCloseTo(run(60, steps), 6);
+  });
+  it('does not reset the gait on teleport or reduced motion', () => {
+    const initial = step(initialNpcLocomotion(), 0, 0).next;
+    const moved = step(initial, 0, .1).next;
+    expect(step(moved, 8, 8, 0, true, true, 1 / 30).next.gaitPhase).toBe(moved.gaitPhase);
+    expect(step(moved, 0, .1, 0, false, false, 1 / 30).next.gaitPhase).toBe(moved.gaitPhase);
+  });
+
 });

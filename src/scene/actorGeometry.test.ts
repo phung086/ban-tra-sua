@@ -195,4 +195,30 @@ describe('continuous character deformation',()=>{
     expect(starting.knees[0].rotation.x).toBeLessThan(cruising.knees[0].rotation.x*.75);
     w.dispose();
   });
+
+  it('settles real NPC leg and knee meshes before restarting from a planted stance',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    let state=advanceNpcLocomotion(initialNpcLocomotion(),0,0,0,true,true,1/30).next;
+    pose(person,0,false,0,false,true,state.gaitPhase);
+    for(let frame=1;frame<=5;frame++){
+      const r=advanceNpcLocomotion(state,0,frame*.1,0,true,true,1/30);
+      state=r.next;
+      pose(person,frame/30,r.stepping,0,false,true,state.gaitPhase,false,r.strideScale);
+    }
+    for(let frame=6;frame<=21;frame++){
+      const r=advanceNpcLocomotion(state,0,.5,0,false,true,1/30);
+      state=r.next;
+      pose(person,frame/30,r.stepping,0,false,true,state.gaitPhase,false,r.strideScale);
+    }
+    expect(Math.abs(state.gaitPhase-Math.PI)).toBeLessThan(.001);
+    expect(Math.abs(person.leftLeg.rotation.x)).toBeLessThan(.01);
+    expect(Math.abs(person.rightLeg.rotation.x)).toBeLessThan(.01);
+    expect(person.knees.every(k=>Math.abs(k.rotation.x)<.01)).toBe(true);
+    const restart=advanceNpcLocomotion(state,0,.51,0,true,true,1/30);
+    pose(person,22/30,restart.stepping,0,false,true,restart.next.gaitPhase,false,restart.strideScale);
+    expect(Math.abs(person.leftLeg.rotation.x)).toBeLessThan(.04);
+    expect(Math.abs(person.rightLeg.rotation.x)).toBeLessThan(.04);
+    w.dispose();
+  });
+
 });

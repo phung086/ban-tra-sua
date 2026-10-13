@@ -68,14 +68,20 @@ export function advanceNpcLocomotion(
   const displacement = Math.hypot(x - previous.x, z - previous.z);
   // A long background pause or teleport must not advance multiple walk cycles.
   const stepping = motion && walking && displacement >= 0.001 && displacement <= 0.25;
+  // When a visitor stops, ease the feet toward the nearest planted half-cycle
+  // (both leg swings and knee bends are neutral at multiples of PI). Preserve
+  // phase across teleports/reduced-motion instead of snapping the rig.
+  const frame = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.05)) : 0;
+  const plantedPhase = Math.round(previous.gaitPhase / Math.PI) * Math.PI;
   const gaitPhase = stepping
     ? (previous.gaitPhase + displacement * 3.6) % TAU
-    : previous.gaitPhase;
+    : motion && displacement < 0.001
+      ? previous.gaitPhase + (plantedPhase - previous.gaitPhase) * (1 - Math.exp(-18 * frame))
+      : previous.gaitPhase;
   const startDistance = stepping ? Math.min(0.24, previous.startDistance + displacement) : 0;
 
   // Keep the shortest angular arc through +/- PI, with both a rate cap and
   // exponential easing near the target. Clamp dt after tab suspension.
-  const frame = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.05)) : 0;
   const current = Number.isFinite(previous.heading) ? wrap(previous.heading) : target;
   const delta = wrap(target - current);
   const ease = 1 - Math.exp(-15 * frame);
