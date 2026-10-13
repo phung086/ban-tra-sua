@@ -1,7 +1,7 @@
 name: Mobile orientation and autofit
 on:
   push:
-    branches: [main, codex/mobile-beta-foundation, codex/integrate-game-20261009]
+    branches: [main, 'codex/**']
     paths:
       - 'src/styles-responsive-play.css'
       - 'src/main.tsx'
@@ -15,6 +15,7 @@ on:
       - 'src/styles-world-foundation.css'
       - 'src/styles-street.css'
       - 'scripts/mobile-layout-smoke.mjs'
+      - 'scripts/week-three-browser-smoke.mjs'
       - '.github/workflows/mobile-layout.yml'
   workflow_dispatch:
 
@@ -53,6 +54,7 @@ jobs:
           done
           curl -fsS http://127.0.0.1:5192/ >/dev/null
           node scripts/mobile-layout-smoke.mjs
+          node scripts/week-three-browser-smoke.mjs
       - name: Upload screenshots and measured layout boxes
         if: always()
         uses: actions/upload-artifact@v4
