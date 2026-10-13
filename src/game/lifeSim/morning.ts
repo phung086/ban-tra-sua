@@ -3,6 +3,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
+export type DayEpisodeChoice = 'help' | 'focus';
 
 export interface MorningRoutineState {
   day: number;
@@ -11,6 +12,8 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  /** Optional for legacy v3 saves; reset when a new day begins. */
+  episodeChoice?: DayEpisodeChoice | null;
 }
 
 export const BREAKFAST_OPTIONS = {
@@ -32,6 +35,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     step: 'asleep',
     breakfast: null,
     satiety: 30,
+    episodeChoice: null,
   };
 }
 
@@ -56,7 +60,9 @@ export function hydrateMorning(
     ['asleep', 'awake', 'finished'].includes(String(value.step)) &&
     (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
-    value.satiety >= 0 && value.satiety <= 100) {
+    value.satiety >= 0 && value.satiety <= 100 &&
+    (!('episodeChoice' in value) || value.episodeChoice === null ||
+      value.episodeChoice === 'help' || value.episodeChoice === 'focus')) {
     return value as unknown as MorningRoutineState;
   }
   // Existing saves have no morning session. A currently-open shift must never
