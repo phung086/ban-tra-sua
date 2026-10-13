@@ -7,6 +7,7 @@ import {WeekTwoEpisodePanel} from '../life/WeekTwoEpisodePanel';
 import {WeekThreeEpisodePanel} from '../life/WeekThreeEpisodePanel';
 import {WeekFourEpisodePanel} from '../life/WeekFourEpisodePanel';
 import {WeekSixEpisodePanel} from '../life/WeekSixEpisodePanel';
+import {WeekSevenEpisodePanel} from '../life/WeekSevenEpisodePanel';
 import { canChooseWeekFive, chooseWeekFive, getWeekFiveCallback, getWeekFiveDecision, getWeekFiveEpisode } from '../../game/lifeSim/weekFiveEpisodes';
 
 
@@ -35,6 +36,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
     <WeekThreeEpisodePanel game={game} onGame={onGame}/>
     <WeekFourEpisodePanel game={game} onGame={onGame}/>
     <WeekSixEpisodePanel game={game} onGame={onGame}/>
+    <WeekSevenEpisodePanel game={game} onGame={onGame}/>
     {(fiveEpisode || fiveCallback) && <section className="life-morning" aria-label="Câu chuyện chương năm">
       {fiveCallback && <p aria-live="polite">💌 {fiveCallback}</p>}
       {fiveEpisode && game.morning.step === 'finished' && <>
