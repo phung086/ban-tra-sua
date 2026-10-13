@@ -1,7 +1,7 @@
 import type { GameState } from '../../game/types';
 import {
   canChooseWeekFour, chooseWeekFour, getWeekFourCallback,
-  getWeekFourDecision, getWeekFourEpisode,
+  getWeekFourDecision, getWeekFourEpisode, getWeekFourMilestone,
 } from '../../game/lifeSim/weekFourEpisodes';
 
 export function WeekFourEpisodePanel({ game, onGame }: {
@@ -11,12 +11,14 @@ export function WeekFourEpisodePanel({ game, onGame }: {
   const episode = getWeekFourEpisode(game);
   const callback = getWeekFourCallback(game);
   const decision = getWeekFourDecision(game);
+  const milestone = getWeekFourMilestone(game);
   if (game.phase !== 'prep' || (!episode && !callback)) return null;
   return <section className="life-morning" aria-label="Câu chuyện tuần bốn">
     {callback && <p aria-live="polite">💌 {callback}</p>}
     {episode && game.morning.step === 'finished' && <>
       <span className="life-morning-label">CHƯƠNG 4 · NGÀY {game.day} · {episode.character}</span>
       <h3>{episode.title}</h3>
+      {milestone && <p role="note">📖 Tổng kết tháng đầu: {milestone}</p>}
       <p>{decision ? episode[decision].reply : episode.prompt}</p>
       {decision
         ? <p role="status">✓ Đã lưu quyết định. Ngày mai nhân vật sẽ nhớ lựa chọn này.</p>
