@@ -88,7 +88,8 @@ describe('chapter four playable days 22–24', () => {
   it('uses bill payment to change day 24 and remembers through day 25', () => {
     const day24 = nextDay(chooseWeekFour(ready(23), 'takeTime'));
     expect(getWeekFourEpisode(day24)?.prompt).toContain('Hóa đơn đã thanh toán');
-    const day25 = nextDay(chooseWeekFour(day24, 'keepSimple'));
+    const day24Ready = chooseBreakfast(wakeMorning(day24), 'skip');
+    const day25 = nextDay(chooseWeekFour(day24Ready, 'keepSimple'));
     expect(getWeekFourCallback(day25)).toContain('Mẹ Mai vui');
     const html = renderToStaticMarkup(createElement(WeekFourEpisodePanel, { game: day25, onGame: () => undefined }));
     expect(html).toContain('Mẹ Mai vui');
