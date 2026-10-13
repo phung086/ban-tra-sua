@@ -17,6 +17,8 @@ on:
       - 'scripts/mobile-layout-smoke.mjs'
       - 'scripts/week-three-browser-smoke.mjs'
       - 'src/game/lifeSim/weekFourEpisodes.ts'
+      - 'src/game/lifeSim/weekSixEpisodes.ts'
+      - 'src/components/life/WeekSixEpisodePanel.tsx'
       - '.github/workflows/mobile-layout.yml'
   workflow_dispatch:
 

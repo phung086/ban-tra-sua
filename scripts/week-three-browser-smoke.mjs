@@ -207,6 +207,40 @@ try {
   assert(await weekFour.getByText(/Cô Hạnh giữ lại lời nhắn/).isVisible(), 'Day 31 chapter callback missing');
   report.cases.push('day28-30 recovery, planning, milestone and day31 memory');
 
+  // Chapter VI: mobile stock purchase, reload and next-day memory.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture(40, initial, 'Câu chuyện chương sáu');
+  const chapterSix = page.getByRole('region', { name: 'Câu chuyện chương sáu' });
+  const sugarBefore = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).inventory.sugar, saveKey);
+  await chapterSix.getByRole('button', { name: /Mua 4 phần đường/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-six-40-meet'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day40 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  assert(day40.inventory.sugar === sugarBefore + 4, 'Day 40 stock mismatch');
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+  await chapterSix.getByText(/Đã lưu quyết định/).waitFor({ timeout: 30000 });
+  assert(await chapterSix.getByRole('button').count() === 0, 'Day 40 duplicated after reload');
+  await fixture(41, day40, 'Câu chuyện chương sáu');
+  assert(await chapterSix.getByText(/Cô Hạnh nhớ bạn đã thanh toán/).isVisible(), 'Day 41 NPC callback missing');
+  report.cases.push('day40 sugar purchase and day41 callback on mobile');
+
+  // Chapter VI: desktop community event, fan reward and week recap.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await fixture(44, initial, 'Câu chuyện chương sáu');
+  await chapterSix.getByRole('button', { name: /Cùng dọn góc phố/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-six-44-meet'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day44 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  assert(day44.fans === initial.fans + 2, 'Day 44 fans mismatch');
+  await chapterSix.getByText(/Tổng kết tuần/).waitFor({ timeout: 30000 });
+  await fixture(45, day44, 'Câu chuyện chương sáu');
+  assert(await chapterSix.getByText(/Bác Bình kể với cô Hạnh/).isVisible(), 'Day 45 callback missing');
+  report.cases.push('day44 community reward and day45 callback on desktop');
+
   assert(report.errors.length === 0, 'Uncaught browser errors: ' + report.errors.join('; '));
   await context.close();
 } catch (error) {
