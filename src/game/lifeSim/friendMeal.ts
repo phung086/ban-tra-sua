@@ -32,10 +32,23 @@ export function chooseFriendMeal(game: GameState, choice: FriendMealChoice): Gam
     : choice === 'split'
       ? 'Thảo: Chia đôi rõ ràng thế này thoải mái cho cả hai!'
       : 'Thảo: Cảm ơn nhé, lần sau để mình mời lại!';
+  const remembered = game.relationshipRewardIds.some(id => id.startsWith(PREFIX));
+  const notice = response + (remembered ? ' Thảo vẫn nhớ lần hai đứa hẹn nhau trước đó.' : '');
   return {
     ...game,
     cash: game.cash - option.cost,
+    customerBond: {
+      ...game.customerBond,
+      'friend-thao': (game.customerBond['friend-thao'] ?? 0) + option.bond,
+    },
     relationshipRewardIds: [...game.relationshipRewardIds, PREFIX + game.day + ':' + choice],
-    notice: response,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      energy: Math.max(0, Math.min(100, game.city.energy + option.energy)),
+      journal: [`Ngày ${game.day} · ${option.label} (${option.cost.toLocaleString('vi-VN')} ₫). ${notice}`, ...game.city.journal].slice(0, 24),
+    },
+    morning: { ...game.morning, satiety: Math.min(100, game.morning.satiety + option.satiety) },
+    notice,
   };
 }
