@@ -173,6 +173,40 @@ try {
   assert(await weekFour.getByRole('button').count() === 0, 'Day 27 duplicated choice after reload');
   report.cases.push('day25–27 friends, safe delivery, birthday and reload');
 
+
+  // Days 28-30: recovery, safe travel planning, chapter milestone and save persistence.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture(28, initial, 'Câu chuyện tuần bốn');
+  await weekFour.getByRole('button', { name: /Gọi cho mẹ và nghỉ ngơi/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-28-takeTime'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day28 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+  await weekFour.getByText(/Đã lưu quyết định/).waitFor({ timeout: 30000 });
+  assert(await weekFour.getByRole('button').count() === 0, 'Day 28 duplicated after reload');
+  await fixture(29, day28, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Mẹ Mai nhớ cuộc gọi/).isVisible(), 'Day 29 family callback missing');
+  await weekFour.getByRole('button', { name: /Hẹn nhóm bàn sau/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-29-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day29 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await fixture(30, day29, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Lan nhắn cả nhóm lịch hẹn mới/).isVisible(), 'Day 30 friend callback missing');
+  assert(await weekFour.getByText(/Tổng kết tháng đầu/).isVisible(), 'Day 30 milestone missing');
+  await weekFour.getByRole('button', { name: /Viết lời cảm ơn/ }).click({ timeout: 45000 });
+  await page.waitForFunction(key => {
+    try { return JSON.parse(localStorage.getItem(key) || '{}').relationshipRewardIds?.includes('week-four-30-keepSimple'); }
+    catch { return false; }
+  }, saveKey, { timeout: 20000 });
+  const day30 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
+  await fixture(31, day30, 'Câu chuyện tuần bốn');
+  assert(await weekFour.getByText(/Cô Hạnh giữ lại lời nhắn/).isVisible(), 'Day 31 chapter callback missing');
+  report.cases.push('day28-30 recovery, planning, milestone and day31 memory');
+
   assert(report.errors.length === 0, 'Uncaught browser errors: ' + report.errors.join('; '));
   await context.close();
 } catch (error) {
