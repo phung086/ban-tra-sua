@@ -30,6 +30,18 @@ const episodes: Record<number, Episode> = {
     prompt: 'Hôm nay là sinh nhật Thảo. Lan rủ bạn gửi một món quà vừa sức trước ca bán.',
     takeTime: result('🎁 Mua quà nhỏ tặng Thảo', 24000, 20, -2, 3, 0, 'Thảo vui vì món quà giản dị và lời chúc chân thành.', 'Thảo đặt món trà quen để cảm ơn lời chúc sinh nhật.'),
     keepSimple: result('💌 Viết thiệp tay', 0, 8, 0, 2, 0, 'Bạn viết thiệp bằng giấy có sẵn; Thảo rất trân trọng.', 'Thảo cất tấm thiệp và nhắn bạn một lời cảm ơn.') },
+  28: { title: 'Một ngày buồn', character: 'Mẹ Mai', characterId: 'family-mother-mai',
+    prompt: 'Mẹ Mai gọi hỏi thăm khi bạn thấy mệt.',
+    takeTime: result('Gọi cho mẹ và nghỉ ngơi', 0, 20, 15, 2, 0, 'Bạn nghỉ một chút cùng mẹ.', 'Mẹ Mai nhớ cuộc gọi hôm qua.'),
+    keepSimple: result('Nhắn mẹ hẹn tối nói chuyện', 0, 0, 0, 1, 0, 'Bạn hẹn mẹ tối nay.', 'Mẹ Mai nhắc bạn giữ lời hẹn.') },
+  29: { title: 'Gió từ phương xa', character: 'Lan', characterId: 'lan',
+    prompt: 'Lan muốn lên kế hoạch đi chơi. Thành phố bên cạnh chưa mở.',
+    takeTime: result('Tìm tuyến xe nội đô', 8000, 20, -2, 2, 0, 'Bạn cùng Lan tìm hiểu bến xe hiện có.', 'Lan nhớ kế hoạch đi chơi.'),
+    keepSimple: result('Hẹn nhóm bàn sau', 0, 0, 0, 1, 0, 'Bạn hẹn Lan lúc khác.', 'Lan nhắn lịch mới cho cả nhóm.') },
+  30: { title: 'Tiệm còn sáng đèn', character: 'Cô Hạnh', characterId: 'hanh',
+    prompt: 'Tháng đầu mở tiệm kết thúc. Bạn muốn cảm ơn khu phố thế nào?',
+    takeTime: result('Mời khu phố uống trà', 20000, 30, -3, 3, 10, 'Bạn mời mọi người uống trà tại tiệm.', 'Cô Hạnh nhớ buổi trà cuối tháng.'),
+    keepSimple: result('Viết lời cảm ơn', 0, 0, 0, 2, 0, 'Bạn gửi lời cảm ơn mọi người.', 'Cô Hạnh giữ lại lời nhắn.') },
 };
 const key = (day: number, choice: WeekFourChoice) => `week-four-${day}-${choice}`;
 const has = (game: GameState, id: string) => game.relationshipRewardIds?.includes(id) || game.storyLog?.some(item => item.id === id);
