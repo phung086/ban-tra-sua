@@ -1,0 +1,59 @@
+name: Playable market and mobile production browser
+on:
+  push:
+    branches:
+      - codex/playable-market-cooking-20261013-0840
+  pull_request:
+    paths:
+      - 'src/game/lifeSim/morning.ts'
+      - 'src/game/lifeSim/marketCooking.test.ts'
+      - 'src/components/life/MorningRoutine.tsx'
+      - 'src/styles-life-morning.css'
+      - 'scripts/market-cooking-browser-smoke.mjs'
+      - 'scripts/mobile-layout-smoke.mjs'
+      - '.github/workflows/market-cooking-browser.yml'
+  workflow_dispatch:
+
+jobs:
+  playable-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and test
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          npm test
+      - name: Build production app
+        run: npm run build
+      - name: Browser gameplay and existing tea-service regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --host 127.0.0.1 --port 5192 --strictPort > /tmp/market-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:5192/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5192/ >/dev/null
+          node scripts/market-cooking-browser-smoke.mjs
+          node scripts/mobile-layout-smoke.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playable-market-${{ github.sha }}
+          path: |
+            market-browser-artifacts/
+            mobile-layout-artifacts/
+          retention-days: 14
+          if-no-files-found: warn

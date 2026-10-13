@@ -1,4 +1,4 @@
-import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, MARKET_OPTIONS, chooseBreakfast, cookMarketMeal, visitMorningMarket, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
 
@@ -60,5 +60,27 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
       <small>Đã lưu trong ngày, không tính tiền lần hai.</small>
     </div>}
+    {finished&&<section className="life-market" aria-label="Chợ sáng và nấu cơm">
+      <h4>🥬 Chợ đầu ngõ · Cô Hạnh</h4>
+      <p>{game.storyLog.some(moment=>moment.customerId==='hanh'&&moment.day<game.day&&moment.id.startsWith('morning-market-'))
+        ? 'Cô Hạnh vẫn nhớ lần mình ghé chợ trước đó.'
+        : 'Ghé chợ sau bữa sáng, hoặc mở tiệm ngay nếu muốn.'}</p>
+      {morning.marketVisit == null&&<div className="life-market-actions">
+        <button disabled={game.cash<MARKET_OPTIONS.basket.cost} onClick={()=>onGame(visitMorningMarket(game,'basket'))}>
+          🥬 {MARKET_OPTIONS.basket.label} · {formatMoney(MARKET_OPTIONS.basket.cost)} · 12 phút
+        </button>
+        <button onClick={()=>onGame(visitMorningMarket(game,'chat'))}>
+          💬 {MARKET_OPTIONS.chat.label} · Miễn phí · 4 phút
+        </button>
+      </div>}
+      {morning.marketVisit==='basket'&&<div className="life-market-result">
+        <p>Đã mua rau và trứng. {morning.homeCooked?'Bữa cơm đã nấu xong.':'Có thể nấu bữa cơm ở nhà trước khi mở tiệm.'}</p>
+        {!morning.homeCooked&&<button disabled={game.city.energy<3} onClick={()=>onGame(cookMarketMeal(game))}>
+          🍲 Nấu canh rau tại nhà · 18 phút · +20 độ no
+        </button>}
+      </div>}
+      {morning.marketVisit==='chat'&&<p className="life-market-result" role="status">Cô Hạnh đã trò chuyện cùng mình. Hẹn gặp lại vào ngày mai!</p>}
+      {morning.homeCooked&&<p className="life-market-result" role="status">✓ Đã nấu cơm · Độ no {morning.satiety}/100</p>}
+    </section>}
   </section>;
 }

@@ -34,3 +34,14 @@
  .life-morning-done small{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){.life-morning *,.life-morning{animation:none!important;transition:none!important}}
+
+/* Market and kitchen choices are DOM-only; no additional 3D draw calls. */
+.life-market{margin-top:14px;padding:12px;border:1px solid #e8c3a5;border-radius:14px;background:#fffaf2}
+.life-market h4{margin:0 0 6px;font-size:14px;color:#714b37}
+.life-market p{margin:6px 0 10px;font-size:12px;line-height:1.5}
+.life-market-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.life-market-actions button,.life-market-result button{min-height:48px;width:100%;border:1px solid #ce9f79;border-radius:12px;background:#fff;color:#6b4536;padding:10px;text-align:left;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.life-market-actions button:disabled,.life-market-result button:disabled{opacity:.5;cursor:not-allowed}
+.life-market-actions button:focus-visible,.life-market-result button:focus-visible{outline:3px solid #a94d7e;outline-offset:2px}
+.life-market-result{margin-top:9px;padding:8px 10px;border-radius:10px;background:#f7efe3;color:#704a38}
+@media(max-width:580px){.life-market-actions{grid-template-columns:1fr}}

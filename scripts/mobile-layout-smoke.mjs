@@ -117,7 +117,23 @@ try{
   report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
-  await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
+  // Morning + market + kitchen must work before the existing tea-service regression.
+  const openShop=page.getByRole('button',{name:/Mở cửa tiệm/});
+  assert(await openShop.isDisabled(),'Shop must wait for breakfast');
+  await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
+  await page.getByRole('button',{name:/Đi làm luôn/}).click({timeout:15000});
+  await page.getByRole('button',{name:/Mua rau và trứng ở chợ/}).click({timeout:15000});
+  await page.getByRole('button',{name:/Nấu canh rau tại nhà/}).click({timeout:15000});
+  await page.waitForFunction(()=>{
+    try { const s=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return s.cash===208000&&s.morning?.homeCooked===true&&s.morning?.satiety===50;
+    } catch {return false;}
+  },null,{timeout:15000});
+  await page.reload({waitUntil:'domcontentloaded',timeout:90000});
+  await page.waitForSelector('.life-market',{timeout:120000});
+  assert(await openShop.isEnabled(),'Shop should unlock after persisted cooking');
+  report.passes.push('landscape market cooking, save/reload and shop unlock');
+  await openShop.click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});
   await page.screenshot({path:path.join(output,'landscape-crafting-844x390.png'),animations:'disabled'});
@@ -131,10 +147,10 @@ try{
   // Rotate with a prepared cup in hand. Serving must stay possible afterwards;
   // the game state must not reset because the responsive UI changed.
   await page.locator('.serve-button').click({timeout:15000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:15000});
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='portrait',null,{timeout:10000});
-  await page.waitForSelector('.delivery-tag.carrying',{timeout:10000});
+  await page.waitForFunction(()=>!!document.querySelector('.delivery-tag.carrying'),null,{timeout:30000});
   await page.screenshot({path:path.join(output,'carrying-after-rotate-390x844.png'),animations:'disabled'});
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape',null,{timeout:10000});
