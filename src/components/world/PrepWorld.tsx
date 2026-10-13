@@ -3,6 +3,11 @@ import { startDay } from "../../game/engine";
 import type { GameState, Screen } from "../../game/types";
 import {GameIcon} from '../GameIcon';
 import {MorningRoutine} from '../life/MorningRoutine';
+import {WeekTwoEpisodePanel} from '../life/WeekTwoEpisodePanel';
+import {WeekThreeEpisodePanel} from '../life/WeekThreeEpisodePanel';
+import {WeekFourEpisodePanel} from '../life/WeekFourEpisodePanel';
+import {WeekSixEpisodePanel} from '../life/WeekSixEpisodePanel';
+import { canChooseWeekFive, chooseWeekFive, getWeekFiveCallback, getWeekFiveDecision, getWeekFiveEpisode } from '../../game/lifeSim/weekFiveEpisodes';
 
 
 interface Props {
@@ -12,6 +17,9 @@ interface Props {
 }
 
 export function PrepWorld({ game, onGame, onNavigate }: Props) {
+  const fiveEpisode = getWeekFiveEpisode(game);
+  const fiveCallback = getWeekFiveCallback(game);
+  const fiveDecision = getWeekFiveDecision(game);
   const visibleStock = RESTOCK_ITEMS.filter((item) => item.unlockLevel <= game.level);
   const lowStock = visibleStock.filter((item) => game.inventory[item.key] <= 3).slice(0, 4);
   const activeStaff = STAFF.find((staff) => staff.id === game.activeStaff);
@@ -23,6 +31,33 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
   return <section className="prep-foundation">
     <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
     <MorningRoutine game={game} onGame={onGame}/>
+    <WeekTwoEpisodePanel game={game} onGame={onGame}/>
+    <WeekThreeEpisodePanel game={game} onGame={onGame}/>
+    <WeekFourEpisodePanel game={game} onGame={onGame}/>
+    <WeekSixEpisodePanel game={game} onGame={onGame}/>
+    {(fiveEpisode || fiveCallback) && <section className="life-morning" aria-label="Câu chuyện chương năm">
+      {fiveCallback && <p aria-live="polite">💌 {fiveCallback}</p>}
+      {fiveEpisode && game.morning.step === 'finished' && <>
+        <span className="life-morning-label">CHƯƠNG 5 · NGÀY {game.day} · {fiveEpisode.character}</span>
+        <h3>{fiveEpisode.title}</h3>
+        <p>🕒 {fiveEpisode.schedule}</p>
+        <p>{fiveDecision ? fiveEpisode[fiveDecision].reply : fiveEpisode.prompt}</p>
+        {fiveDecision ? <p role="status">✓ Đã lưu quyết định. Nhân vật sẽ nhớ lựa chọn này ở ngày tiếp theo.</p> :
+          <div className="life-morning-options">
+            {(['meet', 'message'] as const).map(choice => {
+              const option = fiveEpisode[choice];
+              return <button key={choice} type="button" className="life-morning-option"
+                disabled={!canChooseWeekFive(game, choice)}
+                onClick={() => onGame(chooseWeekFive(game, choice))}>
+                <strong>{option.label}</strong>
+                <small>{option.minutes} phút · {option.cost.toLocaleString('vi-VN')} ₫ · {option.energy > 0 ? '+' : ''}{option.energy} sức · +{option.goodwill} thiện cảm</small>
+              </button>;
+            })}
+          </div>}
+        {!fiveDecision && !canChooseWeekFive(game, 'meet') &&
+          <p role="status">Đã qua giờ hẹn hoặc chưa đủ tiền, sức. Bạn vẫn có thể nhắn hẹn lại miễn phí.</p>}
+      </>}
+    </section>}
     <button className="primary-button prep-open" disabled={game.morning.step!=='finished'} onClick={()=>onGame(startDay(game))}><GameIcon name="home"/><span>Mở cửa tiệm<small>Bắt đầu ca · {game.targetOrders} đơn</small></span></button>
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
     <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
