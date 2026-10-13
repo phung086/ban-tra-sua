@@ -94,7 +94,7 @@ describe('QC-06 customer locomotion integration', () => {
     expect(braking.next.gaitPhase).toBeGreaterThan(cruising.next.gaitPhase);
     const stopped = step(braking.next, 0, .085, 0, false);
     expect(stopped.stepping).toBe(false);
-    expect(stopped.next.gaitPhase).toBe(braking.next.gaitPhase);
+    expect(Math.abs(stopped.next.gaitPhase)).toBeLessThan(Math.abs(braking.next.gaitPhase));
   });
   it('plants the first step and reaches full swing by 24cm of travel', () => {
     expect(launchStrideScale(0)).toBeCloseTo(.28);
