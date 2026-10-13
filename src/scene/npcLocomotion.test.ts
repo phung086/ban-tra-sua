@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advanceNpcLocomotion, initialNpcLocomotion, turnStrideScale } from './npcLocomotion';
+import { advanceNpcLocomotion, brakingStrideScale, initialNpcLocomotion, turnStrideScale } from './npcLocomotion';
 
 const step = (state: ReturnType<typeof initialNpcLocomotion>, x: number, z: number,
   heading = 0, walking = true, motion = true, dt = 1 / 30) =>
@@ -77,5 +77,23 @@ describe('QC-06 customer locomotion integration', () => {
     expect(step(secondTurn.next, 0, 0.24, Math.PI / 2, false).strideScale).toBe(1);
     expect(step(secondTurn.next, 10, 10, Math.PI / 2).strideScale).toBe(1);
     expect(step(secondTurn.next, 0, 0.32, Math.PI / 2, true, false).strideScale).toBe(1);
+  });
+  it('reduces stride during route braking without changing path cadence', () => {
+    expect(brakingStrideScale(.1, 1 / 30)).toBe(1);
+    expect(brakingStrideScale(.005, 1 / 30)).toBeCloseTo(.3);
+    expect(brakingStrideScale(.025, 1 / 30)).toBeGreaterThan(.3);
+    expect(brakingStrideScale(.025, 1 / 30)).toBeLessThan(1);
+    expect(brakingStrideScale(Number.NaN, 1 / 30)).toBe(1);
+    expect(brakingStrideScale(.005, 0)).toBe(1);
+    const spawn = step(initialNpcLocomotion(), 0, 0).next;
+    const cruising = step(spawn, 0, .08);
+    const braking = step(cruising.next, 0, .085);
+    expect(cruising.strideScale).toBe(1);
+    expect(braking.stepping).toBe(true);
+    expect(braking.strideScale).toBeLessThan(.4);
+    expect(braking.next.gaitPhase).toBeGreaterThan(cruising.next.gaitPhase);
+    const stopped = step(braking.next, 0, .085, 0, false);
+    expect(stopped.stepping).toBe(false);
+    expect(stopped.next.gaitPhase).toBe(braking.next.gaitPhase);
   });
 });

@@ -765,7 +765,10 @@ export function pose(
   const target=motion&&!sitting&&walking?1:0;
   anim.walkWeight=!motion?0:anim.walkWeight+(target-anim.walkWeight)*(1-Math.exp(-14*dt));
   const weight=anim.walkWeight,seated=anim.seatWeight;
-  const targetStride=motion&&Number.isFinite(strideScale)?Math.max(.45,Math.min(1,strideScale)):1;
+  // Hold the braking stride while the walk blend fades out. Resetting it to
+  // full stride at a stop would kick the feet forward on the last frame.
+  const targetStride=motion&&!walking?anim.turnStride:
+    motion&&Number.isFinite(strideScale)?Math.max(.13,Math.min(1,strideScale)):1;
   anim.turnStride=firstFrame?targetStride:anim.turnStride+(targetStride-anim.turnStride)*(1-Math.exp(-12*dt));
   const legWeight=weight*anim.turnStride;
   const phase=Math.sin(gaitPhase),swing=phase*0.39*legWeight;

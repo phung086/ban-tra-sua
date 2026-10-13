@@ -27,6 +27,17 @@ export function turnStrideScale(travelHeading: number, facingHeading: number): n
   return 1 - 0.55 * t * t * (3 - 2 * t);
 }
 
+/** Ease the foot swing down with actual ground speed before a route ends.
+ * Visitors decelerate over the last 12% of their path, so the feet should
+ * settle before the root stops rather than skating in place at full stride.
+ */
+export function brakingStrideScale(displacement: number, dt: number): number {
+  if (!Number.isFinite(displacement) || !Number.isFinite(dt) || dt <= 0) return 1;
+  const speed = Math.max(0, displacement) / dt;
+  const t = Math.max(0, Math.min(1, (speed - 0.15) / 1.65));
+  return 0.3 + 0.7 * t * t * (3 - 2 * t);
+}
+
 export function advanceNpcLocomotion(
   previous: NpcLocomotion,
   x: number,
@@ -62,6 +73,7 @@ export function advanceNpcLocomotion(
   const heading = wrap(current + step);
   const strideScale = stepping
     ? turnStrideScale(Math.atan2(x - previous.x, z - previous.z), heading)
+      * brakingStrideScale(displacement, dt)
     : 1;
 
   return {

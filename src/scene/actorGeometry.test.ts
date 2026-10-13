@@ -160,4 +160,24 @@ describe('continuous character deformation',()=>{
     expect(turn.leftLeg.rotation.x).toBe(0);
     w.dispose();
   });
+  it('holds the shorter braking step while settling to a stationary pose',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS[0]);
+    for(let frame=0;frame<=25;frame++)
+      pose(person,frame/30,true,0,false,true,Math.PI/2,false,1);
+    const cruise=person.animation.turnStride;
+    pose(person,.9,true,0,false,true,Math.PI/2,false,.3);
+    const braking=person.animation.turnStride;
+    expect(braking).toBeLessThan(cruise);
+    expect(braking).toBeGreaterThan(.3);
+    const lastSwing=Math.abs(person.leftLeg.rotation.x);
+    pose(person,.95,false,0,false,true,Math.PI/2,false,1);
+    expect(person.animation.turnStride).toBeCloseTo(braking,8);
+    expect(Math.abs(person.leftLeg.rotation.x)).toBeLessThan(lastSwing);
+    for(let frame=1;frame<=18;frame++)
+      pose(person,.95+frame/30,false,0,false,true,Math.PI/2,false,1);
+    expect(Math.abs(person.leftLeg.rotation.x)).toBeLessThan(.001);
+    pose(person,1.6,false,0,false,false,Math.PI/2);
+    expect(person.leftLeg.rotation.x).toBe(0);
+    w.dispose();
+  });
 });
