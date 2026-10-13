@@ -1,5 +1,6 @@
 import { DRINKS, RESTOCK_ITEMS, STAFF } from "../../game/content";
 import { startDay } from "../../game/engine";
+import { getCounterPatienceAdjustment } from "../../game/closingCare";
 import type { GameState, Screen } from "../../game/types";
 import {GameIcon} from '../GameIcon';
 
@@ -23,6 +24,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
     <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
     <button className="primary-button prep-open" onClick={()=>onGame(startDay(game))}><GameIcon name="home"/><span>Mở cửa tiệm<small>Bắt đầu ca · {game.targetOrders} đơn</small></span></button>
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
+    {getCounterPatienceAdjustment(game) !== 0 && <p className="prep-counter-condition" role="status">{game.counterCondition === "fresh" ? "✨ Quầy sạch thơm từ tối qua: khách hôm nay kiên nhẫn thêm 10 giây." : "🧽 Quầy chưa gọn: khách hôm nay sốt ruột sớm hơn 10 giây."}</p>}
     <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
     <div className="prep-level"><p><b>Cấp {game.level}</b><span>{xpInLevel}/160 kinh nghiệm</span></p><progress value={xpInLevel} max="160" aria-label="Tiến độ cấp độ"/><small>{nextDrink?`Cấp ${nextDrink.unlockLevel} mở ${nextDrink.name}`:'Menu đã mở toàn bộ.'}</small></div>
     <p className="prep-operator"><GameIcon name="person"/>{activeStaff?`${activeStaff.name} · ${activeStaff.role}`:'Bạn trực quầy hôm nay'}<span>{game.unlockedToppingIds.length} loại topping</span></p>

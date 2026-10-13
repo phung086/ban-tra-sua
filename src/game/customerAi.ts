@@ -1,3 +1,4 @@
+import { getCounterPatienceAdjustment } from "./closingCare";
 import type {
   Customer,
   CustomerMood,
@@ -24,10 +25,10 @@ function getPatienceMultiplier(state: GameState) {
 export function getCustomerPatienceSeconds(state: GameState, customer: Customer) {
   const bond = state.customerBond[customer.id] ?? 0;
   const regularToleranceSeconds = Math.min(20, Math.round(bond * 0.6));
-  return Math.round(
+  return Math.max(15, Math.round(
     (BASE_PATIENCE_SECONDS[customer.patience] + regularToleranceSeconds) *
       getPatienceMultiplier(state),
-  );
+  ) + getCounterPatienceAdjustment(state));
 }
 
 function moodForRatio(ratio: number): CustomerMood {

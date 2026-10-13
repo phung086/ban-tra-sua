@@ -135,3 +135,14 @@
   .exploring-city .city-play-notice { top:80px; max-width:300px; }
 }
 @media(prefers-reduced-motion:reduce) { .neighborhood,.city-compass { transition:none; } }
+
+/* A tangible closing task: choice and next-day service feedback. */
+.closing-scenario { margin:18px 0; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
+.closing-scenario h3 { margin:0 0 7px; font-size:17px; }
+.closing-scenario p { font-size:13px; line-height:1.65; margin:0 0 12px; }
+.closing-choices { display:grid; gap:10px; }
+.closing-choices button { display:flex; flex-direction:column; align-items:flex-start; gap:5px; width:100%; min-height:58px; padding:12px; text-align:left; border:1px solid var(--line); border-radius:10px; }
+.closing-choices button b { font-size:13px; }
+.closing-choices button small { font-size:11px; line-height:1.5; }
+.closing-choices button:disabled { opacity:.55; cursor:not-allowed; }
+.closing-choice-done,.prep-counter-condition { border-radius:10px; padding:12px; background:#f7e9ef; color:var(--ink); font-size:13px; line-height:1.6; }

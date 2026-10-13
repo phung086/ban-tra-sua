@@ -1,4 +1,5 @@
 import { initialCity, newCityDay } from './city';
+import { CLEANING_SUPPLY_COST, getClosingScenario } from './closingCare';
 import {
   ACHIEVEMENTS,
   BASE_IDS,
@@ -29,6 +30,7 @@ import type {
   AchievementMetric,
   BaseId,
   CustomerQueueEntry,
+  ClosingCareChoice,
   DecorationId,
   DrinkDraft,
   Freshness,
@@ -199,6 +201,8 @@ export function createInitialState(): GameState {
     city: initialCity(),
     day: 1,
     phase: "prep",
+    closingCareChoice: null,
+    counterCondition: "normal",
     cash: 220000,
     reputation: 12,
     fans: 0,
@@ -908,7 +912,36 @@ function decayInventory(state: GameState) {
   return { inventory, freshness, wasteValue };
 }
 
+export function chooseClosingCare(state: GameState, choice: ClosingCareChoice): GameState {
+  if (state.phase !== "summary" || !getClosingScenario(state.day) || state.closingCareChoice) return state;
+  if (choice !== "clean" && choice !== "skip") return state;
+  if (choice === "clean" && state.cash < CLEANING_SUPPLY_COST) {
+    return { ...state, notice: "Quỹ tiệm chưa đủ mua đồ vệ sinh. Có thể thu dọn cơ bản và mở ca sau." };
+  }
+  const cost = choice === "clean" ? CLEANING_SUPPLY_COST : 0;
+  return {
+    ...state,
+    closingCareChoice: choice,
+    cash: state.cash - cost,
+    dailyCost: state.dailyCost + cost,
+    summary: state.summary ? {
+      ...state.summary,
+      closingCost: cost,
+      profit: state.summary.profit - cost,
+    } : null,
+    notice: choice === "clean"
+      ? "Đã lau quầy, rửa dụng cụ và thay khăn sạch. Khách ngày mai sẽ dễ chịu hơn khi chờ."
+      : "Bạn khóa cửa sau khi dọn sơ. Sáng mai quầy chưa thật gọn, khách có thể mất kiên nhẫn nhanh hơn.",
+  };
+}
+
 export function nextDay(state: GameState): GameState {
+  if (state.phase === "summary" && getClosingScenario(state.day) && !state.closingCareChoice) {
+    return { ...state, notice: "Chọn cách thu dọn quầy trước khi sang ngày mới." };
+  }
+  const counterCondition = getClosingScenario(state.day)
+    ? state.closingCareChoice === "clean" ? "fresh" : "untidy"
+    : "normal";
   const day = state.day + 1;
   const event = getEventForDay(day);
   const decayed = decayInventory(state);
@@ -916,6 +949,8 @@ export function nextDay(state: GameState): GameState {
     ...state,
     day,
     phase: "prep",
+    closingCareChoice: null,
+    counterCondition,
     city: newCityDay(state.city, day),
     fans: state.fans + (state.city.projects.includes('club') ? 3 : 0),
     served: 0,

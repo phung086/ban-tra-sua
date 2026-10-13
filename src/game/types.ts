@@ -39,6 +39,8 @@ export type ResearchId =
 export type QuestMetric = "serve" | "perfect" | "revenue" | "reply" | "combo";
 export type AchievementMetric = "served" | "perfect" | "revenue" | "replies" | "days" | "fans";
 export type CustomerMood = "delighted" | "happy" | "neutral" | "restless" | "upset";
+export type ClosingCareChoice = "clean" | "skip";
+export type CounterCondition = "normal" | "fresh" | "untidy";
 
 export type InventoryKey =
   | "cupsM"
@@ -276,6 +278,7 @@ export interface DaySummary {
   averageScore: number;
   fansGained: number;
   researchGained: number;
+  closingCost?: number;
 }
 
 export interface GameState {
@@ -283,6 +286,8 @@ export interface GameState {
   city: CityState;
   day: number;
   phase: Phase;
+  closingCareChoice: ClosingCareChoice | null;
+  counterCondition: CounterCondition;
   cash: number;
   reputation: number;
   fans: number;
