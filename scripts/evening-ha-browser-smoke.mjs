@@ -78,7 +78,60 @@ try {
     await page.getByRole('button', { name: /Mở cửa tiệm/ }).click({ timeout: 30000 });
     await page.locator('.craft-stations').waitFor({ timeout: 30000 });
     assert.deepEqual(errors, [], 'No browser errors after the sleep/reload flow');
-    report.viewports.push({ width, height, result: 'PASS', cash: state.cash, day: state.day });
+
+    // Separate persisted day-three save: help on day one unlocks a free meal two evenings later.
+    // Exercise actual DOM click, localStorage write, reload, sleep and the next morning's NPC reply.
+    const thanksContext = await browser.newContext({
+      viewport: { width, height }, isMobile: width < 1000, hasTouch: width < 1000,
+      deviceScaleFactor: 1,
+    });
+    const thanksPage = await thanksContext.newPage();
+    const thanksErrors = [];
+    thanksPage.on('pageerror', error => thanksErrors.push(error.message));
+    thanksPage.on('console', message => {
+      if (message.type() === 'error') thanksErrors.push(message.text());
+    });
+    await thanksPage.addInitScript(initial => {
+      localStorage.setItem('tiem-tra-chibi-save-v3', JSON.stringify(initial));
+      localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({
+        renderEngine: 'three', graphics: 'light', coachCompleted: true,
+        motion: false, sound: false, music: false,
+      }));
+    }, {
+      saveVersion: 3, day: 3, phase: 'summary', cash: 0,
+      summary: { ...summary, day: 3 },
+      city: { day: 3, minutes: 1100, energy: 40, goodwill: 1 },
+      relationshipRewardIds: ['evening-ha-1-help'], storyLog: [],
+    });
+    await thanksPage.goto(base, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await thanksPage.getByRole('region', { name: 'Bữa tối sau ca' }).waitFor({ timeout: 90000 });
+    await thanksPage.getByRole('button', { name: /Nhận suất cơm Hà cảm ơn/ }).click({ timeout: 30000 });
+    await thanksPage.waitForFunction(() => {
+      const s = JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3') || '{}');
+      return s.cash === 0 && s.city?.minutes === 1115 && s.city?.energy === 50 &&
+        s.city?.goodwill === 3 && s.relationshipRewardIds?.includes('evening-ha-3-thanks');
+    }, null, { timeout: 15000 });
+    await thanksPage.screenshot({ path: path.join(output, `ha-thanks-${width}x${height}.png`),
+      animations: 'disabled', timeout: 90000 });
+    await thanksPage.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+    assert.equal(await thanksPage.getByRole('button', { name: /Nhận suất cơm Hà cảm ơn/ }).count(), 0,
+      'Reload must not offer a second thank-you meal');
+    await thanksPage.getByRole('button', { name: /Đi ngủ · sang ngày 4/ }).click({ timeout: 30000 });
+    await thanksPage.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click({ timeout: 30000 });
+    await thanksPage.getByRole('region', { name: 'Lời nhắn từ Hà' }).waitFor({ timeout: 30000 });
+    assert.match(await thanksPage.getByRole('region', { name: 'Lời nhắn từ Hà' }).innerText(),
+      /Có qua có lại/);
+    await thanksPage.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+    const thankYouSaved = await thanksPage.evaluate(() =>
+      JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3') || '{}'));
+    assert.equal(thankYouSaved.day, 4);
+    assert.equal(thankYouSaved.cash, 0);
+    assert.equal(thankYouSaved.relationshipRewardIds.filter(id => id === 'evening-ha-3-thanks').length, 1);
+    assert.deepEqual(thanksErrors, [], 'No browser errors in thank-you meal flow');
+    await thanksContext.close();
+
+    report.viewports.push({ width, height, result: 'PASS', cash: state.cash, day: state.day,
+      thankYou: 'day3 claimed once, day4 remembered' });
     await context.close();
   }
 } catch (error) {
