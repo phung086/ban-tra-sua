@@ -1,6 +1,7 @@
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
+import { BreakfastCookingPanel } from './BreakfastCookingPanel';
 
 const titleForWake = {
   'on-time': 'Dậy đúng giờ, phố đã lên đèn nắng!',
@@ -39,6 +40,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <button className="life-morning-wake" onClick={()=>onGame(wakeMorning(game))}>
         <span aria-hidden="true">☀️</span> Thức dậy bắt đầu ngày mới
       </button>}
+    <BreakfastCookingPanel game={game} onGame={onGame}/>
     {morning.step==='awake'&&<>
       <p className="life-morning-prompt">Sáng nay ăn gì?</p>
       <div className="life-morning-options">
