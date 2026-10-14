@@ -15,7 +15,6 @@ function timeLabel(minutes: number): string {
 }
 
 const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
-  {id:'cook',emoji:'🍳',hint:'Bữa cơm ấm bụng · 20 phút'},
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
 ];
