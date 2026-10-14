@@ -1,6 +1,6 @@
 import type { GameState } from '../types';
 
-export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks' | 'postpone' | 'apologize';
+export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks' | 'postpone' | 'apologize' | 'message' | 'reconcile' | 'repair';
 
 interface EveningOutcome {
   label: string;
@@ -37,6 +37,24 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
     text: 'Bạn nhắn Hà rằng hôm nay chưa ghé được. Hà đồng ý giữ suất cơm đến tối mai.',
     nextMorning: 'Hà nhắn: “Tối nay mình vẫn giữ phần cơm nhé, nếu bạn tiện thì ghé.”',
   },
+  message: {
+    label: '📱 Nhắn xin lỗi Hà vì lỡ hẹn',
+    minutes: 0, cost: 0, energy: 0, goodwill: 0,
+    text: 'Quán đã đóng cửa. Bạn nhắn Hà xin lỗi vì lỡ hẹn, hứa sẽ báo sớm hơn nếu bận. Hà đọc tin nhắn khi nghỉ tay.',
+    nextMorning: 'Hà nhắn lại: “Mình nhận được lời xin lỗi rồi. Lần sau cứ báo sớm nhé, đừng ngại.”',
+  },
+  repair: {
+    label: '🌱 Ghé Hà xin lỗi muộn',
+    minutes: 15, cost: 0, energy: -2, goodwill: 0,
+    text: 'Bạn ghé gặp Hà sau một ngày im lặng, xin lỗi vì đã không nói rõ chuyện lỡ hẹn. Hà gật đầu: “Lần tới cứ báo sớm nhé.”',
+    nextMorning: 'Hà chào bạn: “Mình vui vì hôm qua bạn đã ghé nói chuyện. Cứ từ từ rồi ổn thôi.”',
+  },
+  reconcile: {
+    label: '🌿 Ghé Hà sau lời xin lỗi',
+    minutes: 10, cost: 0, energy: -2, goodwill: 1,
+    text: 'Bạn ghé quán Hà sau lời xin lỗi hôm qua, phụ xếp mấy chiếc ghế và hỏi thăm. Hà cười: “Vậy là ổn rồi nhé.”',
+    nextMorning: 'Hà chào bạn: “Hôm qua gặp lại vui ghê. Hôm nay bán đắt hàng nhé!”',
+  },
   apologize: {
     label: '💬 Xin lỗi Hà vì lỡ hẹn',
     minutes: 5, cost: 0, energy: 0, goodwill: 1,
@@ -51,7 +69,7 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
   },
 };
 
-const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone', 'apologize'];
+const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone', 'apologize', 'message', 'reconcile', 'repair'];
 const eventId = (day: number, choice: EveningCareChoice) => `evening-ha-${day}-${choice}`;
 
 /** One choice after a completed shift; existing save-v3 ledgers persist it across reloads. */
@@ -66,7 +84,26 @@ export function hasMissedHaPromise(game: GameState): boolean {
   return Number.isSafeInteger(game.day) && game.day >= 5 &&
     getEveningCareChoice(game, game.day - 4) === 'help' &&
     getEveningCareChoice(game, game.day - 2) === 'postpone' &&
-    getEveningCareChoice(game, game.day - 1) !== 'thanks';
+    !['thanks', 'dinner', 'help'].includes(getEveningCareChoice(game, game.day - 1) ?? '');
+}
+
+/** A missed promise may be handled by resting, but it must not silently earn trust. */
+export function getEveningCareOutcome(game: GameState, choice: EveningCareChoice): EveningOutcome {
+  if (choice === 'rest' && hasMissedHaPromise(game)) {
+    return {
+      ...EVENING_CARE.rest,
+      goodwill: 0,
+      text: 'Bạn quá mệt để ghé quán. Hà vẫn chưa biết vì sao bạn lỡ hẹn; bạn báo rằng mình cần nghỉ rồi về nhà.',
+      nextMorning: 'Hà nhắn: “Hôm qua mình đợi bạn một lúc. Lần sau bận thì cứ báo sớm nhé.”',
+    };
+  }
+  return EVENING_CARE[choice];
+}
+
+/** Fail-forward route: after a missed meal and an evening of rest, the player can still repair the bond. */
+export function hasUnresolvedHaPromise(game: GameState): boolean {
+  return game.day === 6 && getEveningCareChoice(game, 5) === 'rest' &&
+    hasMissedHaPromise({ ...game, day: 5 });
 }
 
 export function canChooseEveningCare(game: GameState, choice: EveningCareChoice): boolean {
@@ -85,9 +122,15 @@ export function canChooseEveningCare(game: GameState, choice: EveningCareChoice)
     getEveningCareChoice(game, game.day - 1) === 'postpone';
   if (choice === 'thanks' && !directInvite && !rescheduledInvite) return false;
   if (choice === 'postpone' && !directInvite) return false;
-  if (choice === 'apologize' && !hasMissedHaPromise(game)) return false;
+  // A one-off follow-up after an actual apology, never a recurring free reward.
+  if (choice === 'repair' && !hasUnresolvedHaPromise(game)) return false;
+  if (choice === 'reconcile' && (game.day !== 6 ||
+    !['message', 'apologize'].includes(getEveningCareChoice(game, 5) ?? ''))) return false;
+  if ((choice === 'apologize' || choice === 'message') && !hasMissedHaPromise(game)) return false;
+  // A text apology is a late-hour fallback, not a replacement for meeting Ha in person.
+  if (choice === 'message') return game.city.minutes + EVENING_CARE.apologize.minutes > 1260;
   if (choice === 'rest' || choice === 'postpone') return true; // No-cost fallback, even late.
-  const outcome = EVENING_CARE[choice];
+  const outcome = getEveningCareOutcome(game, choice);
   return game.cash >= outcome.cost &&
     game.city.minutes + outcome.minutes <= 1260 &&
     game.city.energy + outcome.energy >= 0;
@@ -95,7 +138,7 @@ export function canChooseEveningCare(game: GameState, choice: EveningCareChoice)
 
 export function chooseEveningCare(game: GameState, choice: EveningCareChoice): GameState {
   if (!canChooseEveningCare(game, choice)) return game;
-  const outcome = EVENING_CARE[choice];
+  const outcome = getEveningCareOutcome(game, choice);
   const id = eventId(game.day, choice);
   return {
     ...game,
@@ -127,5 +170,5 @@ export function getEveningCareCallback(game: GameState): string | null {
   if (game.phase !== 'prep' || game.morning.day !== game.day ||
     game.morning.step === 'asleep' || game.day < 2) return null;
   const choice = getEveningCareChoice(game, game.day - 1);
-  return choice ? EVENING_CARE[choice].nextMorning : null;
+  return choice ? getEveningCareOutcome({ ...game, day: game.day - 1 }, choice).nextMorning : null;
 }
