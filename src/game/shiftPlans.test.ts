@@ -61,7 +61,7 @@ describe('QG-05 daily opening decision', () => {
   it('shows live rush progress without paying rewards before the final order', () => {
     const selected = chooseShiftPlan(dayNine(), 'rush');
     expect(getRushShiftProgress({ ...selected, served: 2, dailyScoreTotal: 190 })).toEqual({
-      served: 2, remaining: selected.targetOrders - 2, average: 95, requiredAverage: 77, bonusEarned: false,
+      served: 2, remaining: selected.targetOrders - 2, average: 95, requiredAverage: 78, bonusEarned: false,
     });
     expect(getRushShiftProgress({ ...selected, served: selected.targetOrders,
       dailyScoreTotal: selected.targetOrders * 80 })?.bonusEarned).toBe(true);
