@@ -11,6 +11,7 @@ export interface MorningRoutineState {
   step: MorningStep;
   breakfast: BreakfastChoice | null;
   satiety: number;
+  shiftBreakOrder?: number;
 }
 
 export const BREAKFAST_OPTIONS = {
