@@ -1,5 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { GameState } from '../../game/types';
+import { HaPackagingPanel } from './HaPackagingPanel';
+import { getHaPackagingCallback, isHaPackagingDue } from '../../game/lifeSim/haPackaging';
 import {
   canChooseEveningCare, chooseEveningCare, hasMissedHaPromise, hasUnresolvedHaPromise,
   getEveningCareCallback, getEveningCareChoice, getEveningCareOutcome,
@@ -13,13 +15,14 @@ export function EveningCarePanel({ game, onGame }: {
   onGame: Dispatch<SetStateAction<GameState>>;
 }) {
   if (game.phase === 'prep') {
-    const callback = getEveningCareCallback(game);
+    const callback = getEveningCareCallback(game) ?? getHaPackagingCallback(game);
     return callback ? <section className="life-morning" aria-label="Lời nhắn từ Hà">
       <span className="life-morning-label">LỜI NHẮN SAU MỘT ĐÊM · NGÀY {game.day}</span>
       <p role="status">💌 {callback}</p>
     </section> : null;
   }
   if (game.phase !== 'summary' || game.summary?.day !== game.day) return null;
+  if (isHaPackagingDue(game)) return <HaPackagingPanel game={game} onGame={onGame} />;
 
   const selected = getEveningCareChoice(game);
   const thankYouUnlocked = canChooseEveningCare(game, 'thanks');
