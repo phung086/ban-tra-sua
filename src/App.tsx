@@ -269,7 +269,7 @@ function App() {
                 className="primary-button"
                 onClick={() => setGame(nextDay(game))}
               >
-                Chuẩn bị ngày {game.day + 1} →
+                🌙 Đi ngủ · sang ngày {game.day + 1} →
               </button>
             </div>
           )}

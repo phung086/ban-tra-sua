@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createInitialState, nextDay } from '../engine';
 import { loadGame, saveGame } from '../storage';
-import { wakeMorning } from './morning';
+import { chooseBreakfast, wakeMorning } from './morning';
 import { EveningCarePanel } from '../../components/life/EveningCarePanel';
 import {
   canChooseEveningCare, chooseEveningCare, getEveningCareCallback, getEveningCareChoice,
@@ -110,4 +110,25 @@ describe('evening with neighbor Ha', () => {
     expect(getEveningCareCallback(day2)).not.toBeNull();
     expect(getEveningCareCallback(nextDay(day2))).toBeNull();
   });
+  it('waits for wake and preserves Ha\'s reply across breakfast and reload', () => {
+    const chosen = chooseEveningCare(finishedShift(), 'help');
+    saveGame(chosen);
+    const asleep = nextDay(loadGame());
+    expect(asleep.morning.step).toBe('asleep');
+    expect(getEveningCareCallback(asleep)).toBeNull();
+    expect(renderToStaticMarkup(createElement(EveningCarePanel, {
+      game: asleep, onGame: () => undefined,
+    }))).not.toContain('LỜI NHẮN SAU MỘT ĐÊM');
+
+    const awake = wakeMorning(asleep);
+    expect(getEveningCareCallback(awake)).toContain('đóng quán kịp giờ');
+    const breakfast = chooseBreakfast(awake, 'skip');
+    saveGame(breakfast);
+    const reloaded = loadGame();
+    expect(reloaded.morning.step).toBe('finished');
+    expect(getEveningCareCallback(reloaded)).toContain('đóng quán kịp giờ');
+    expect(reloaded.cash).toBe(chosen.cash);
+    expect(reloaded.relationshipRewardIds.filter(id => id === 'evening-ha-1-help')).toHaveLength(1);
+  });
+
 });
