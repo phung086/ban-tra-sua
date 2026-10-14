@@ -6,7 +6,7 @@ import {
   type EveningCareChoice,
 } from '../../game/lifeSim/eveningCare';
 
-const choices: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone'];
+const choices: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone', 'apologize'];
 
 export function EveningCarePanel({ game, onGame }: {
   game: GameState;
@@ -35,7 +35,7 @@ export function EveningCarePanel({ game, onGame }: {
     {selected
       ? <p role="status">✓ Hà sẽ nhớ quyết định này vào sáng mai. Bạn có thể ngủ để sang ngày mới.</p>
       : <div className="life-morning-options">
-        {choices.filter(choice => (choice !== 'thanks' || thankYouUnlocked) && (choice !== 'postpone' || canPostpone)).map(choice => {
+        {choices.filter(choice => (choice !== 'thanks' || thankYouUnlocked) && (choice !== 'postpone' || canPostpone) && (choice !== 'apologize' || canChooseEveningCare(game, 'apologize'))).map(choice => {
           const outcome = EVENING_CARE[choice];
           const available = canChooseEveningCare(game, choice);
           return <button type="button" key={choice} className="life-morning-option"
