@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AdaptiveCraftHint } from "./AdaptiveCraftHint";
+import { ShiftBreakPanel } from "./life/ShiftBreakPanel";
 import { CraftGauge } from "./CraftGauge";
 import { CraftHotkeys } from "./CraftHotkeys";
 import { DrinkCup } from "./DrinkCup";
@@ -32,6 +33,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
           <span className="workstation-badge">🔥 best x{game.bestCombo}</span>
         </div>
 
+        <ShiftBreakPanel game={game} onGame={onGame} />
         <nav className="craft-stations" aria-label="Các bước pha chế">
           {["Lắp ly", "Đường & đá", "Rót & lắc", "Bê ly"].map((label, index) => (
             <button key={label} type="button" aria-current={station === index ? "step" : undefined}
