@@ -15,6 +15,7 @@ import { ServeCelebration } from "./components/ServeCelebration";
 import { StreetWorld } from "./components/StreetWorld";
 import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
+import { RushShiftProgress } from "./components/world/RushShiftProgress";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
@@ -238,6 +239,7 @@ function App() {
             <div className="panel summary-card">
               <span className="eyebrow">HẾT CA · NGÀY {game.day}</span>
               <h2>Cảm ơn một ngày bận rộn.</h2>
+              <RushShiftProgress game={game} />
               <p>
                 {game.summary.eventName} · điểm trung bình{" "}
                 {game.summary.averageScore}/100
@@ -292,6 +294,7 @@ function App() {
           {screen === "shop" && game.phase === "open" && order && (
             <>
               <CustomerScene game={game} />
+              <RushShiftProgress game={game} />
               <OrderExperience
                 key={order.id}
                 order={order}

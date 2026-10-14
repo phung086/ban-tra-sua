@@ -1,4 +1,5 @@
 import type { CityState } from './city';
+import type { ShiftPlan } from './shiftPlans';
 export type Phase = "prep" | "open" | "summary";
 export type Screen = "shop" | "stock" | "upgrades" | "reviews" | "goals";
 export type Size = "M" | "L";
@@ -287,6 +288,7 @@ export interface GameState {
   day: number;
   phase: Phase;
   closingCareChoice: ClosingCareChoice | null;
+  shiftPlan?: ShiftPlan;
   counterCondition: CounterCondition;
   cash: number;
   reputation: number;

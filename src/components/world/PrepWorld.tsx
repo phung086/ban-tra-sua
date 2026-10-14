@@ -1,13 +1,14 @@
 import { DRINKS, RESTOCK_ITEMS, STAFF } from "../../game/content";
-import { startDay } from "../../game/engine";
 import { getCounterPatienceAdjustment } from "../../game/closingCare";
+import { RushShiftPanel } from "./RushShiftPanel";
+import type { Dispatch, SetStateAction } from "react";
 import type { GameState, Screen } from "../../game/types";
 import {GameIcon} from '../GameIcon';
 
 
 interface Props {
   game: GameState;
-  onGame: (state: GameState) => void;
+  onGame: Dispatch<SetStateAction<GameState>>;
   onNavigate: (screen: Screen) => void;
 }
 
@@ -22,7 +23,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
 
   return <section className="prep-foundation">
     <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
-    <button className="primary-button prep-open" onClick={()=>onGame(startDay(game))}><GameIcon name="home"/><span>Mở cửa tiệm<small>Bắt đầu ca · {game.targetOrders} đơn</small></span></button>
+    <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
     {getCounterPatienceAdjustment(game) !== 0 && <p className="prep-counter-condition" role="status">{game.counterCondition === "fresh" ? "✨ Quầy sạch thơm từ tối qua: khách hôm nay kiên nhẫn thêm 10 giây." : "🧽 Quầy chưa gọn: khách hôm nay sốt ruột sớm hơn 10 giây."}</p>}
     <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
