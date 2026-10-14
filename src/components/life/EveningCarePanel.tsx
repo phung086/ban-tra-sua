@@ -6,7 +6,7 @@ import {
   type EveningCareChoice,
 } from '../../game/lifeSim/eveningCare';
 
-const choices: readonly EveningCareChoice[] = ['dinner', 'help', 'rest'];
+const choices: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks'];
 
 export function EveningCarePanel({ game, onGame }: {
   game: GameState;
@@ -22,16 +22,19 @@ export function EveningCarePanel({ game, onGame }: {
   if (game.phase !== 'summary' || game.summary?.day !== game.day) return null;
 
   const selected = getEveningCareChoice(game);
+  const thankYouUnlocked = game.day >= 3 && getEveningCareChoice(game, game.day - 2) === 'help';
   return <section className="life-morning" aria-label="Bữa tối sau ca">
     <span className="life-morning-label">CUỐI NGÀY · GÓC PHỐ</span>
-    <h3>Hà rủ ghé quán cơm trước khi về</h3>
+    <h3>{thankYouUnlocked && !selected ? 'Hà nhớ lời hẹn cơm hai hôm trước' : 'Hà rủ ghé quán cơm trước khi về'}</h3>
     <p>{selected
       ? EVENING_CARE[selected].text
-      : 'Hà đang dọn hàng ở đầu ngõ. Bạn muốn ăn tối, giúp một tay hay về nghỉ? Chọn trước khi ngủ; không bắt buộc.'}</p>
+      : thankYouUnlocked
+        ? 'Hôm trước bạn giúp Hà dọn quán. Hôm nay Hà mời một suất cơm miễn phí; bạn vẫn có thể chọn việc khác hoặc về nghỉ.'
+        : 'Hà đang dọn hàng ở đầu ngõ. Bạn muốn ăn tối, giúp một tay hay về nghỉ? Chọn trước khi ngủ; không bắt buộc.'}</p>
     {selected
       ? <p role="status">✓ Hà sẽ nhớ quyết định này vào sáng mai. Bạn có thể ngủ để sang ngày mới.</p>
       : <div className="life-morning-options">
-        {choices.map(choice => {
+        {choices.filter(choice => choice !== 'thanks' || thankYouUnlocked).map(choice => {
           const outcome = EVENING_CARE[choice];
           const available = canChooseEveningCare(game, choice);
           return <button type="button" key={choice} className="life-morning-option"

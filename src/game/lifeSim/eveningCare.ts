@@ -1,6 +1,6 @@
 import type { GameState } from '../types';
 
-export type EveningCareChoice = 'dinner' | 'help' | 'rest';
+export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks';
 
 interface EveningOutcome {
   label: string;
@@ -25,6 +25,12 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
     text: 'Bạn phụ Hà xếp ghế và lau bàn một lát. Hà cảm ơn, hẹn hôm khác cùng ăn cơm.',
     nextMorning: 'Hà để sẵn chiếc ghế trước cửa: “Hôm qua nhờ bạn mà mình đóng quán kịp giờ.”',
   },
+  thanks: {
+    label: '🍱 Nhận suất cơm Hà cảm ơn',
+    minutes: 15, cost: 0, energy: 10, goodwill: 2,
+    text: 'Hà nhớ lần bạn phụ dọn quán hai hôm trước. Hôm nay Hà để dành một suất cơm nóng để cảm ơn, không lấy tiền.',
+    nextMorning: 'Hà cười: “Hôm qua ăn cơm ngon nhé. Có qua có lại, xóm mình mới vui.”',
+  },
   rest: {
     label: '💌 Nhắn Hà rồi về nghỉ',
     minutes: 0, cost: 0, energy: 6, goodwill: 1,
@@ -33,7 +39,7 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
   },
 };
 
-const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest'];
+const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks'];
 const eventId = (day: number, choice: EveningCareChoice) => `evening-ha-${day}-${choice}`;
 
 /** One choice after a completed shift; existing save-v3 ledgers persist it across reloads. */
@@ -50,6 +56,9 @@ export function canChooseEveningCare(game: GameState, choice: EveningCareChoice)
   if (![game.cash, game.city.minutes, game.city.energy, game.city.goodwill].every(Number.isFinite) ||
     game.cash < 0 || game.city.energy < 0 || game.city.energy > 100 ||
     game.city.minutes < 0 || game.city.minutes > 1260) return false;
+  // Hà's thank-you meal is unlocked only by a saved decision from two days ago.
+  if (choice === 'thanks' && (game.day < 3 ||
+    getEveningCareChoice(game, game.day - 2) !== 'help')) return false;
   if (choice === 'rest') return true; // Late, broke or exhausted players can always finish safely.
   const outcome = EVENING_CARE[choice];
   return game.cash >= outcome.cost &&

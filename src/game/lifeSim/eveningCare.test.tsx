@@ -131,4 +131,67 @@ describe('evening with neighbor Ha', () => {
     expect(reloaded.relationshipRewardIds.filter(id => id === 'evening-ha-1-help')).toHaveLength(1);
   });
 
+  it('unlocks a free thank-you meal two days after helping, then remembers it across reload', () => {
+    const helped = chooseEveningCare(finishedShift(), 'help');
+    const secondDay = nextDay(helped);
+    const secondSummary = {
+      ...secondDay,
+      phase: 'summary' as const,
+      summary: { ...finishedShift().summary!, day: 2 },
+    };
+    expect(canChooseEveningCare(secondSummary, 'thanks')).toBe(false);
+    const thirdDay = nextDay(secondSummary);
+    const thirdSummary = {
+      ...thirdDay,
+      phase: 'summary' as const,
+      summary: { ...finishedShift().summary!, day: 3 },
+      cash: 0,
+      city: { ...thirdDay.city, energy: 40, minutes: 1100 },
+    };
+    expect(canChooseEveningCare(thirdSummary, 'thanks')).toBe(true);
+    const html = renderToStaticMarkup(createElement(EveningCarePanel, {
+      game: thirdSummary, onGame: () => undefined,
+    }));
+    expect(html).toContain('Nhận suất cơm Hà cảm ơn');
+    expect(html).toContain('Hà nhớ lời hẹn cơm');
+    const claimed = chooseEveningCare(thirdSummary, 'thanks');
+    expect(claimed.cash).toBe(0);
+    expect(claimed.city.minutes).toBe(1115);
+    expect(claimed.city.energy).toBe(50);
+    expect(claimed.city.goodwill).toBe(thirdSummary.city.goodwill + 2);
+    expect(getEveningCareChoice(claimed)).toBe('thanks');
+    expect(chooseEveningCare(claimed, 'thanks')).toBe(claimed);
+    expect(chooseEveningCare(claimed, 'dinner')).toBe(claimed);
+    saveGame(claimed);
+    const reloaded = loadGame();
+    expect(chooseEveningCare(reloaded, 'thanks')).toBe(reloaded);
+    expect(reloaded.relationshipRewardIds.filter(id => id === 'evening-ha-3-thanks')).toHaveLength(1);
+    expect(getEveningCareCallback(wakeMorning(nextDay(reloaded)))).toContain('Có qua có lại');
+  });
+
+  it('hides thank-you meal without prior help and preserves late-hour fallback', () => {
+    const day2 = nextDay(finishedShift());
+    const day3 = nextDay(day2);
+    const summary = {
+      ...day3,
+      phase: 'summary' as const,
+      summary: { ...finishedShift().summary!, day: 3 },
+    };
+    expect(canChooseEveningCare(summary, 'thanks')).toBe(false);
+    expect(renderToStaticMarkup(createElement(EveningCarePanel, {
+      game: summary, onGame: () => undefined,
+    }))).not.toContain('Nhận suất cơm Hà cảm ơn');
+    const helped = chooseEveningCare(finishedShift(), 'help');
+    const thirdDay = nextDay(nextDay(helped));
+    const late = {
+      ...thirdDay,
+      phase: 'summary' as const,
+      summary: { ...finishedShift().summary!, day: 3 },
+      cash: 0,
+      city: { ...thirdDay.city, minutes: 1260, energy: 0 },
+    };
+    expect(canChooseEveningCare(late, 'thanks')).toBe(false);
+    expect(canChooseEveningCare(late, 'rest')).toBe(true);
+  });
+
 });
