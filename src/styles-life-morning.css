@@ -34,3 +34,19 @@
  .life-morning-done small{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){.life-morning *,.life-morning{animation:none!important;transition:none!important}}
+
+/* Sibling An: compact, keyboard-friendly phone dialogue, no additional canvas. */
+.life-an-call{margin-top:14px;padding:13px;border:1px solid #e9b9cf;border-radius:15px;background:#fffdfaf0}
+.life-an-call-heading{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.life-an-call-heading>span{font-size:24px;line-height:1}
+.life-an-call-heading h4{font-size:14px;margin:0 0 3px}
+.life-an-call-heading small{display:block;color:#8c5571;font-size:11px}
+.life-an-call p{font-size:12px;line-height:1.55;margin:8px 0}
+.life-an-call-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.life-an-call-actions button{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-height:80px;padding:10px;border:1px solid #d9a4bc;border-radius:12px;background:#fff;color:#66384f;text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.life-an-call-actions button:hover:not(:disabled),.life-an-call-actions button:focus-visible{outline:2px solid #bd4f83;outline-offset:1px}
+.life-an-call-actions button:disabled{opacity:.55;cursor:not-allowed}
+.life-an-call-actions strong{font-size:12px;line-height:1.35}
+.life-an-call-actions small{font-size:11px;line-height:1.4}
+.life-an-call-reply{border-left:3px solid #bf6992;padding:8px 10px;background:#fff3f7;border-radius:7px}
+@media(max-width:580px){.life-an-call-actions{grid-template-columns:1fr}.life-an-call-actions button{min-height:48px;padding:10px 12px}}

@@ -1,3 +1,4 @@
+import { SiblingAnCall } from './SiblingAnCall';
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
@@ -60,5 +61,6 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <span>{BREAKFAST_OPTIONS[morning.breakfast??'skip'].label} · Độ no {morning.satiety}/100</span>
       <small>Đã lưu trong ngày, không tính tiền lần hai.</small>
     </div>}
+    {finished&&<SiblingAnCall game={game} onGame={onGame}/>}
   </section>;
 }
