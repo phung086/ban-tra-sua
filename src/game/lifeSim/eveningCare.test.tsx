@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createInitialState, nextDay } from '../engine';
 import { loadGame, saveGame } from '../storage';
+import { wakeMorning } from './morning';
 import { EveningCarePanel } from '../../components/life/EveningCarePanel';
 import {
   canChooseEveningCare, chooseEveningCare, getEveningCareCallback, getEveningCareChoice,
@@ -59,7 +60,7 @@ describe('evening with neighbor Ha', () => {
     expect(getEveningCareChoice(loaded)).toBe('dinner');
     expect(chooseEveningCare(loaded, 'dinner')).toBe(loaded);
     expect(chooseEveningCare(loaded, 'help')).toBe(loaded);
-    const tomorrow = nextDay(loaded);
+    const tomorrow = wakeMorning(nextDay(loaded));
     expect(getEveningCareCallback(tomorrow)).toContain('Hôm qua ăn được không');
     expect(renderToStaticMarkup(createElement(EveningCarePanel, {
       game: tomorrow, onGame: () => undefined,
@@ -88,7 +89,7 @@ describe('evening with neighbor Ha', () => {
     expect(after.city.minutes).toBe(1260);
     expect(after.city.energy).toBe(6);
     expect(getEveningCareChoice(after)).toBe('rest');
-    expect(getEveningCareCallback(nextDay(after))).toContain('Nghỉ được là tốt');
+    expect(getEveningCareCallback(wakeMorning(nextDay(after)))).toContain('Nghỉ được là tốt');
   });
 
   it('rejects incomplete shifts, stale summaries and malformed numeric state', () => {
@@ -105,7 +106,7 @@ describe('evening with neighbor Ha', () => {
   it('does not show a callback before the next morning or two days later', () => {
     const game = chooseEveningCare(finishedShift(), 'rest');
     expect(getEveningCareCallback(game)).toBeNull();
-    const day2 = nextDay(game);
+    const day2 = wakeMorning(nextDay(game));
     expect(getEveningCareCallback(day2)).not.toBeNull();
     expect(getEveningCareCallback(nextDay(day2))).toBeNull();
   });
