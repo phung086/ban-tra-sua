@@ -87,7 +87,9 @@ export function chooseEveningCare(game: GameState, choice: EveningCareChoice): G
 
 /** A specific, once-only callback appears after sleep, not on the same evening. */
 export function getEveningCareCallback(game: GameState): string | null {
-  if (game.phase !== 'prep' || game.morning.day !== game.day || game.day < 2) return null;
+  // NPCs cannot send a morning greeting before the player has actually woken up.
+  if (game.phase !== 'prep' || game.morning.day !== game.day ||
+    game.morning.step === 'asleep' || game.day < 2) return null;
   const choice = getEveningCareChoice(game, game.day - 1);
   return choice ? EVENING_CARE[choice].nextMorning : null;
 }
