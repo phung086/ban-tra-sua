@@ -92,7 +92,9 @@ try {
       if (message.type() === 'error') thanksErrors.push(message.text());
     });
     await thanksPage.addInitScript(initial => {
-      localStorage.setItem('tiem-tra-chibi-save-v3', JSON.stringify(initial));
+      if (!localStorage.getItem('tiem-tra-chibi-save-v3')) {
+        localStorage.setItem('tiem-tra-chibi-save-v3', JSON.stringify(initial));
+      }
       localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({
         renderEngine: 'three', graphics: 'light', coachCompleted: true,
         motion: false, sound: false, music: false,
