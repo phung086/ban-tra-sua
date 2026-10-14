@@ -1,6 +1,6 @@
 import type { GameState } from '../types';
 
-export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks' | 'postpone';
+export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks' | 'postpone' | 'apologize';
 
 interface EveningOutcome {
   label: string;
@@ -37,6 +37,12 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
     text: 'Bạn nhắn Hà rằng hôm nay chưa ghé được. Hà đồng ý giữ suất cơm đến tối mai.',
     nextMorning: 'Hà nhắn: “Tối nay mình vẫn giữ phần cơm nhé, nếu bạn tiện thì ghé.”',
   },
+  apologize: {
+    label: '💬 Xin lỗi Hà vì lỡ hẹn',
+    minutes: 5, cost: 0, energy: 0, goodwill: 1,
+    text: 'Bạn ghé quán và nhận lỗi vì đã lỡ cuộc hẹn. Hà hơi buồn nhưng vui vì bạn đã nói thật.',
+    nextMorning: 'Hà mỉm cười: “Không sao, lần tới cứ báo mình sớm nhé. Mình vẫn là hàng xóm mà!”',
+  },
   rest: {
     label: '💌 Nhắn Hà rồi về nghỉ',
     minutes: 0, cost: 0, energy: 6, goodwill: 1,
@@ -45,7 +51,7 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
   },
 };
 
-const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone'];
+const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone', 'apologize'];
 const eventId = (day: number, choice: EveningCareChoice) => `evening-ha-${day}-${choice}`;
 
 /** One choice after a completed shift; existing save-v3 ledgers persist it across reloads. */
@@ -53,6 +59,14 @@ export function getEveningCareChoice(game: GameState, day = game.day): EveningCa
   if (!Number.isSafeInteger(day) || day < 1) return null;
   return CHOICES.find(choice => game.relationshipRewardIds.includes(eventId(day, choice)) ||
     game.storyLog.some(moment => moment.id === eventId(day, choice))) ?? null;
+}
+
+/** An unkept one-day reschedule creates a next-day repair opportunity, never a debt. */
+export function hasMissedHaPromise(game: GameState): boolean {
+  return Number.isSafeInteger(game.day) && game.day >= 5 &&
+    getEveningCareChoice(game, game.day - 4) === 'help' &&
+    getEveningCareChoice(game, game.day - 2) === 'postpone' &&
+    getEveningCareChoice(game, game.day - 1) !== 'thanks';
 }
 
 export function canChooseEveningCare(game: GameState, choice: EveningCareChoice): boolean {
@@ -71,6 +85,7 @@ export function canChooseEveningCare(game: GameState, choice: EveningCareChoice)
     getEveningCareChoice(game, game.day - 1) === 'postpone';
   if (choice === 'thanks' && !directInvite && !rescheduledInvite) return false;
   if (choice === 'postpone' && !directInvite) return false;
+  if (choice === 'apologize' && !hasMissedHaPromise(game)) return false;
   if (choice === 'rest' || choice === 'postpone') return true; // No-cost fallback, even late.
   const outcome = EVENING_CARE[choice];
   return game.cash >= outcome.cost &&
