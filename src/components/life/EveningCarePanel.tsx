@@ -26,7 +26,7 @@ export function EveningCarePanel({ game, onGame }: {
   const canPostpone = canChooseEveningCare(game, 'postpone');
   return <section className="life-morning" aria-label="Bữa tối sau ca">
     <span className="life-morning-label">CUỐI NGÀY · GÓC PHỐ</span>
-    <h3>{thankYouUnlocked && !selected ? 'Hà nhớ lời hẹn cơm hai hôm trước' : 'Hà rủ ghé quán cơm trước khi về'}</h3>
+    <h3>{thankYouUnlocked && !selected ? 'Hà vẫn nhớ lời hẹn cơm' : 'Hà rủ ghé quán cơm trước khi về'}</h3>
     <p>{selected
       ? EVENING_CARE[selected].text
       : thankYouUnlocked
