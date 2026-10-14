@@ -1,6 +1,6 @@
 import type { GameState } from '../types';
 
-export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks';
+export type EveningCareChoice = 'dinner' | 'help' | 'rest' | 'thanks' | 'postpone';
 
 interface EveningOutcome {
   label: string;
@@ -31,6 +31,12 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
     text: 'Hà nhớ lần bạn phụ dọn quán hai hôm trước. Hôm nay Hà để dành một suất cơm nóng để cảm ơn, không lấy tiền.',
     nextMorning: 'Hà cười: “Hôm qua ăn cơm ngon nhé. Có qua có lại, xóm mình mới vui.”',
   },
+  postpone: {
+    label: '📅 Hẹn Hà ngày mai',
+    minutes: 0, cost: 0, energy: 0, goodwill: 0,
+    text: 'Bạn nhắn Hà rằng hôm nay chưa ghé được. Hà đồng ý giữ suất cơm đến tối mai.',
+    nextMorning: 'Hà nhắn: “Tối nay mình vẫn giữ phần cơm nhé, nếu bạn tiện thì ghé.”',
+  },
   rest: {
     label: '💌 Nhắn Hà rồi về nghỉ',
     minutes: 0, cost: 0, energy: 6, goodwill: 1,
@@ -39,7 +45,7 @@ export const EVENING_CARE: Record<EveningCareChoice, EveningOutcome> = {
   },
 };
 
-const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks'];
+const CHOICES: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone'];
 const eventId = (day: number, choice: EveningCareChoice) => `evening-ha-${day}-${choice}`;
 
 /** One choice after a completed shift; existing save-v3 ledgers persist it across reloads. */
@@ -56,10 +62,16 @@ export function canChooseEveningCare(game: GameState, choice: EveningCareChoice)
   if (![game.cash, game.city.minutes, game.city.energy, game.city.goodwill].every(Number.isFinite) ||
     game.cash < 0 || game.city.energy < 0 || game.city.energy > 100 ||
     game.city.minutes < 0 || game.city.minutes > 1260) return false;
-  // Hà's thank-you meal is unlocked only by a saved decision from two days ago.
-  if (choice === 'thanks' && (game.day < 3 ||
-    getEveningCareChoice(game, game.day - 2) !== 'help')) return false;
-  if (choice === 'rest') return true; // Late, broke or exhausted players can always finish safely.
+  // One invitation after helping, with a single explicit one-day postponement.
+  // Declining or simply sleeping on the invitation day does not silently extend it.
+  const directInvite = game.day >= 3 &&
+    getEveningCareChoice(game, game.day - 2) === 'help';
+  const rescheduledInvite = game.day >= 4 &&
+    getEveningCareChoice(game, game.day - 3) === 'help' &&
+    getEveningCareChoice(game, game.day - 1) === 'postpone';
+  if (choice === 'thanks' && !directInvite && !rescheduledInvite) return false;
+  if (choice === 'postpone' && !directInvite) return false;
+  if (choice === 'rest' || choice === 'postpone') return true; // No-cost fallback, even late.
   const outcome = EVENING_CARE[choice];
   return game.cash >= outcome.cost &&
     game.city.minutes + outcome.minutes <= 1260 &&
