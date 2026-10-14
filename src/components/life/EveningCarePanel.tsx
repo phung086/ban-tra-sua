@@ -30,7 +30,7 @@ export function EveningCarePanel({ game, onGame }: {
     <p>{selected
       ? EVENING_CARE[selected].text
       : thankYouUnlocked
-        ? 'Hôm trước bạn giúp Hà dọn quán. Hôm nay Hà mời một suất cơm miễn phí; bạn vẫn có thể chọn việc khác hoặc về nghỉ.'
+        ? 'Bạn từng giúp Hà dọn quán. Hà vẫn giữ lời mời cơm miễn phí; bạn có thể nhận, hẹn lại nếu còn lượt, hoặc về nghỉ.'
         : 'Hà đang dọn hàng ở đầu ngõ. Bạn muốn ăn tối, giúp một tay hay về nghỉ? Chọn trước khi ngủ; không bắt buộc.'}</p>
     {selected
       ? <p role="status">✓ Hà sẽ nhớ quyết định này vào sáng mai. Bạn có thể ngủ để sang ngày mới.</p>
