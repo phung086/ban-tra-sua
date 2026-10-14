@@ -17,14 +17,17 @@ export const SHIFT_BREAK_OPTIONS = {
     minutes: 12,
     satiety: 0,
     energy: 6,
-    description: 'Không tốn tiền nhưng khách phải chờ lâu hơn.',
+    description: 'Không tốn tiền nhưng mất 12 phút trong ngày.',
   },
 } as const;
 
 /** Only successful deliveries consume energy: no double charge on invalid orders. */
 export function applyShiftFatigue(game: GameState): GameState {
   if (game.phase !== 'open' || game.morning.day !== game.day ||
-      game.morning.step !== 'finished') return game;
+      game.morning.step !== 'finished' ||
+      ![game.morning.satiety, game.city.energy].every(Number.isFinite) ||
+      game.morning.satiety < 0 || game.morning.satiety > 100 ||
+      game.city.energy < 0 || game.city.energy > 100) return game;
   const satiety = Math.max(0, Math.min(100, game.morning.satiety - 8));
   const energyCost = satiety >= 60 ? 1 : satiety >= 30 ? 2 : 4;
   return {
