@@ -47,6 +47,11 @@ try {
           base: 'classic-milk-tea', sugar: 25, ice: 50, topping: 'none',
           targetFill: 80, targetShake: 60, price: 20000,
         };
+        state.draft = {
+          ...state.draft, base: 'classic-milk-tea', size: 'M',
+          topping: 'none', sugar: 25, ice: 50, fill: 80, shake: 60,
+          sealed: false,
+        };
         state.currentOrderQueuedAt = Date.now();
         state.customerQueue = [];
         return state;
@@ -91,6 +96,34 @@ try {
           restored.city.energy !== 49 ||
           restored.relationshipRewardIds.filter(id => id === 'remembered-greeting:return-e2e').length !== 1) {
         throw new Error('Greeting ledger or cost changed after reload');
+      }
+      // Actual crafting/delivery: no direct reducer call or fake callback.
+      await page.locator('.craft-stations button').nth(3).click({ timeout: 20000 });
+      await page.locator('.seal-button').click({ timeout: 20000 });
+      await page.locator('.serve-button').click({ timeout: 15000 });
+      await page.locator('.place-buttons button.destination').click({ timeout: 20000 });
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])', { timeout: 90000 });
+      await page.locator('.delivery-tag button.primary-button').click({ timeout: 15000 });
+      await page.waitForFunction(key => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}');
+        return state.served >= 1 && state.relationshipRewardIds?.includes('remembered-service:return-e2e');
+      }, KEY, { timeout: 20000 });
+      const delivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (delivered.lastScore < 80 ||
+          delivered.storyLog[0]?.id !== 'remembered-service:return-e2e' ||
+          !delivered.notice.includes('Tiệm còn nhớ mình')) {
+        throw new Error('Real tea delivery did not produce the expected NPC callback');
+      }
+      await page.screenshot({
+        path: `artifacts/remembered-customer/delivered-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled',
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const persisted = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (persisted.served !== delivered.served ||
+          persisted.storyLog[0]?.id !== 'remembered-service:return-e2e' ||
+          persisted.relationshipRewardIds.filter(id => id === 'remembered-service:return-e2e').length !== 1) {
+        throw new Error('NPC delivery callback was lost or duplicated on reload');
       }
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2)) {
         throw new Error('Horizontal overflow');
