@@ -22,3 +22,6 @@
 .life-remembered-order button{display:block;width:100%;min-height:48px;margin-top:8px;padding:9px 12px;text-align:left;border:1px solid #dba8bf;border-radius:10px;background:#fff;color:#65394f;cursor:pointer}
 .life-remembered-order button:disabled{opacity:.55;cursor:not-allowed}
 .life-remembered-order small{display:block;margin-top:6px;color:#3d6d4b}
+
+.life-remembered-history{padding:8px 10px;border-radius:8px;background:#fff;border-left:3px solid #d88bab}
+.life-remembered-history b{color:#733a55}

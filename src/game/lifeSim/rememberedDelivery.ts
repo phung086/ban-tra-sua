@@ -7,6 +7,8 @@ function feedback(order: Order, draft: GameState['draft'], score: number): strin
   if (draft.topping !== order.topping) return 'Topping chưa đúng đơn.';
   if (draft.sugar !== order.sugar) return 'Độ ngọt chưa đúng đơn.';
   if (draft.ice !== order.ice) return 'Mức đá chưa đúng đơn.';
+  if (Math.abs(draft.fill - order.targetFill) >= 15) return 'Lượng trà trong ly chưa đúng yêu cầu.';
+  if (Math.abs(draft.shake - order.targetShake) >= 15) return 'Độ lắc chưa đúng yêu cầu.';
   if (score < 80) return 'Lần sau bạn pha kỹ hơn nhé.';
   return '';
 }

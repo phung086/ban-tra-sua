@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomerScene } from '../../components/CustomerScene';
 import { createInitialState } from '../engine';
 import { loadGame, saveGame } from '../storage';
+import { deliverDrink, deliveryFor, PLACES } from '../service';
 import type { GameState, Review } from '../types';
 import { canGreetRememberedCustomer, greetRememberedCustomer, hasRememberedLowSugar } from './rememberedCustomer';
 
@@ -69,6 +70,33 @@ describe('remembered customer at the real tea counter', () => {
     expect(render(greeted)).toContain('Hôm nay mình đặt 25% đường nhé.');
     expect(render(greeted)).toContain('aria-live="polite"');
     expect(render(state)).not.toContain('Ồ, tiệm còn nhớ mình!');
+  });
+
+  it('shows real saved delivery feedback when the customer returns on a later day', () => {
+    const original = returningCustomer();
+    const prepared = greetRememberedCustomer({
+      ...original,
+      draft: { ...original.draft, base: 'classic-milk-tea', size: 'M',
+        topping: 'black-pearl', sugar: 25, ice: 50, fill: 80, shake: 60, sealed: true },
+    });
+    const order = prepared.currentOrder!;
+    const served = deliverDrink(prepared, true, PLACES[deliveryFor(order)], order.id);
+    expect(served.storyLog[0].text).toContain('Topping chưa đúng đơn');
+    const later = {
+      ...served, day: 3, phase: 'open' as const,
+      city: { ...served.city, day: 3 },
+      currentOrder: { ...order, id: 'return-order-next-day' },
+    };
+    expect(render(later)).toContain('Lần giao trước (ngày 2)');
+    expect(render(later)).toContain('Topping chưa đúng đơn');
+    const data = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => { data.set(key, value); },
+      removeItem: (key: string) => { data.delete(key); },
+    });
+    saveGame(later);
+    expect(render(loadGame())).toContain('Topping chưa đúng đơn');
   });
 
   it('survives save/reload and never blocks normal service when tired', () => {

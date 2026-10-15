@@ -21,12 +21,18 @@ export function CustomerScene({ game, onGame }: {
   const customer = getCustomer(order.customerId);
   const remembered = hasRememberedLowSugar(game, order.customerId);
   const greetingChoice = remembered ? getRememberedGreetingChoice(game) : null;
+  const previousServiceFeedback = remembered ? game.storyLog.find(moment =>
+    moment.customerId === order.customerId && moment.day < game.day &&
+    moment.id.startsWith('remembered-service:')) : null;
   return <div className="customer-service">
     <div className="customer-heading"><ChibiPortrait customer={customer} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
     {remembered && <aside className="life-review-care life-remembered-order" aria-label="Sở thích khách quen">
       <strong>💗 Nhớ khách thích ít ngọt</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
+      {previousServiceFeedback && <p className="life-remembered-history" role="note">
+        <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
+      </p>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
           <small>✓ Đã chào khách theo sở thích.</small>

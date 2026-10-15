@@ -68,6 +68,21 @@ describe('remembered NPC callback on actual delivery', () => {
     expect(wrong.notice).toContain('Topping chưa đúng đơn');
   });
 
+  it('flags incorrect fill or shake despite a high score, but tolerates small deviations', () => {
+    const greeted = greetRememberedCustomer(returning());
+    const underfilled = serve({ ...greeted, draft: { ...greeted.draft, fill: 0 } });
+    expect(underfilled.lastScore).toBeGreaterThanOrEqual(80);
+    expect(underfilled.notice).toContain('Lượng trà trong ly chưa đúng yêu cầu');
+    expect(underfilled.storyLog[0].title).toBe('Khách quen góp ý thêm');
+
+    const underShaken = serve({ ...greeted, draft: { ...greeted.draft, shake: 0 } });
+    expect(underShaken.lastScore).toBeGreaterThanOrEqual(80);
+    expect(underShaken.notice).toContain('Độ lắc chưa đúng yêu cầu');
+
+    const closeEnough = serve({ ...greeted, draft: { ...greeted.draft, fill: 70, shake: 50 } });
+    expect(closeEnough.storyLog[0].title).toBe('Khách quen hài lòng');
+  });
+
   it('never creates callback without consent or a real delivery', () => {
     const noGreeting = serve(returning());
     expect(noGreeting.relationshipRewardIds).not.toContain('remembered-service:return-serve-1');
