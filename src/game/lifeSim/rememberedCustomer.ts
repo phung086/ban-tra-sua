@@ -13,9 +13,41 @@ export function hasRememberedLowSugar(game: GameState, customerId: string): bool
 }
 
 const greetingId = (orderId: string) => 'remembered-greeting:' + encodeURIComponent(orderId);
+const quietId = (orderId: string) => 'remembered-quiet:' + encodeURIComponent(orderId);
+
+/** The player can acknowledge a regular without mentioning their preference aloud. */
+export function getRememberedGreetingChoice(game: GameState): 'greet' | 'quiet' | null {
+  const order = game.currentOrder;
+  if (!order) return null;
+  if (game.relationshipRewardIds.includes(greetingId(order.id))) return 'greet';
+  if (game.relationshipRewardIds.includes(quietId(order.id))) return 'quiet';
+  return null;
+}
 
 export function hasGreetedRememberedCustomer(game: GameState): boolean {
-  return Boolean(game.currentOrder && game.relationshipRewardIds.includes(greetingId(game.currentOrder.id)));
+  return getRememberedGreetingChoice(game) === 'greet';
+}
+
+/** A free, no-energy fallback for tired players or customers who value discretion. */
+export function canKeepRememberedPreferencePrivate(game: GameState): boolean {
+  return Boolean(game.currentOrder && game.phase === 'open' &&
+    hasRememberedLowSugar(game, game.currentOrder.customerId) &&
+    !getRememberedGreetingChoice(game));
+}
+
+export function keepRememberedPreferencePrivate(game: GameState): GameState {
+  if (!canKeepRememberedPreferencePrivate(game)) return game;
+  const id = quietId(game.currentOrder!.id);
+  const notice = 'Bạn ghi nhớ góp ý nhưng không nhắc chuyện cũ trước mặt khách. Cứ pha đúng đơn hôm nay.';
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, id],
+    city: {
+      ...game.city,
+      journal: [`Ngày ${game.day} · Tôn trọng sự riêng tư của khách quen.`, ...game.city.journal].slice(0, 24),
+    },
+    notice,
+  };
 }
 
 /** Greeting is optional and never alters the customer's requested recipe. */
@@ -23,7 +55,7 @@ export function canGreetRememberedCustomer(game: GameState): boolean {
   const order = game.currentOrder;
   return Boolean(order && game.phase === 'open' &&
     hasRememberedLowSugar(game, order.customerId) &&
-    !hasGreetedRememberedCustomer(game) &&
+    !getRememberedGreetingChoice(game) &&
     game.city.energy >= 1 && game.city.minutes + 2 <= 1260);
 }
 
