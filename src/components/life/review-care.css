@@ -14,3 +14,11 @@
 .life-review-followup-actions button{min-height:48px;padding:8px;text-align:left;border:1px solid #dba8bf;border-radius:9px;background:#fff;color:#65394f;cursor:pointer}
 .life-review-followup-actions button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:900px){.life-review-followup-actions{grid-template-columns:1fr}}
+
+/* The remembered preference is a readable, tappable part of the live order. */
+.life-remembered-order{flex:1 1 100%;min-width:0;margin-top:8px;padding:10px 12px;border:1px solid #e6b6c9;border-radius:12px;background:#fff6f9;color:#613b50}
+.life-remembered-order strong{display:block;font-size:.9rem}
+.life-remembered-order p{margin:6px 0;line-height:1.4;overflow-wrap:anywhere}
+.life-remembered-order button{display:block;width:100%;min-height:48px;margin-top:8px;padding:9px 12px;text-align:left;border:1px solid #dba8bf;border-radius:10px;background:#fff;color:#65394f;cursor:pointer}
+.life-remembered-order button:disabled{opacity:.55;cursor:not-allowed}
+.life-remembered-order small{display:block;margin-top:6px;color:#3d6d4b}
