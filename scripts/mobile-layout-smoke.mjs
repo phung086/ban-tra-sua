@@ -117,6 +117,31 @@ try{
   report.passes.push('joystick pointer released during orientation change');
   await page.setViewportSize({width:844,height:390});
   await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  // Respect the actual first-day lifecycle: the shop stays locked until
+  // waking and choosing breakfast. Verify persistence before and after reload.
+  const shopButton = page.getByRole('button',{name:/Mở cửa tiệm/});
+  assert(!(await shopButton.isEnabled()),'Shop must stay locked before breakfast');
+  await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
+  await page.locator('.life-morning[data-step="awake"]').waitFor({timeout:15000});
+  await page.getByRole('button',{name:/Mua bánh mì đầu ngõ/}).click({timeout:30000});
+  await page.locator('.life-morning[data-step="finished"]').waitFor({timeout:15000});
+  await page.waitForFunction(()=>{
+    try {
+      const save=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return save.morning?.step==='finished' && save.morning?.breakfast==='street'
+        && save.cash===200000;
+    } catch {return false;}
+  },null,{timeout:15000});
+  assert(await shopButton.isEnabled(),'Breakfast should unlock opening the shop');
+  await page.reload({waitUntil:'domcontentloaded',timeout:90000});
+  await page.waitForSelector('.street-world canvas',{timeout:120000});
+  await page.locator('.life-morning[data-step="finished"]').waitFor({timeout:15000});
+  assert(await page.getByRole('button',{name:/Mở cửa tiệm/}).isEnabled(),
+    'Shop must remain unlocked after save/reload');
+  const restored=await page.evaluate(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}'));
+  assert(restored.morning?.breakfast==='street' && restored.cash===200000,
+    'Reload must preserve breakfast choice and deduct its cost only once');
+  report.passes.push('wake, buy breakfast (-20,000 VND), save/reload and unlock shop');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});
