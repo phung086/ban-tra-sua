@@ -13,7 +13,7 @@ export function ReviewCareChoicePanel({ game, review, onGame }: {
 }) {
   if (review.stars > 3 || !review.replyText) return null;
   const done = getReviewCareDecision(game, review.id);
-  if (done) return <p className="life-review-care-complete">✓ Đã xử lý góp ý ngày {done.day}.</p>;
+  if (done) return <p className="life-review-care-complete" role="status">✓ Đã xử lý góp ý ngày {done.day}.</p>;
   return <section className="life-review-care" aria-label={`Chăm sóc khách ${review.customerName}`}>
     <strong>Khách chưa hài lòng — mình xử lý thế nào?</strong>
     <div className="life-review-care-actions">
