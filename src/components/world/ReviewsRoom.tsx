@@ -1,3 +1,7 @@
+import type { Dispatch, SetStateAction } from "react";
+import { ReviewCareChoicePanel } from "../life/ReviewCareChoicePanel";
+import { ReviewCareCallbacks } from "../life/ReviewCarePanel";
+import "../life/review-care.css";
 import { formatMoney, getCustomer, getRelationshipTier, replyToReview } from "../../game/engine";
 import type { GameState, ReplyStyle } from "../../game/types";
 import { RoomBackdrop } from "./RoomBackdrop";
@@ -5,7 +9,7 @@ import { ChibiPortrait } from "../ChibiCustomer";
 
 interface Props {
   game: GameState;
-  onGame: (state: GameState) => void;
+  onGame: Dispatch<SetStateAction<GameState>>;
   onReset: () => void;
 }
 
@@ -52,6 +56,7 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
             <div><span>{stars(Math.round(average))}</span><small>{game.stats.replies} replies</small></div>
           </div>
 
+          <ReviewCareCallbacks game={game} />
           <div className="v6-phone-feed">
             {game.reviews.length === 0 ? (
               <div className="v6-phone-empty">
@@ -75,12 +80,13 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
                     ) : (
                       <div className="v6-reply-row">
                         {replyStyles.map((style) => (
-                          <button key={style.id} onClick={() => onGame(replyToReview(game, review.id, style.id))}>
+                          <button key={style.id} onClick={() => onGame(current => replyToReview(current, review.id, style.id))}>
                             <span>{style.emoji}</span>{style.label}
                           </button>
                         ))}
                       </div>
                     )}
+                    <ReviewCareChoicePanel game={game} review={review} onGame={onGame} />
                   </div>
                 </article>
               ))
