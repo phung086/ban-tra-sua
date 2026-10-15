@@ -86,6 +86,8 @@ describe('live review care and next-day memory', () => {
     const tomorrow = nextDay(reloaded);
     expect(getReviewCareCallbacks(tomorrow)[0]?.name).toBe('Miu');
     expect(render(tomorrow)).toContain('Tin nhắn khách ngày mới');
+    expect(render(tomorrow)).toContain('role="region"');
+    expect(render(tomorrow)).toContain('Khách nhắn lại sáng nay');
     saveGame(tomorrow);
     expect(render(loadGame())).toContain('Tin nhắn khách ngày mới');
     expect(getReviewCareCallbacks(nextDay(tomorrow))).toHaveLength(0);
