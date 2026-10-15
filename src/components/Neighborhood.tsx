@@ -64,6 +64,20 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
         {selected === 'shop' ? <button disabled={!near} onClick={onReturn}>Trở lại quầy pha chế</button> : RESIDENTS.some(r=>r.place===selected)&&<button disabled={!near} onClick={() => onTalk(RESIDENTS.find(r=>r.place===selected)!.id)}>Trò chuyện với {RESIDENTS.find(r=>r.place===selected)!.name}</button>}
         {selected === 'market' && <div className="market-day-choices" aria-label="Chọn giỏ hàng tại chợ">
           {game.day === 10 && <p className="market-day-story" role="status">🥬 Ngày 10 · Chợ Ngọc Hà tăng giá. Cô Hạnh đưa ra hai giỏ nhập hàng, bạn chọn theo tiền quỹ và số đơn dự kiến.</p>}
+          {game.day === 11 && <article className="market-basket" aria-label="Ngày 11: lời nhờ của cô Hạnh">
+            <h4>📦 Ngày 11 · Cô Hạnh thiếu người dọn quầy</h4>
+            <p>Bạn giúp cô dọn thùng hàng để được giảm 6.000 ₫ vào ngày mai, hay về tiệm sớm với 2 ly M dự phòng? Cả hai đều có hậu quả lưu qua ngày.</p>
+            {game.relationshipRewardIds.includes('market.day11.help') || game.relationshipRewardIds.includes('market.day11.hurry')
+              ? <p role="status">{game.relationshipRewardIds.includes('market.day11.help')
+                  ? 'Đã giúp cô Hạnh. Ngày 12 cô sẽ giảm 6.000 ₫ giỏ nguyên liệu.'
+                  : 'Đã chọn về tiệm sớm. Bạn nhận thêm 2 ly M hôm nay.'}</p>
+              : <div className="market-day-actions">
+                <button type="button" disabled={!near || game.phase === 'open' || city.energy < 12 || city.minutes + 20 > CITY_PLACES.market.hours[1]}
+                  onClick={() => onAction({ type: 'supplier', choice: 'help' })}>Giúp dọn quầy · 20 phút · 12 sức lực</button>
+                <button type="button" disabled={!near || game.phase === 'open' || city.energy < 2 || city.minutes + 5 > CITY_PLACES.market.hours[1]}
+                  onClick={() => onAction({ type: 'supplier', choice: 'hurry' })}>Về tiệm sớm · 5 phút · 2 sức lực</button>
+              </div>}
+          </article>}
           {getMarketOffers(game).map(offer => <article className="market-basket" key={offer.id}>
             <h4>{offer.title} · {formatMoney(offer.cost)}</h4>
             <p>{offer.detail}</p>
