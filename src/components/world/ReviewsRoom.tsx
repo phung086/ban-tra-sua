@@ -56,7 +56,7 @@ export function ReviewsRoom({ game, onGame, onReset }: Props) {
             <div><span>{stars(Math.round(average))}</span><small>{game.stats.replies} replies</small></div>
           </div>
 
-          <ReviewCareCallbacks game={game} />
+          <ReviewCareCallbacks game={game} onGame={onGame} />
           <div className="v6-phone-feed">
             {game.reviews.length === 0 ? (
               <div className="v6-phone-empty">
