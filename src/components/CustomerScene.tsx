@@ -26,7 +26,10 @@ export function CustomerScene({ game, onGame }: {
     {remembered && <aside className="life-review-care life-remembered-order" aria-label="Sở thích khách quen">
       <strong>💗 Nhớ khách thích ít ngọt</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
-      {greeted ? <small role="status">✓ Đã chào khách theo sở thích.</small> :
+      {greeted ? <div role="status" aria-live="polite" className="life-remembered-reply">
+        <small>✓ Đã chào khách theo sở thích.</small>
+        <p>“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt {order.sugar}% đường nhé.”</p>
+      </div> :
         <div className="life-review-followup-actions" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
           <button type="button" disabled={!canGreetRememberedCustomer(game)}
             onClick={() => onGame(current => greetRememberedCustomer(current))}>
