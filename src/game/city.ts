@@ -39,6 +39,8 @@ const BUDGET_MARKET_STOCK: MarketOffer['stock'] = [
   ['classicMilkTea', 5], ['peachTea', 4], ['cupsM', 8], ['sugar', 6], ['ice', 8],
 ];
 const DAY10_FULL_ID = 'market.day10.full';
+const DAY11_HELP_ID = 'market.day11.help';
+const DAY11_HURRY_ID = 'market.day11.hurry';
 
 /** Day 10 price shock with two real stock/cash outcomes. A full basket
  * earns one next-day supplier discount, persisted in the existing v3 ledger.
@@ -46,12 +48,15 @@ const DAY10_FULL_ID = 'market.day10.full';
  */
 export function getMarketOffers(state: Pick<GameState, 'day' | 'relationshipRewardIds'>): MarketOffer[] {
   const loyalDiscount = state.day === 11 && state.relationshipRewardIds.includes(DAY10_FULL_ID) ? 4000 : 0;
+  const supplierDiscount = state.day === 12 && state.relationshipRewardIds.includes(DAY11_HELP_ID) ? 6000 : 0;
   const regular: MarketOffer = {
     id: 'full', title: 'Gói nguyên liệu của cô Hạnh',
     detail: loyalDiscount
       ? 'Cô Hạnh nhớ bạn đã giữ đơn hôm qua, giảm 4.000 ₫ cho lần nhập hôm nay.'
-      : 'Đủ trà, ly, đường và đá để bổ sung cho ca bán.',
-    cost: 48000 - loyalDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
+      : supplierDiscount
+        ? 'Cô Hạnh cảm ơn bạn đã dọn quầy hôm qua: giảm 6.000 ₫ cho giỏ hôm nay.'
+        : 'Đủ trà, ly, đường và đá để bổ sung cho ca bán.',
+    cost: 48000 - loyalDiscount - supplierDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
   };
   if (state.day !== 10) return [regular];
   return [
@@ -101,7 +106,7 @@ export type CityAction =
   | { type: 'accept'; destination: CityPlace }
   | { type: 'pack'; base: BaseId; sugar: number; timing: number }
   | { type: 'deliver' } | { type: 'cancel' }
-  | { type: 'market'; basket?: MarketBasket } | { type: 'talk'; place: CityPlace }
+  | { type: 'market'; basket?: MarketBasket } | { type: 'supplier'; choice: 'help' | 'hurry' } | { type: 'talk'; place: CityPlace }
   | { type: 'garden' } | { type: 'rest'; place?:CityPlace }
   | { type: 'bus' }
   | { type: 'project'; id: CityProject };
@@ -125,7 +130,7 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
     return result(state, { ...city, contract: { ...contract, deadline: city.minutes + contract.deadline } }, 'Đã nhận đơn. Về quầy pha đúng trà, đường và đóng túi.');
   }
   if (action.type === 'cancel') return result(state, { ...city, contract: null }, 'Đã hủy chuyến. Nguyên liệu đã pha không hoàn lại.');
-  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : action.type === 'market' ? 'market' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
+  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
   if (!nearCityPlace(position, place)) return { ...state, notice: `Đi đến ${CITY_PLACES[place].name} để thực hiện.` };
   if (city.minutes < CITY_PLACES[place].hours[0] || city.minutes > CITY_PLACES[place].hours[1]) return { ...state, notice: 'Địa điểm đã đóng cửa. Quay lại vào ngày mai.' };
   if (action.type === 'bus') {
@@ -135,6 +140,29 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
   if (action.type === 'rest') {
     if (city.energy >= 100) return { ...state, notice: 'Bạn đã đủ sức. Đi một vòng phố nhé.' };
     return result(state, { ...city, energy: Math.min(100, city.energy + 35), minutes: Math.min(1260, city.minutes + 20) }, `Nghỉ tại ${CITY_PLACES[place].name} 20 phút. Hồi 35 sức lực.`);
+  }
+  if (action.type === 'supplier') {
+    // One Day-11 choice, persisted in the existing v3 reward ledger.
+    if (state.day !== 11 || state.relationshipRewardIds.some(id => id === DAY11_HELP_ID || id === DAY11_HURRY_ID)) return state;
+    const help = action.choice === 'help';
+    const minutes = help ? 20 : 5;
+    const energy = help ? 12 : 2;
+    if (city.energy < energy || city.minutes + minutes > Math.min(1260, CITY_PLACES.market.hours[1])) {
+      return { ...state, notice: 'Không đủ thời gian hoặc sức lực. Bạn có thể nghỉ chân và quay lại chợ sớm hơn.' };
+    }
+    const rewardId = help ? DAY11_HELP_ID : DAY11_HURRY_ID;
+    const inventory = help ? state.inventory : { ...state.inventory, cupsM: state.inventory.cupsM + 2 };
+    const freshness = help ? state.freshness : {
+      ...state.freshness,
+      cupsM: (state.inventory.cupsM * state.freshness.cupsM + 200) / (state.inventory.cupsM + 2),
+    };
+    return result(state, {
+      ...city, minutes: city.minutes + minutes, energy: city.energy - energy,
+      goodwill: city.goodwill + (help ? 3 : 0),
+    }, help
+      ? 'Bạn giúp cô Hạnh dọn quầy 20 phút. Thêm 3 thiện cảm; ngày mai cô giảm 6.000 ₫ giỏ hàng.'
+      : 'Bạn xin về tiệm sớm. Cô Hạnh gửi thêm 2 ly M dự phòng, tiết kiệm thời gian cho ca bán.',
+    { inventory, freshness, relationshipRewardIds: [...state.relationshipRewardIds, rewardId] });
   }
   if (city.energy < 8) return { ...state, notice: 'Bạn mệt rồi. Ghé hồ nghỉ chân để hồi sức.' };
   if (action.type === 'pack') {
