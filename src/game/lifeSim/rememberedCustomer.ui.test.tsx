@@ -65,6 +65,10 @@ describe('remembered customer at the real tea counter', () => {
     expect(greeted.currentOrder).toEqual(state.currentOrder);
     expect(greetRememberedCustomer(greeted)).toBe(greeted);
     expect(render(greeted)).toContain('Đã chào khách theo sở thích');
+    expect(render(greeted)).toContain('Ồ, tiệm còn nhớ mình!');
+    expect(render(greeted)).toContain('Hôm nay mình đặt 25% đường nhé.');
+    expect(render(greeted)).toContain('aria-live="polite"');
+    expect(render(state)).not.toContain('Ồ, tiệm còn nhớ mình!');
   });
 
   it('survives save/reload and never blocks normal service when tired', () => {
