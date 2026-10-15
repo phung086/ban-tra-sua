@@ -23,14 +23,16 @@ export function CustomerScene({ game, onGame }: {
   return <div className="customer-service">
     <div className="customer-heading"><ChibiPortrait customer={customer} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
-    {remembered && <aside className="life-remembered-order" aria-label="Sở thích khách quen">
+    {remembered && <aside className="life-review-care life-remembered-order" aria-label="Sở thích khách quen">
       <strong>💗 Nhớ khách thích ít ngọt</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
       {greeted ? <small role="status">✓ Đã chào khách theo sở thích.</small> :
-        <button type="button" disabled={!canGreetRememberedCustomer(game)}
-          onClick={() => onGame(current => greetRememberedCustomer(current))}>
-          Chào khách quen · 2 phút · 1 năng lượng · +1 thân thiết
-        </button>}
+        <div className="life-review-followup-actions" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
+          <button type="button" disabled={!canGreetRememberedCustomer(game)}
+            onClick={() => onGame(current => greetRememberedCustomer(current))}>
+            Chào khách quen · 2 phút · 1 năng lượng · +1 thân thiết
+          </button>
+        </div>}
       {!greeted && !canGreetRememberedCustomer(game) && <small role="status">Không đủ năng lượng hoặc đã muộn để chào thêm; bạn vẫn có thể pha và giao trà bình thường.</small>}
     </aside>}
   </div>;
