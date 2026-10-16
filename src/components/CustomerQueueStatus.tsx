@@ -1,5 +1,6 @@
 import { getCustomerMoodMeta, getCustomerServiceFeedback, getNextPatienceDrop } from "../game/customerAi";
 import { getCustomer } from "../game/engine";
+import { getCustomerWaitingLine } from "../game/customerWaitingDialogue";
 import type { GameState } from "../game/types";
 
 export function CustomerQueueStatus({ game, now }: { game: GameState; now: number }) {
@@ -19,6 +20,7 @@ export function CustomerQueueStatus({ game, now }: { game: GameState; now: numbe
       <p className="queue-service-stakes" aria-live="off">{nextDrop
         ? `⏱ Còn khoảng ${nextDrop.seconds}s trước khi tip giảm (${tipLabel(nextDrop.tipBefore)} → ${tipLabel(nextDrop.tipAfter)}). Pha kỹ hay giao sớm?`
         : "⏱ Khách đã chờ quá lâu · ưu tiên giao ly để giữ quan hệ."}</p>
+      <p className="queue-customer-dialogue" aria-live="off">“{getCustomerWaitingLine(customer.id, feedback.mood)}”</p>
       <div className="queue-next"><span>Tiếp theo</span>
         {game.customerQueue.length === 0 ? <span>Khách cuối ca</span> : game.customerQueue.map((entry) => {
           const queued = getCustomer(entry.order.customerId);
