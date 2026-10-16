@@ -1,0 +1,953 @@
+{
+  "environment": "Chromium headless touch emulation, software WebGL; not real mobile hardware",
+  "sizes": [
+    {
+      "phase": "shop-prep",
+      "layout": "portrait",
+      "exploring": false,
+      "width": 320,
+      "height": 568,
+      "viewportHeight": 568,
+      "documentWidth": 320,
+      "transform": "none",
+      "scene": {
+        "x": 9,
+        "y": 198,
+        "width": 302,
+        "height": 325,
+        "right": 311,
+        "bottom": 523
+      },
+      "canvas": {
+        "x": 10,
+        "y": 199,
+        "width": 300,
+        "height": 323,
+        "right": 310,
+        "bottom": 522
+      },
+      "content": {
+        "x": 9,
+        "y": 537,
+        "width": 302,
+        "height": 947,
+        "right": 311,
+        "bottom": 1484
+      },
+      "joystick": {
+        "x": 184,
+        "y": 363,
+        "width": 106,
+        "height": 106,
+        "right": 290,
+        "bottom": 469
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 568,
+      "contentScrollable": false,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "portrait",
+      "exploring": false,
+      "width": 360,
+      "height": 800,
+      "viewportHeight": 800,
+      "documentWidth": 360,
+      "transform": "none",
+      "scene": {
+        "x": 9,
+        "y": 191,
+        "width": 342,
+        "height": 432,
+        "right": 351,
+        "bottom": 623
+      },
+      "canvas": {
+        "x": 10,
+        "y": 192,
+        "width": 340,
+        "height": 430,
+        "right": 350,
+        "bottom": 622
+      },
+      "content": {
+        "x": 9,
+        "y": 637,
+        "width": 342,
+        "height": 873,
+        "right": 351,
+        "bottom": 1510
+      },
+      "joystick": {
+        "x": 224,
+        "y": 463,
+        "width": 106,
+        "height": 106,
+        "right": 330,
+        "bottom": 569
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 800,
+      "contentScrollable": false,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "portrait",
+      "exploring": false,
+      "width": 390,
+      "height": 844,
+      "viewportHeight": 844,
+      "documentWidth": 390,
+      "transform": "none",
+      "scene": {
+        "x": 9,
+        "y": 191,
+        "width": 372,
+        "height": 456,
+        "right": 381,
+        "bottom": 647
+      },
+      "canvas": {
+        "x": 10,
+        "y": 192,
+        "width": 370,
+        "height": 454,
+        "right": 380,
+        "bottom": 646
+      },
+      "content": {
+        "x": 9,
+        "y": 661,
+        "width": 372,
+        "height": 873,
+        "right": 381,
+        "bottom": 1534
+      },
+      "joystick": {
+        "x": 254,
+        "y": 487,
+        "width": 106,
+        "height": 106,
+        "right": 360,
+        "bottom": 593
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 844,
+      "contentScrollable": false,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "landscape",
+      "exploring": false,
+      "width": 844,
+      "height": 390,
+      "viewportHeight": 390,
+      "documentWidth": 844,
+      "transform": "none",
+      "scene": {
+        "x": 8,
+        "y": 114,
+        "width": 432,
+        "height": 272,
+        "right": 440,
+        "bottom": 386
+      },
+      "canvas": {
+        "x": 9,
+        "y": 115,
+        "width": 430,
+        "height": 270,
+        "right": 439,
+        "bottom": 385
+      },
+      "content": {
+        "x": 453,
+        "y": 114,
+        "width": 383,
+        "height": 272,
+        "right": 836,
+        "bottom": 386
+      },
+      "joystick": {
+        "x": 341,
+        "y": 287,
+        "width": 90,
+        "height": 90,
+        "right": 431,
+        "bottom": 377
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 390,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "landscape",
+      "exploring": false,
+      "width": 932,
+      "height": 430,
+      "viewportHeight": 430,
+      "documentWidth": 932,
+      "transform": "none",
+      "scene": {
+        "x": 8,
+        "y": 114,
+        "width": 479,
+        "height": 312,
+        "right": 487,
+        "bottom": 426
+      },
+      "canvas": {
+        "x": 9,
+        "y": 115,
+        "width": 477,
+        "height": 310,
+        "right": 486,
+        "bottom": 425
+      },
+      "content": {
+        "x": 500,
+        "y": 114,
+        "width": 424,
+        "height": 312,
+        "right": 924,
+        "bottom": 426
+      },
+      "joystick": {
+        "x": 379,
+        "y": 318,
+        "width": 99,
+        "height": 99,
+        "right": 478,
+        "bottom": 417
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 430,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "landscape",
+      "exploring": false,
+      "width": 667,
+      "height": 375,
+      "viewportHeight": 375,
+      "documentWidth": 667,
+      "transform": "none",
+      "scene": {
+        "x": 8,
+        "y": 114,
+        "width": 340,
+        "height": 257,
+        "right": 348,
+        "bottom": 371
+      },
+      "canvas": {
+        "x": 9,
+        "y": 115,
+        "width": 338,
+        "height": 255,
+        "right": 347,
+        "bottom": 370
+      },
+      "content": {
+        "x": 358,
+        "y": 114,
+        "width": 301,
+        "height": 257,
+        "right": 659,
+        "bottom": 371
+      },
+      "joystick": {
+        "x": 252,
+        "y": 276,
+        "width": 86,
+        "height": 86,
+        "right": 339,
+        "bottom": 362
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 375,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "landscape",
+      "exploring": false,
+      "width": 568,
+      "height": 320,
+      "viewportHeight": 320,
+      "documentWidth": 568,
+      "transform": "none",
+      "scene": {
+        "x": 8,
+        "y": 86,
+        "width": 288,
+        "height": 230,
+        "right": 296,
+        "bottom": 316
+      },
+      "canvas": {
+        "x": 9,
+        "y": 87,
+        "width": 286,
+        "height": 228,
+        "right": 295,
+        "bottom": 315
+      },
+      "content": {
+        "x": 305,
+        "y": 86,
+        "width": 255,
+        "height": 230,
+        "right": 560,
+        "bottom": 316
+      },
+      "joystick": {
+        "x": 211,
+        "y": 231,
+        "width": 76,
+        "height": 76,
+        "right": 287,
+        "bottom": 307
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 320,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "landscape",
+      "exploring": false,
+      "width": 1024,
+      "height": 480,
+      "viewportHeight": 480,
+      "documentWidth": 1024,
+      "transform": "none",
+      "scene": {
+        "x": 8,
+        "y": 114,
+        "width": 527,
+        "height": 362,
+        "right": 535,
+        "bottom": 476
+      },
+      "canvas": {
+        "x": 9,
+        "y": 115,
+        "width": 525,
+        "height": 360,
+        "right": 534,
+        "bottom": 475
+      },
+      "content": {
+        "x": 548,
+        "y": 114,
+        "width": 468,
+        "height": 362,
+        "right": 1016,
+        "bottom": 476
+      },
+      "joystick": {
+        "x": 424,
+        "y": 365,
+        "width": 102,
+        "height": 102,
+        "right": 526,
+        "bottom": 467
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 480,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    },
+    {
+      "phase": "shop-prep",
+      "layout": "desktop",
+      "exploring": false,
+      "width": 1280,
+      "height": 800,
+      "viewportHeight": 800,
+      "documentWidth": 1280,
+      "transform": "none",
+      "scene": {
+        "x": 24,
+        "y": 196,
+        "width": 782,
+        "height": 610,
+        "right": 806,
+        "bottom": 806
+      },
+      "canvas": {
+        "x": 25,
+        "y": 197,
+        "width": 780,
+        "height": 608,
+        "right": 805,
+        "bottom": 805
+      },
+      "content": {
+        "x": 826,
+        "y": 196,
+        "width": 430,
+        "height": 588,
+        "right": 1256,
+        "bottom": 784
+      },
+      "joystick": {
+        "x": 671,
+        "y": 651,
+        "width": 116,
+        "height": 116,
+        "right": 787,
+        "bottom": 767
+      },
+      "notebook": null,
+      "contextActions": null,
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 800,
+      "contentScrollable": true,
+      "canvasPreserved": true
+    }
+  ],
+  "city": [
+    {
+      "phase": "city-closed",
+      "layout": "portrait",
+      "exploring": true,
+      "width": 390,
+      "height": 844,
+      "viewportHeight": 844,
+      "documentWidth": 390,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 0,
+        "right": 390,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 27,
+        "y": 583,
+        "width": 106,
+        "height": 106,
+        "right": 133,
+        "bottom": 689
+      },
+      "notebook": {
+        "x": 0,
+        "y": 722,
+        "width": 390,
+        "height": 122,
+        "right": 390,
+        "bottom": 844
+      },
+      "contextActions": {
+        "x": 146,
+        "y": 694,
+        "width": 230,
+        "height": 0,
+        "right": 376,
+        "bottom": 694
+      },
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 844,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-open",
+      "layout": "portrait",
+      "exploring": true,
+      "width": 390,
+      "height": 844,
+      "viewportHeight": 844,
+      "documentWidth": 390,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 0,
+        "right": 390,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 27,
+        "y": 583,
+        "width": 106,
+        "height": 106,
+        "right": 133,
+        "bottom": 689
+      },
+      "notebook": {
+        "x": 0,
+        "y": 209,
+        "width": 390,
+        "height": 635,
+        "right": 390,
+        "bottom": 844
+      },
+      "contextActions": {
+        "x": 146,
+        "y": 694,
+        "width": 230,
+        "height": 0,
+        "right": 376,
+        "bottom": 694
+      },
+      "sheetOpen": true,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 844,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-closed",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 844,
+      "height": 390,
+      "viewportHeight": 390,
+      "documentWidth": 844,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390,
+        "right": 844,
+        "bottom": 390
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390,
+        "right": 844,
+        "bottom": 390
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 0,
+        "right": 844,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 10,
+        "y": 291,
+        "width": 90,
+        "height": 90,
+        "right": 100,
+        "bottom": 381
+      },
+      "notebook": {
+        "x": 241,
+        "y": 283,
+        "width": 363,
+        "height": 100,
+        "right": 603,
+        "bottom": 383
+      },
+      "contextActions": {
+        "x": 643,
+        "y": 380,
+        "width": 190,
+        "height": 0,
+        "right": 833,
+        "bottom": 380
+      },
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 390,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-open",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 844,
+      "height": 390,
+      "viewportHeight": 390,
+      "documentWidth": 844,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390,
+        "right": 844,
+        "bottom": 390
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390,
+        "right": 844,
+        "bottom": 390
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 0,
+        "right": 844,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 10,
+        "y": 291,
+        "width": 90,
+        "height": 90,
+        "right": 100,
+        "bottom": 381
+      },
+      "notebook": {
+        "x": 415,
+        "y": 52,
+        "width": 422,
+        "height": 331,
+        "right": 837,
+        "bottom": 383
+      },
+      "contextActions": {
+        "x": 643,
+        "y": 380,
+        "width": 190,
+        "height": 0,
+        "right": 833,
+        "bottom": 380
+      },
+      "sheetOpen": true,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 390,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-closed",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 932,
+      "height": 430,
+      "viewportHeight": 430,
+      "documentWidth": 932,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 430,
+        "right": 932,
+        "bottom": 430
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 430,
+        "right": 932,
+        "bottom": 430
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 15,
+        "right": 932,
+        "bottom": 15
+      },
+      "joystick": {
+        "x": 10,
+        "y": 322,
+        "width": 99,
+        "height": 99,
+        "right": 109,
+        "bottom": 421
+      },
+      "notebook": {
+        "x": 276,
+        "y": 330,
+        "width": 380,
+        "height": 93,
+        "right": 656,
+        "bottom": 423
+      },
+      "contextActions": {
+        "x": 731,
+        "y": 420,
+        "width": 190,
+        "height": 0,
+        "right": 921,
+        "bottom": 420
+      },
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 430,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-open",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 932,
+      "height": 430,
+      "viewportHeight": 430,
+      "documentWidth": 932,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 430,
+        "right": 932,
+        "bottom": 430
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 430,
+        "right": 932,
+        "bottom": 430
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 932,
+        "height": 15,
+        "right": 932,
+        "bottom": 15
+      },
+      "joystick": {
+        "x": 10,
+        "y": 322,
+        "width": 99,
+        "height": 99,
+        "right": 109,
+        "bottom": 421
+      },
+      "notebook": {
+        "x": 490,
+        "y": 52,
+        "width": 435,
+        "height": 371,
+        "right": 925,
+        "bottom": 423
+      },
+      "contextActions": {
+        "x": 731,
+        "y": 420,
+        "width": 190,
+        "height": 0,
+        "right": 921,
+        "bottom": 420
+      },
+      "sheetOpen": true,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 430,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-closed",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 667,
+      "height": 375,
+      "viewportHeight": 375,
+      "documentWidth": 667,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 375,
+        "right": 667,
+        "bottom": 375
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 375,
+        "right": 667,
+        "bottom": 375
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 0,
+        "right": 667,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 10,
+        "y": 280,
+        "width": 86,
+        "height": 86,
+        "right": 96,
+        "bottom": 366
+      },
+      "notebook": {
+        "x": 184,
+        "y": 268,
+        "width": 300,
+        "height": 100,
+        "right": 484,
+        "bottom": 368
+      },
+      "contextActions": {
+        "x": 476,
+        "y": 365,
+        "width": 180,
+        "height": 0,
+        "right": 656,
+        "bottom": 365
+      },
+      "sheetOpen": false,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 375,
+      "contentScrollable": false
+    },
+    {
+      "phase": "city-open",
+      "layout": "landscape",
+      "exploring": true,
+      "width": 667,
+      "height": 375,
+      "viewportHeight": 375,
+      "documentWidth": 667,
+      "transform": "none",
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 375,
+        "right": 667,
+        "bottom": 375
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 375,
+        "right": 667,
+        "bottom": 375
+      },
+      "content": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 0,
+        "right": 667,
+        "bottom": 0
+      },
+      "joystick": {
+        "x": 10,
+        "y": 280,
+        "width": 86,
+        "height": 86,
+        "right": 96,
+        "bottom": 366
+      },
+      "notebook": {
+        "x": 313,
+        "y": 52,
+        "width": 347,
+        "height": 316,
+        "right": 660,
+        "bottom": 368
+      },
+      "contextActions": {
+        "x": 476,
+        "y": 365,
+        "width": 180,
+        "height": 0,
+        "right": 656,
+        "bottom": 365
+      },
+      "sheetOpen": true,
+      "canvasEngine": "Three.js",
+      "visualViewportHeight": 375,
+      "contentScrollable": false
+    }
+  ],
+  "errors": [],
+  "passes": [
+    "joystick pointer released during orientation change",
+    "wake, buy breakfast (-20,000 VND), save/reload and unlock shop",
+    "breakfast, lunchbox, 4 viewport choices, reload and once-only payment",
+    "landscape craft workflow and independent panel scrolling",
+    "open shop, seal cup, carry through portrait rotation, return to landscape and deliver",
+    "city sheet reopen after orientation change; canvas preserved and joystick visible"
+  ]
+}

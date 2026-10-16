@@ -2,7 +2,7 @@
   "date": "2026-10-16",
   "base": "36153f6",
   "integrationBranch": "codex/integrate-game-20261016",
-  "verifiedAt": "75402b8e849f2d1f5117820cd4c5b2219d97b41c",
+  "verifiedAt": "faf1a4098e53f123b87e0b52d8d9ac1f93f42ba5",
   "refs": [
     {
       "branch": "origin",
@@ -26,7 +26,7 @@
     },
     {
       "branch": "origin/codex/integrate-game-20261016",
-      "sha": "3946b98e59e0216da3ebcc202081e6b7140d6cb5",
+      "sha": "faf1a4098e53f123b87e0b52d8d9ac1f93f42ba5",
       "merged": true
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "branch": "origin/codex/life-review-repair-20261015-0744",
-      "sha": "6b81305decce07bab5b4d9a95a56c764f9cc071f",
+      "sha": "6fd2d9f6fa84b53030d9aaa7fe3a5f6a3c98f07f",
       "merged": true
     },
     {
@@ -131,7 +131,7 @@
     },
     {
       "branch": "origin/codex/mobile-beta-foundation",
-      "sha": "e81b000d8b9385efdbd676fb54c512d45a899650",
+      "sha": "15586742ab37af947fd6eff72c0d7aaa96766083",
       "merged": true
     },
     {

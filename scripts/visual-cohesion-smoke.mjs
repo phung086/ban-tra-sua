@@ -13,7 +13,7 @@ await page.screenshot({path:output+'/shop.png'});
 await page.getByRole('button',{name:/Khám phá khu phố/}).click();
 await page.waitForFunction(()=>window.__m1Runtime?.input.exploring);
 // Camera-only fixtures for reviewing the real scene, without changing saves.
-for(const [name,x,z,yaw,overview] of [['street',0,-8,2.6,false],['city',0,-7,0,true]]){
+for(const [name,x,z,yaw,overview] of [['face',0,-8,0,false],['street',0,-8,2.6,false],['city',0,-7,0,true]]){
  await page.evaluate(({x,z,yaw,overview})=>{const r=window.__m1Runtime;r.player={x,z};r.path=[];r.yaw=yaw;r.overview=overview;r.cameraFocus.set(x,0,z);},{x,z,yaw,overview});
  await page.waitForTimeout(2500);await page.screenshot({path:output+'/'+name+'.png'});
 }

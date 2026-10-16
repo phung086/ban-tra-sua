@@ -1,0 +1,10 @@
+{
+  "environment": "Chromium simulated touch / SwiftShader; not physical mobile hardware",
+  "passed": [
+    "360x800: greet, clarify, diary, reload and physical delivery",
+    "390x844: greet, clarify, diary, reload and physical delivery",
+    "844x390: greet, clarify, diary, reload and physical delivery",
+    "1280x800: greet, clarify, diary, reload and physical delivery"
+  ],
+  "errors": []
+}

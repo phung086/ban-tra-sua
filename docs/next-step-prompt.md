@@ -1,27 +1,25 @@
-# Prompt tiếp theo: gọn luồng buổi sáng trên mobile
+# Prompt tiếp theo: art pass nhân vật và mặt phố tiệm trà
 
-Đọc README.md, docs/iterations/integration-20261016.md,
-src/experimental/gemini/README.md, docs/production-roadmap.md và
-docs/iteration-protocol.md. Fetch main mới nhất; kiểm tra thay đổi chưa commit,
-không ghi đè nhánh AI khác. Lấy main làm nguồn chuẩn sau đợt tích hợp 16/10.
+Đọc README.md, docs/iterations/integration-20261016.md, docs/production-roadmap.md,
+src/experimental/gemini/README.md. Fetch main, giữ các thay đổi chưa commit của
+người khác. Không merge lại prototype chưa nối runtime.
 
-Làm đúng một việc: cải thiện UI/UX buổi sáng để người chơi trên 360×800 và
-390×844 không phải cuộn qua hàng chục nút trước khi mở tiệm. Giữ bước thức dậy
-→ chọn bữa sáng rõ ràng. Sau đó hiển thị một hành động chính “Mở tiệm” dễ thấy;
-gọi gia đình, gặp bạn, chợ, chăm cây, nấu cơm và chuyện trong ngày nằm trong
-các nhóm tùy chọn gọn, mở khi người chơi muốn. Giữ đầy đủ mọi nhánh lựa chọn,
-giá, thời gian, hệ quả, lời thoại đã chọn và trạng thái save/reload hiện tại.
-Tránh hai trải nghiệm chợ trông như hai chuyến độc lập: một lần ghé chợ mỗi ngày.
+Ưu tiên mới của người dùng: cảnh liền mạch, nhân vật tự nhiên, chuyển động mượt.
+Làm một lát cắt hoàn chỉnh từ quầy ra mặt phố tiệm trà Hà Nội: thay nhân vật ghép
+hình học bằng một asset rigged có quyền sử dụng rõ ràng, giữ cùng silhouette,
+tỷ lệ người/cửa/xe, vật liệu vữa/gạch/gỗ thống nhất. Kiểm tra ở khoảng nhìn thực
+khi chơi, không chỉ ảnh quảng cáo hoặc camera fixture. Giữ cổ/vai/tay không hở,
+không xuyên áo; cầm ly, ngồi, chào và đi bộ dùng cùng bộ xương. Có fallback nhẹ
+khi tải asset lỗi. Không tải đồng thời hai engine, không tăng texture tùy tiện.
 
-Sửa code chạy thật trong PrepWorld/MorningRoutine và CSS liên quan;
-không mở thêm hệ thống kinh tế/save hoặc nối toàn bộ prototype Gemini.
-Không tăng scene/texture/draw call cho thay đổi DOM này. Giữ joystick, xoay màn,
-các trạm pha và đường đi giao ly hoạt động. Kiểm tra không trừ tiền/thưởng lặp.
+Giữ mọi nhiệm vụ, lựa chọn, tiền, thời gian và save hiện tại. Đối chiếu collision
+với kích thước asset thật; kiểm tra joystick chéo, sát góc tường, quanh xe và
+camera bị công trình che. Không đổi gameplay để che lỗi đồ họa.
 
-Chạy npm test, npm run build, mobile-layout và market-cooking browser smoke.
-Chụp trước/sau ở 360×800, 390×844, 844×390 và desktop; đo số lần cuộn đến hành
-động chính, không tràn ngang, mục tiêu chạm tối thiểu 44px. Thử bằng chạm qua
-bữa sáng → tùy chọn chợ → reload → mở tiệm → pha → giao khách. Ghi rõ test nào
-dùng fixture và test nào đi từ save mới. Cập nhật báo cáo trong docs, commit,
-push nhánh codex/…, kiểm tra CI đúng SHA rồi đưa đúng một prompt tiếp theo.
-Không tuyên bố đạt hiệu năng điện thoại cấu hình thấp khi chưa đo máy thật.
+Chụp trước/sau cùng góc nhìn ở 360×800, 390×844, 844×390 và desktop. Chạy npm test,
+npm run build, mobile-layout và remembered-customer browser smoke. Ghi draw
+calls, triangles, dung lượng asset, thời gian tải; phân biệt số đo trình giả lập
+và máy thật. Chỉ kết luận mobile cấu hình thấp khi đo trên thiết bị thật.
+Cập nhật báo cáo, nguồn/license asset trên Git, push nhánh codex/… và kiểm CI.
+Đưa đúng một prompt tiếp theo sau khi có kết quả review, không mở rộng cả thành
+phố hay thêm nhiệm vụ trước khi lát cắt này đẹp và ổn định.

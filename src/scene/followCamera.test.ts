@@ -11,6 +11,11 @@ describe('follow camera sightline',()=>{
     expect(clearCameraFraction({x:0,z:0},{x:8,z:0},[wall])).toBe(1);
     expect(clearCameraFraction({x:0,z:0},{x:0,z:0},[wall])).toBe(1);
   });
+  it('does not force the camera through a wall at very close range',()=>{
+    const t=clearCameraFraction({x:0,z:2.2},{x:0,z:10},[wall]);
+    expect(2.2+7.8*t).toBeLessThan(2.32);
+    expect(t).toBeGreaterThan(0);
+  });
   it('selects the closest obstruction independently of block order',()=>{
     const far={...wall,z:6};
     expect(clearCameraFraction({x:0,z:0},{x:0,z:8},[far,wall])).toBe(clearCameraFraction({x:0,z:0},{x:0,z:8},[wall,far]));

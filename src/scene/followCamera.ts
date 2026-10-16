@@ -16,7 +16,7 @@ export function clearCameraFraction(focus:{x:number;z:number},desired:{x:number;
       else {const a=(min-start)/delta,c=(max-start)/delta;near=Math.max(near,Math.min(a,c));far=Math.min(far,Math.max(a,c));}
     }
     // Invalid/legacy spawn positions must not collapse the camera onto its eye.
-    if(far>=near&&near>0)fraction=Math.min(fraction,Math.max(.04,near-.12/length));
+    if(far>=near&&near>0)fraction=Math.min(fraction,Math.max(near*.5,near-.12/length));
   }
   return fraction;
 }

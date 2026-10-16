@@ -52,7 +52,7 @@ dạng dữ liệu, không kích hoạt automation ghi Git.
 
 ## Kiểm chứng
 
-- `npm test`: 130 file Vitest, 633 test passed, không còn todo; Node acceptance gate 6/6;
+- `npm test`: 131 file Vitest, 637 test passed, không còn todo; Node acceptance gate 6/6;
   validator world/story dependency DAG passed.
 - `npm run build`: TypeScript và Vite production passed. Cảnh báo chunk lớn còn
   tồn tại (Babylon khoảng 1,66 MB trước gzip); chưa đạt production budget mobile.
@@ -86,3 +86,44 @@ luồng ưu tiên rõ ràng cho điện thoại; không nên thêm tiếp các m
 Nhiều chương có test reducer/UI nhưng chưa đi thủ công trọn 51 ngày.
 Đồ họa vẫn là procedural stylized. Chưa có chứng cứ FPS/P95, nhiệt hoặc bộ nhớ
 trên Android RAM 3–4 GB và iPhone thật; giả lập Chromium không thay thế việc đó.
+
+
+## Cập nhật đồ họa và tích hợp buổi tối 16/10
+
+Đã merge thêm `6fd2d9f` (ký ức khách quen, lời cảm ơn sau hỏi góp ý)
+và `1558674` (lựa chọn ngày 12 mưa trước trường và hệ quả ngày sau).
+Snapshot các đầu nhánh đã fetch đều là ancestor của `faf1a40`; manifest đã cập nhật.
+
+- Khép đầu tay áo, đưa vai gần thân hơn, đồng bộ normal tại đường nối UV của
+  các mesh tay/chân và thân áo. Giữ skin weights, khớp gối/khuỷu và carry grip.
+- Đặt mắt, tai, miệng gần bề mặt đầu; tóc ôm đầu hơn, bỏ các sợi dạng dây nổi.
+- Ánh sáng chân dung gần cảnh chơi hơn; nền gạch/vữa/gỗ của tiệm trung tính,
+  giữ sắc hồng ở biển hiệu và mái hiên. Không thêm texture tải ngoài.
+- Camera theo người kiểm tra toàn bộ đoạn nhìn qua footprint tòa nhà, thu gần
+  trước vật cản. Có test tường ở giữa, cạnh song song, thứ tự nhiều vật cản.
+- Sửa test thưởng ca đông: so cùng ly cuối ca và cùng ledger thay vì so fan
+  giữa hai nhóm khách ngẫu nhiên khác nhau. CI cũ `d91aaef` đã lộ lỗi fixture này.
+- Browser khách quen qua 4 kích thước: chào, hỏi góp ý, reload, giao ly thật,
+  lưu phản hồi đúng và không nhân đôi chi phí. Kỳ vọng lời thoại cũ được sửa
+  theo nhánh có hỏi kỹ góp ý; không nới điều kiện điểm hoặc bỏ bước giao ly.
+
+`npm test`: 637 test/131 file + 6 node acceptance test; `npm run build`: thành công.
+`visual-cohesion-smoke.mjs`: ảnh từ scene thật, dùng fixture vị trí/camera;
+không được gọi đây là kiểm thử đi bộ bằng chạm hoặc số đo điện thoại thật.
+Báo cáo khách quen: [JSON](evidence/integration-20261016/remembered-results.json).
+
+![Tiệm sau chỉnh vật liệu](evidence/integration-20261016/shop-latest.png)
+![Nhân vật và mặt phố](evidence/integration-20261016/character-street-latest.png)
+![Toàn cảnh](evidence/integration-20261016/city-latest.png)
+
+Đồ họa vẫn là mô hình procedural cách điệu, chưa đạt chân thực. Cần một lượt
+art pass với asset nhân vật rigged và bộ kiến trúc thống nhất; không tuyên bố
+đã hoàn thiện production hoặc đạt FPS thiết bị cấu hình thấp qua SwiftShader.
+
+Kiểm lại browser sau art pass: [mobile JSON](evidence/integration-20261016/mobile-latest-results.json),
+9 kích thước quầy và 4 kích thước thành phố; không lỗi trang, giữ canvas khi
+xoay, joystick được thả khi xoay, mua/nấu/reload và pha/giao ly thành công.
+CI mã `faf1a40`: [build/test xanh](https://github.com/phung086/ban-tra-sua/actions/runs/38910174847).
+Bổ sung sau kiểm tra: camera sát tường không bị khoảng cách tối thiểu đẩy xuyên
+vật cản (test hồi quy riêng); 637 test tổng cộng. Prompt tiếp theo được chuyển
+sang art pass nhân vật/mặt phố theo ưu tiên mới của người dùng.
