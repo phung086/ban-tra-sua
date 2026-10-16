@@ -3,7 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { createInitialState, nextDay, startDay } from '../engine';
 import { MorningRoutine } from '../../components/life/MorningRoutine';
-import { chooseBreakfast, createMorning, hydrateMorning, visitMorningMarket, wakeMorning } from './morning';
+import { chooseBreakfast, createMorning, hydrateMorning, wakeMorning } from './morning';
+
+import { visitMorningMarket } from './marketEncounter';
 
 const fresh = () => {
   const game = createInitialState();

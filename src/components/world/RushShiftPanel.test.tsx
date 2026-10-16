@@ -6,6 +6,8 @@ import { chooseClosingCare, createInitialState, generateOrder, getRestockPrice, 
 import { chooseShiftPlan, getRushCupRequirements } from "../../game/shiftPlans";
 import { RushShiftPanel } from "./RushShiftPanel";
 
+import { chooseBreakfast, wakeMorning } from '../../game/lifeSim/morning';
+
 const callbacks = { onGame: () => undefined, onNavigate: () => undefined };
 function dayNine() {
   let game = createInitialState();
@@ -13,7 +15,7 @@ function dayNine() {
     if (game.day === 8) game = chooseClosingCare({ ...game, phase: "summary" }, "skip");
     game = nextDay(game);
   }
-  return game;
+  return chooseBreakfast(wakeMorning(game), "street");
 }
 
 /** Exercise the actual JSX onClick callbacks without a browser: React batches

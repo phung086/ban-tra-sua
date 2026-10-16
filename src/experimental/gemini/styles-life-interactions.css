@@ -1,0 +1,126 @@
+/* Responsive Life-Sim & Tea Recovery UI (360x800, 390x844, 844x390, 1280x800) */
+.life-modal-card {
+  box-sizing: border-box;
+  width: min(100%, 520px);
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 1rem;
+  border-radius: 16px;
+  background: #fffcf5;
+  border: 2px solid #e6ccb2;
+  color: #2f241d;
+  box-shadow: 0 10px 28px rgba(47, 36, 29, 0.14);
+  overflow-x: hidden;
+}
+
+.npc-speech-bubble {
+  margin: 0.75rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: #faedcd;
+  border-left: 4px solid #d4a373;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.life-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.life-choice-btn {
+  width: 100%;
+  min-height: 48px;
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1.5px solid #ddb892;
+  background: #ffffff;
+  color: #2f241d;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.life-choice-btn:hover:not(:disabled),
+.life-choice-btn:focus-visible {
+  border-color: #9c6644;
+  outline: 2px solid #b08968;
+  outline-offset: 2px;
+}
+
+.life-choice-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.life-choice-deltas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.life-choice-deltas em {
+  font-style: normal;
+  padding: 0.12rem 0.42rem;
+  border-radius: 6px;
+  background: #f3e9dc;
+}
+
+.eod-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.eod-metric-box {
+  padding: 0.55rem;
+  border-radius: 10px;
+  background: #f8f1e7;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.eod-sleep-save-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.8rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: none;
+  background: #6f4e37;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.96rem;
+  cursor: pointer;
+}
+
+@media (max-width: 420px) {
+  .life-modal-card {
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+  .eod-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 440px) and (orientation: landscape) {
+  .life-modal-card {
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-choice-btn,
+  .topping-drop-cup {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -30,7 +30,8 @@ describe("day 8 closing cleanup playable choice", () => {
     expect(getClosingScenario(8)?.id).toBe("quiet-shift-cleanup");
     expect(getClosingScenario(7)).toBeNull();
     expect(nextDay(finished).day).toBe(8);
-    expect(chooseClosingCare(createInitialState(), "clean")).toEqual(createInitialState());
+    const prep = createInitialState();
+    expect(chooseClosingCare(prep, "clean")).toBe(prep);
     expect(nextDay({ ...finished, day: 7 }).day).toBe(8);
   });
 

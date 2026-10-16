@@ -19,6 +19,7 @@ try {
       viewport:{width,height}, deviceScaleFactor:1, isMobile:width<1000, hasTouch:width<1000
     });
     const page = await context.newPage();
+    page.setDefaultTimeout(90000);
     const errors = [];
     page.on('pageerror',error=>errors.push(error.message));
     await page.addInitScript(()=>{
@@ -31,6 +32,7 @@ try {
     const open = page.getByRole('button',{name:/Mở cửa tiệm/});
     if (!await open.isDisabled()) throw new Error('shop should be locked before breakfast');
     await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
+    await page.locator('.life-morning[data-step="awake"]').waitFor();
     await page.getByRole('button',{name:/Đi làm luôn/}).click();
     await page.getByRole('button',{name:/Mua rau và trứng ở chợ/}).click();
     await page.getByRole('button',{name:/Nấu canh rau tại nhà/}).click();

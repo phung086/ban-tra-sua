@@ -19,7 +19,7 @@ describe("live fast mix station", () => {
     expect(html).toContain("Pha nhanh · bỏ qua 2 lượt canh");
     expect(html).toContain("12 điểm");
     expect(html).toContain("Ước tính nếu pha nhanh");
-    expect(html).toContain("Bắt đầu rót");
+    expect(html).toContain("GIỮ ĐỂ RÓT");
   });
 
   it("requires a deliberate careful reset before the gauges return", () => {

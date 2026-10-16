@@ -44,7 +44,7 @@ describe("counter customer facial acting", () => {
   it("shows impatience as the customer waits instead of a static smile", () => {
     vi.spyOn(Date, "now").mockReturnValue(1_000_000);
     const state = { ...createInitialState(), phase: "open" as const, currentOrder: order, currentOrderQueuedAt: 850_000 };
-    const html = renderToStaticMarkup(<CustomerScene game={state} />);
+    const html = renderToStaticMarkup(<CustomerScene onGame={() => {}} game={state} />);
     expect(html).toContain('data-mood="upset"');
     expect(html).toContain("mood-upset");
   });
@@ -52,7 +52,7 @@ describe("counter customer facial acting", () => {
   it("starts the order with a relaxed expression", () => {
     vi.spyOn(Date, "now").mockReturnValue(1_000_000);
     const state = { ...createInitialState(), phase: "open" as const, currentOrder: order, currentOrderQueuedAt: 1_000_000 };
-    const html = renderToStaticMarkup(<CustomerScene game={state} />);
+    const html = renderToStaticMarkup(<CustomerScene onGame={() => {}} game={state} />);
     expect(html).toContain('data-mood="delighted"');
     expect(html).toContain("mood-delighted");
   });

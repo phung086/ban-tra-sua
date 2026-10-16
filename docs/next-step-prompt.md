@@ -1,7 +1,27 @@
-# Next step: QC-05 visual verification of real character runtime change
+# Prompt tiếp theo: gọn luồng buổi sáng trên mobile
 
-On 11/10/2026 the owner expressly requested **visible gameplay/character development rather than more benchmark-only loops** and passed the previous task. Latest baseline before code: `84f17b813a544480424dac7f22be1120633babea`, CI #38030218857 and benchmark #38030218870 SUCCESS. See `docs/iterations/m2-quality-qc05.md`, `docs/production-roadmap.md`, `docs/iteration-protocol.md` and `docs/experience-quality/{README,backlog,quality-gates,ai-handoff}.md`. Check latest remote HEAD and exact-SHA CI before editing; preserve main and other AI branches.
+Đọc README.md, docs/iterations/integration-20261016.md,
+src/experimental/gemini/README.md, docs/production-roadmap.md và
+docs/iteration-protocol.md. Fetch main mới nhất; kiểm tra thay đổi chưa commit,
+không ghi đè nhánh AI khác. Lấy main làm nguồn chuẩn sau đợt tích hợp 16/10.
 
-**Exactly one next task: QC-05, validate/improve newly implemented actor walk/stop and idle behavior.** Inspect production behavior of `src/scene/models.ts` in follow and overview, light and balanced, at 360×800, 390×844, 844×390 and desktop. Capture 20–60s motion clips and near/far images, check eye blink, head look, arm/stride synchronization, seated posture, gesture and cup carrying, reduced-motion and older actor lean. Have a human judge the visual improvement, not just unit tests. Check exact-SHA CI + 10/10 craft/delivery, joystick/camera, NPC, wall/scooter, save and A/B P95/triangles/draw calls. If visual regression, fix or revert candidate.
+Làm đúng một việc: cải thiện UI/UX buổi sáng để người chơi trên 360×800 và
+390×844 không phải cuộn qua hàng chục nút trước khi mở tiệm. Giữ bước thức dậy
+→ chọn bữa sáng rõ ràng. Sau đó hiển thị một hành động chính “Mở tiệm” dễ thấy;
+gọi gia đình, gặp bạn, chợ, chăm cây, nấu cơm và chuyện trong ngày nằm trong
+các nhóm tùy chọn gọn, mở khi người chơi muốn. Giữ đầy đủ mọi nhánh lựa chọn,
+giá, thời gian, hệ quả, lời thoại đã chọn và trạng thái save/reload hiện tại.
+Tránh hai trải nghiệm chợ trông như hai chuyến độc lập: một lần ghé chợ mỗi ngày.
 
-**Do real code work, not another near-identical audit:** after QC-05 visual QA choose one small visible improvement (e.g. stride calibration / head and hand animation) with source/tests/evidence. M2 remains technically open pending LOD/streaming/memory and 15-minute real Android 3–4GB plus iPhone mobile budgets; task acceptance from owner does not fabricate missing device traces. Avoid premature claim that M3 is accepted, merge/deploy or modify other branches.
+Sửa code chạy thật trong PrepWorld/MorningRoutine và CSS liên quan;
+không mở thêm hệ thống kinh tế/save hoặc nối toàn bộ prototype Gemini.
+Không tăng scene/texture/draw call cho thay đổi DOM này. Giữ joystick, xoay màn,
+các trạm pha và đường đi giao ly hoạt động. Kiểm tra không trừ tiền/thưởng lặp.
+
+Chạy npm test, npm run build, mobile-layout và market-cooking browser smoke.
+Chụp trước/sau ở 360×800, 390×844, 844×390 và desktop; đo số lần cuộn đến hành
+động chính, không tràn ngang, mục tiêu chạm tối thiểu 44px. Thử bằng chạm qua
+bữa sáng → tùy chọn chợ → reload → mở tiệm → pha → giao khách. Ghi rõ test nào
+dùng fixture và test nào đi từ save mới. Cập nhật báo cáo trong docs, commit,
+push nhánh codex/…, kiểm tra CI đúng SHA rồi đưa đúng một prompt tiếp theo.
+Không tuyên bố đạt hiệu năng điện thoại cấu hình thấp khi chưa đo máy thật.

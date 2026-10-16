@@ -1,6 +1,6 @@
 # 🧋 Tiệm Trà Chibi
 
-**Hiện trạng sau tích hợp các nhánh:** [Báo cáo chạy thử 10/10/2026](docs/iterations/integration-20261010.md). Nguồn khởi đầu cho công việc mới là `main`; đọc [prompt tiếp theo](docs/next-step-prompt.md) trước khi triển khai.
+**Hiện trạng sau tích hợp các nhánh:** [Báo cáo chạy thử 16/10/2026](docs/iterations/integration-20261016.md). Nguồn khởi đầu cho công việc mới là `main`; đọc [prompt tiếp theo](docs/next-step-prompt.md) trước khi triển khai. Mã Gemini chưa nối vào app được lưu riêng trong [khu thử nghiệm](src/experimental/gemini/README.md).
 
 > **HƯỚNG PHÁT TRIỂN DÀI HẠN — LIFE SIM / OPEN CITY:** xem [World Bible](docs/life-sim/README.md), [30 ngày cốt truyện dự kiến](docs/life-sim/episode-catalog.md), [bản phân công và backlog cho nhiều AI](docs/life-sim/agents-and-delivery.md), [QA & performance gates](docs/life-sim/qa-and-content-standards.md) và [prompt chuyển giao AI](docs/life-sim/agent-start-prompt.md). **Đây là thiết kế, chưa phải 30 ngày playable.** Vẫn cần đóng M1 hiệu năng trước khi mở rộng scene 3D.
 

@@ -8,9 +8,11 @@ const order: Order = {
   targetFill: 80, targetShake: 60, price: 25000,
 };
 
+const preparedDraft = () => ({...emptyDraft(), fill: order.targetFill, shake: order.targetShake});
+
 describe("drink preparation coaching", () => {
   it("recognizes a correctly prepared and sealed drink", () => {
-    expect(getDrinkCoachingTip(order, { ...emptyDraft(), sealed: true }))
+    expect(getDrinkCoachingTip(order, { ...preparedDraft(), sealed: true }))
       .toContain("Công thức chuẩn");
   });
 
@@ -22,36 +24,36 @@ describe("drink preparation coaching", () => {
 
   it("explains how to correct excess sugar", () => {
     expect(getDrinkCoachingTip(order, {
-      ...emptyDraft(), sugar: 100, sealed: true,
+      ...preparedDraft(), sugar: 100, sealed: true,
     })).toContain("Giảm đường");
   });
 
   it("catches an unsealed drink even if all measurements match", () => {
-    expect(getDrinkCoachingTip(order, emptyDraft()))
+    expect(getDrinkCoachingTip(order, preparedDraft()))
       .toContain("Đậy kín");
   });
 
   it("prioritizes wrong topping over missing seal", () => {
     expect(getDrinkCoachingTip(order, {
-      ...emptyDraft(), topping: "black-pearl",
+      ...preparedDraft(), topping: "black-pearl",
     })).toContain("topping");
   });
 
   it("coaches underfilling without changing the recipe", () => {
     expect(getDrinkCoachingTip(order, {
-      ...emptyDraft(), fill: 0, sealed: true,
+      ...preparedDraft(), fill: 0, sealed: true,
     })).toContain("Rót đầy hơn");
   });
 
   it("coaches insufficient ice", () => {
     expect(getDrinkCoachingTip(order, {
-      ...emptyDraft(), ice: 0, sealed: true,
+      ...preparedDraft(), ice: 0, sealed: true,
     })).toContain("Thêm đá");
   });
 
   it("coaches insufficient shaking", () => {
     expect(getDrinkCoachingTip(order, {
-      ...emptyDraft(), shake: 0, sealed: true,
+      ...preparedDraft(), shake: 0, sealed: true,
     })).toContain("Lắc kỹ hơn");
   });
 });

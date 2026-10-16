@@ -4,6 +4,7 @@ import { pose, type Person } from './models';
 
 function personStub(): Person {
   return {
+    animation: {lastTime: null, walkWeight: 0, seatWeight: 0, seed: 0, basePitch: 0, turnStride: 1},
     root: new T.Group(), body: new T.Group(), head: new T.Group(),
     leftArm: new T.Group(), rightArm: new T.Group(),
     leftLeg: new T.Group(), rightLeg: new T.Group(), hand: new T.Group(),
@@ -35,7 +36,10 @@ describe('chibi gait easing', () => {
     expect(actor.leftLeg.rotation.x).toBe(0);
     expect(actor.body.rotation.z).toBe(0);
     pose(actor, 0.2, false, 0, true, true, Math.PI / 2);
-    expect(actor.leftLeg.rotation.x).toBe(-1.35);
-    expect(actor.knees[0].rotation.x).toBe(1.35);
+    expect(actor.leftLeg.rotation.x).toBeLessThan(0);
+    expect(actor.leftLeg.rotation.x).toBeGreaterThan(-1.35);
+    for (let i=1; i<=180; i++) pose(actor, .2+i/60, false, 0, true, true, Math.PI/2);
+    expect(actor.leftLeg.rotation.x).toBeCloseTo(-1.35, 3);
+    expect(actor.knees[0].rotation.x).toBeCloseTo(1.35, 3);
   });
 });
