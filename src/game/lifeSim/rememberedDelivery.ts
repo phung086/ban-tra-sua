@@ -1,5 +1,5 @@
 import type { GameState, Order } from '../types';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, getPreviousRememberedServiceFeedback } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
@@ -31,6 +31,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const lastDelivery = getPreviousRememberedServiceFeedback(before);
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
+  const promised = hasPromisedRememberedCorrection(before);
   const message = correction
     ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
@@ -40,18 +41,28 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       : asked ? name + ': “Cảm ơn tiệm đã hỏi kỹ góp ý cũ. Ly hôm nay vừa miệng mình!”'
       : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
+  const response = message + (promised
+    ? (correction
+      ? ' Tiệm đã hứa kiểm tra kỹ nhưng vẫn làm sai; mình thất vọng.'
+      : ' Tiệm đã giữ lời kiểm tra kỹ. Lần sau mình sẽ yên tâm hơn.')
+    : '');
   return {
     ...after,
     relationshipRewardIds: [...after.relationshipRewardIds, id],
+    customerBond: promised ? {
+      ...after.customerBond,
+      [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + (correction ? -1 : 1)),
+    } : after.customerBond,
     storyLog: [{
       id, customerId: order.customerId, customerName: name,
       title: correction ? 'Khách quen góp ý thêm' : 'Khách quen hài lòng',
-      text: message, day: before.day, rewardFans: 0,
+      text: response, day: before.day, rewardFans: 0,
     }, ...after.storyLog].slice(0, 24),
     city: {
       ...after.city,
-      journal: ['Ngày ' + before.day + ' · ' + message, ...after.city.journal].slice(0, 24),
+      goodwill: promised ? Math.max(0, after.city.goodwill + (correction ? -1 : 1)) : after.city.goodwill,
+      journal: ['Ngày ' + before.day + ' · ' + response, ...after.city.journal].slice(0, 24),
     },
-    notice: after.notice + ' 💬 ' + message,
+    notice: after.notice + ' 💬 ' + response,
   };
 }

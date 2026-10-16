@@ -131,6 +131,37 @@ export function getRememberedClarificationSource(game: GameState): { text: strin
 }
 
 const clarificationId = (orderId: string) => 'remembered-clarify:' + encodeURIComponent(orderId);
+const promiseId = (orderId: string) => 'remembered-promise:' + encodeURIComponent(orderId);
+
+/** Promise is voluntary; actual delivery decides the outcome. */
+export function hasPromisedRememberedCorrection(game: GameState): boolean {
+  return Boolean(game.currentOrder &&
+    game.relationshipRewardIds.includes(promiseId(game.currentOrder.id)));
+}
+
+export function canPromiseRememberedCorrection(game: GameState): boolean {
+  return Boolean(game.phase === 'open' && game.currentOrder &&
+    hasAskedRememberedCustomerAboutComplaint(game) &&
+    getRememberedClarificationSource(game) &&
+    !hasPromisedRememberedCorrection(game) &&
+    game.city.minutes + 1 <= 1260);
+}
+
+export function promiseRememberedCorrection(game: GameState): GameState {
+  if (!canPromiseRememberedCorrection(game)) return game;
+  const order = game.currentOrder!;
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, promiseId(order.id)],
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 1,
+      journal: [`Ngày ${game.day} · Hứa kiểm tra lại ly trà của khách quen.`, ...game.city.journal].slice(0, 24),
+    },
+    notice: 'Bạn hứa sẽ kiểm tra kỹ ly trà trước khi giao. Giữ lời sẽ tăng sự tin tưởng; làm sai sẽ khiến khách thất vọng.',
+  };
+}
+
 
 export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boolean {
   return Boolean(game.currentOrder &&

@@ -9,6 +9,7 @@ import {
   getLatestRememberedReview, getPreviousRememberedServiceFeedback, getRememberedClarificationSource,
   canAskRememberedCustomerAboutComplaint, askRememberedCustomerAboutComplaint,
   hasAskedRememberedCustomerAboutComplaint,
+  canPromiseRememberedCorrection, promiseRememberedCorrection, hasPromisedRememberedCorrection,
 } from "../game/lifeSim/rememberedCustomer";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
@@ -54,6 +55,12 @@ export function CustomerScene({ game, onGame }: {
         {askedAboutComplaint && <p className="life-remembered-history" role="note">
           Khách nhắc: {clarificationSource.text}
         </p>}
+        {askedAboutComplaint && (hasPromisedRememberedCorrection(game)
+          ? <p role="status" aria-live="polite">✓ Đã hứa kiểm tra kỹ. Giao đúng đơn để giữ lời với khách.</p>
+          : <button type="button" disabled={!canPromiseRememberedCorrection(game)}
+              onClick={() => onGame(current => promiseRememberedCorrection(current))}>
+              Hứa kiểm tra kỹ · 1 phút · giữ lời tăng tin tưởng
+            </button>)}
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
