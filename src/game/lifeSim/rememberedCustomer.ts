@@ -119,6 +119,17 @@ export function getUnresolvedRememberedComplaint(game: GameState): GameState['st
   return latest?.title === 'Khách quen góp ý thêm' ? latest : null;
 }
 
+/** First return: ask about a consented review; later visits: use the latest real delivery.
+ * A satisfied delivery closes the issue, so an older review cannot reopen it.
+ */
+export function getRememberedClarificationSource(game: GameState): { text: string; customerName: string; day: number } | null {
+  const order = game.currentOrder;
+  if (!order) return null;
+  const previous = getPreviousRememberedServiceFeedback(game);
+  if (previous) return previous.title === 'Khách quen góp ý thêm' ? previous : null;
+  return getLatestRememberedReview(game, order.customerId);
+}
+
 const clarificationId = (orderId: string) => 'remembered-clarify:' + encodeURIComponent(orderId);
 
 export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boolean {
@@ -130,7 +141,7 @@ export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boole
 export function canAskRememberedCustomerAboutComplaint(game: GameState): boolean {
   return Boolean(game.phase === 'open' && game.currentOrder &&
     getRememberedGreetingChoice(game) === 'greet' &&
-    getUnresolvedRememberedComplaint(game) &&
+    getRememberedClarificationSource(game) &&
     !hasAskedRememberedCustomerAboutComplaint(game) &&
     game.city.energy >= 1 && game.city.minutes + 3 <= 1260);
 }
@@ -138,7 +149,7 @@ export function canAskRememberedCustomerAboutComplaint(game: GameState): boolean
 export function askRememberedCustomerAboutComplaint(game: GameState): GameState {
   if (!canAskRememberedCustomerAboutComplaint(game)) return game;
   const order = game.currentOrder!;
-  const complaint = getUnresolvedRememberedComplaint(game)!;
+  const complaint = getRememberedClarificationSource(game)!;
   const notice = 'Bạn hỏi lại để hiểu rõ góp ý: ' + complaint.text;
   return {
     ...game,
@@ -146,7 +157,7 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
     storyLog: [{
       id: clarificationId(order.id),
       customerId: order.customerId,
-      customerName: game.reviews.find(review => review.customerId === order.customerId)?.customerName ?? 'Khách quen',
+      customerName: complaint.customerName || 'Khách quen',
       title: 'Khách quen kể kỹ góp ý',
       text: notice,
       day: game.day,
