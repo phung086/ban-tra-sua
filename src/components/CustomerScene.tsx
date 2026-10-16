@@ -42,6 +42,9 @@ export function CustomerScene({ game, onGame }: {
             onClick={() => onGame(current => askRememberedCustomerAboutComplaint(current))}>
             Hỏi kỹ lỗi lần trước · 3 phút · 1 năng lượng · +1 thân thiết
           </button>}
+        {askedAboutComplaint && <p className="life-remembered-history" role="note">
+          Khách nhắc: {unresolvedComplaint.text}
+        </p>}
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
