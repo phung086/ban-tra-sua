@@ -36,6 +36,19 @@ function returning(): GameState {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('returning customer clarification', () => {
+  it('allows first-return consented feedback to be clarified once without rewriting the order', () => {
+    const original = returning();
+    const firstReturn = { ...original, storyLog: [] };
+    const greeted = greetRememberedCustomer(firstReturn);
+    expect(canAskRememberedCustomerAboutComplaint(greeted)).toBe(true);
+    const asked = askRememberedCustomerAboutComplaint(greeted);
+    expect(asked.storyLog[0].text).toContain('Trà quá ngọt');
+    expect(asked.city.minutes).toBe(greeted.city.minutes + 3);
+    expect(asked.city.energy).toBe(greeted.city.energy - 1);
+    expect(asked.currentOrder).toEqual(greeted.currentOrder);
+    expect(askRememberedCustomerAboutComplaint(asked)).toBe(asked);
+  });
+
   it('costs time and energy once, preserves the order and survives save/reload', () => {
     const before = returning();
     expect(canAskRememberedCustomerAboutComplaint(before)).toBe(false);
