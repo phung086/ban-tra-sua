@@ -29,12 +29,10 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 }
 
-export const MOTHER_CALL_OPTIONS = {
-  listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
-  promise: { label: 'Hẹn cuối tuần về ăn cơm', minutes: 5, bond: 1 },
-  later: { label: 'Nhắn mẹ tối gọi lại', minutes: 0, bond: 0 },
-  photo: { label: 'Gửi ảnh tiệm cho mẹ', minutes: 2, bond: 1 },
-} as const;
+export const MOTHER_CALL_OPTIONS = {listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
+promise: { label: 'Hẹn cuối tuần về ăn cơm', minutes: 5, bond: 1 },
+later: { label: 'Nhắn mẹ tối gọi lại', minutes: 0, bond: 0 },
+photo: { label: 'Gửi ảnh tiệm cho mẹ', minutes: 2, bond: 1 }} as const;
 
 const MOTHER_KEY = 'family-mother-mai:';
 
@@ -57,7 +55,6 @@ export function motherCallDecision(game: GameState): MotherCallChoice | null {
   const choice = game.morning.motherCall;
   return choice === 'listen' || choice === 'promise' || choice === 'later' || choice === 'photo' ? choice : null;
 }
-
 export function motherCallPrompt(game: GameState): string {
   if (motherCallMemory(game).promised)
     return 'Mẹ Mai: Mẹ nhớ con hẹn về ăn cơm. Không cần vội, chỉ muốn biết con vẫn ổn.';
@@ -68,6 +65,7 @@ export function motherCallPrompt(game: GameState): string {
     ? 'Mẹ Mai: Sáng đầu tiên tự mở tiệm thế nào rồi con? Mẹ gọi hỏi thăm thôi.'
     : 'Mẹ Mai: Hôm nay tiệm thế nào? Con có thời gian nói chuyện một chút không?';
 }
+
 
 export function motherCallDialogue(choice: MotherCallChoice, bond: number): string {
   if (choice === 'listen') return bond >= 4
