@@ -16,6 +16,7 @@ import { StreetWorld } from "./components/StreetWorld";
 import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
 import { RushShiftProgress } from "./components/world/RushShiftProgress";
+import { EveningCarePanel } from "./components/life/EveningCarePanel";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
@@ -243,7 +244,10 @@ function App() {
           )}
           {screen === 'shop' && exploring && <Neighborhood game={game} position={position} onNavigate={navigateCity} onAction={actInCity} onReturn={returnToShop} onRide={rideHome} onTalk={openTalk} onStory={doStory} expanded={sheetOpen} onExpand={setSheetOpen} tab={cityPanel} onTab={setCityPanel} onLife={doLife}/>}
           {screen === "shop" && !exploring && game.phase === "prep" && (
-            <PrepWorld game={game} onGame={setGame} onNavigate={setScreen} />
+            <>
+              <EveningCarePanel game={game} onGame={setGame} />
+              <PrepWorld game={game} onGame={setGame} onNavigate={setScreen} />
+            </>
           )}
           {screen === "shop" && !exploring && game.phase === "summary" && game.summary && (
             <div className="panel summary-card">
@@ -269,6 +273,7 @@ function App() {
                   </div>
                 ))}
               </div>
+              <EveningCarePanel game={game} onGame={setGame} />
               {claimable > 0 && (
                 <button onClick={() => setScreen("goals")}>
                   Nhận thưởng {claimable} mục tiêu đã xong →
@@ -297,7 +302,7 @@ function App() {
                 disabled={Boolean(getClosingScenario(game.day) && !game.closingCareChoice)}
                 onClick={() => setGame(nextDay(game))}
               >
-                Chuẩn bị ngày {game.day + 1} →
+                🌙 Đi ngủ · sang ngày {game.day + 1} →
               </button>
             </div>
           )}
