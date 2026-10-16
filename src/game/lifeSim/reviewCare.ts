@@ -10,6 +10,12 @@ const OPTIONS: Record<ReviewCareChoice, { cash: number; minutes: number; energy:
 
 export const REVIEW_CARE_OPTIONS = OPTIONS;
 
+/** A complaint about toppings or insufficient sweetness is not a low-sugar preference. */
+export function isLowSugarFeedback(review: Review): boolean {
+  if (review.stars > 3 || /không đủ ngọt|thiếu đường|nhạt quá|not sweet enough/i.test(review.text)) return false;
+  return /quá ngọt|hơi ngọt|ngọt quá|trà ngọt|ít đường|ít ngọt|bớt đường|giảm đường|too sweet|less sugar|low sugar/i.test(review.text);
+}
+
 function keyPrefix(reviewId: string) {
   return 'review-care:' + encodeURIComponent(reviewId) + ':';
 }
@@ -37,7 +43,7 @@ export function canChooseReviewCare(game: GameState, reviewId: string, choice: R
 }
 
 function decisionText(review: Review, choice: ReviewCareChoice) {
-  if (choice === 'refund') return `Đã hoàn lại 10.000 ₫ cho ${review.customerName}, hẹn kiểm tra kỹ độ ngọt lần tới.`;
+  if (choice === 'refund') return `Đã hoàn lại 10.000 ₫ cho ${review.customerName}, hẹn kiểm tra kỹ ${isLowSugarFeedback(review) ? 'độ ngọt' : 'đơn hàng'} lần tới.`;
   if (choice === 'message') return `Đã nhắn riêng cho ${review.customerName}, hỏi rõ món nào cần điều chỉnh.`;
   return `Đã ghi góp ý của ${review.customerName} vào sổ; tôn trọng việc khách chưa muốn trò chuyện.`;
 }
@@ -99,7 +105,9 @@ export function respondToReviewFollowup(game: GameState, reviewId: string, choic
   const review = game.reviews.find(item => item.id === reviewId)!;
   const remember = choice === 'remember';
   const text = remember
-    ? 'Đã ghi lại sở thích ít ngọt của ' + review.customerName + ' cho lần ghé tới.'
+    ? (isLowSugarFeedback(review)
+      ? 'Đã ghi lại sở thích ít ngọt của ' + review.customerName + ' cho lần ghé tới.'
+      : 'Đã ghi lại góp ý về lần phục vụ của ' + review.customerName + ' cho lần ghé tới.')
     : 'Đã cảm ơn ' + review.customerName + ' vì góp ý chân thành.';
   const id = followupKey(reviewId) + choice;
   return {
@@ -128,9 +136,13 @@ export function getReviewCareCallbacks(game: GameState): Array<{ id: string; nam
     const decision = getReviewCareDecision(game, review.id);
     if (!decision || decision.day + 1 !== game.day) return [];
     const text = decision.choice === 'refund'
-      ? 'Mình nhận được tiền hoàn rồi. Cảm ơn tiệm đã xử lý rõ ràng; lần sau mình sẽ thử ít đường hơn.'
+      ? (isLowSugarFeedback(review)
+        ? 'Mình nhận được tiền hoàn rồi. Cảm ơn tiệm đã xử lý rõ ràng; lần sau mình sẽ thử ít đường hơn.'
+        : 'Mình nhận được tiền hoàn rồi. Cảm ơn tiệm đã xử lý rõ ràng; lần tới mình mong đúng đơn hơn.')
       : decision.choice === 'message'
-        ? 'Cảm ơn đã hỏi lại. Mình thích trà nhạt hơn một chút, lần tới mình sẽ nói rõ khi đặt.'
+        ? (isLowSugarFeedback(review)
+          ? 'Cảm ơn đã hỏi lại. Mình thích trà nhạt hơn một chút, lần tới mình sẽ nói rõ khi đặt.'
+          : 'Cảm ơn đã hỏi lại. Lần tới mình mong tiệm làm đúng những gì mình đặt.')
         : 'Mình thấy tiệm đã ghi nhận góp ý. Khi nào tiện mình sẽ ghé lại.';
     return [{ id: review.id, name: review.customerName, text }];
   });
