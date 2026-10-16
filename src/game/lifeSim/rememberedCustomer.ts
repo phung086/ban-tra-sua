@@ -82,3 +82,57 @@ export function greetRememberedCustomer(game: GameState): GameState {
     notice,
   };
 }
+
+/** The most recent earlier delivery is the source of truth, not an old review. */
+export function getPreviousRememberedServiceFeedback(game: GameState): GameState['storyLog'][number] | null {
+  const order = game.currentOrder;
+  if (!order || !hasRememberedLowSugar(game, order.customerId)) return null;
+  return game.storyLog.find(moment =>
+    moment.customerId === order.customerId && moment.day < game.day &&
+    moment.id.startsWith('remembered-service:') &&
+    (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng')) ?? null;
+}
+
+export function getUnresolvedRememberedComplaint(game: GameState): GameState['storyLog'][number] | null {
+  const latest = getPreviousRememberedServiceFeedback(game);
+  return latest?.title === 'Khách quen góp ý thêm' ? latest : null;
+}
+
+const clarificationId = (orderId: string) => 'remembered-clarify:' + encodeURIComponent(orderId);
+
+export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boolean {
+  return Boolean(game.currentOrder &&
+    game.relationshipRewardIds.includes(clarificationId(game.currentOrder.id)));
+}
+
+/** A voluntary counter conversation: costs time/energy, earns trust, never changes the order. */
+export function canAskRememberedCustomerAboutComplaint(game: GameState): boolean {
+  return Boolean(game.phase === 'open' && game.currentOrder &&
+    getRememberedGreetingChoice(game) === 'greet' &&
+    getUnresolvedRememberedComplaint(game) &&
+    !hasAskedRememberedCustomerAboutComplaint(game) &&
+    game.city.energy >= 1 && game.city.minutes + 3 <= 1260);
+}
+
+export function askRememberedCustomerAboutComplaint(game: GameState): GameState {
+  if (!canAskRememberedCustomerAboutComplaint(game)) return game;
+  const order = game.currentOrder!;
+  const complaint = getUnresolvedRememberedComplaint(game)!;
+  const notice = 'Bạn hỏi lại để hiểu rõ góp ý: ' + complaint.text;
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, clarificationId(order.id)],
+    customerBond: {
+      ...game.customerBond,
+      [order.customerId]: (game.customerBond[order.customerId] ?? 0) + 1,
+    },
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 3,
+      energy: game.city.energy - 1,
+      goodwill: game.city.goodwill + 1,
+      journal: ['Ngày ' + game.day + ' · Đã hỏi thêm về góp ý cũ trước khi pha trà.', ...game.city.journal].slice(0, 24),
+    },
+    notice,
+  };
+}
