@@ -69,3 +69,14 @@
 .life-family-call-actions button{min-height:44px;padding:9px 12px;border:1px solid #d28aad;border-radius:12px;background:#fff;color:#713f58;cursor:pointer}
 .life-family-call-actions button:focus-visible{outline:3px solid #c75b8e;outline-offset:2px}
 @media(max-width:580px){.life-family-call-actions{flex-direction:column}.life-family-call-actions button{width:100%}}
+/* Family call is DOM-only; no WebGL meshes or animation loops. */
+.life-mother-call{margin-top:14px;padding:12px;border:1px dashed #dca7bc;border-radius:14px;background:#fff8fc}
+.life-mother-call .life-morning-prompt{margin:0 0 6px}
+.life-mother-message,.life-mother-reply{font-size:13px;line-height:1.5;margin:0 0 12px}
+.life-mother-reply{padding:10px;background:#fff;border-radius:10px}
+.life-mother-bond{display:block;margin-top:10px;color:#865773;font-size:11px}
+@media(max-width:580px){.life-mother-call{padding:10px}}
+
+/* Four family choices remain readable on portrait and landscape phones. */
+.life-mother-call .life-morning-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:580px){.life-mother-call .life-morning-options{grid-template-columns:1fr}}
