@@ -1,5 +1,5 @@
 import { SiblingAnCall } from './SiblingAnCall';
-import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, callFather, chooseBreakfast, chooseMotherCall, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice } from '../../game/lifeSim/morning';
+import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, LAN_MEAL_OPTIONS, callFather, chooseBreakfast, chooseMotherCall, chooseLanMeal, lanMealDialogue, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice, type LanMealChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import { chooseDayEpisode, getDayEpisode, getEpisodeCallback } from '../../game/lifeSim/dayEpisodes';
 import type { GameState } from '../../game/types';
@@ -26,6 +26,11 @@ const motherChoices: {id:MotherCallChoice;emoji:string;hint:string}[] = [
   {id:'promise',emoji:'🍚',hint:'5 phút · gắn kết +1'},
   {id:'later',emoji:'💌',hint:'0 phút · không áp lực'},
   {id:'photo',emoji:'📸',hint:'2 phút · gắn kết +1'},
+];
+const lanChoices: {id:LanMealChoice;emoji:string;hint:string}[] = [
+  {id:'split',emoji:'🍜',hint:'40 phút · mỗi người tự trả phần mình'},
+  {id:'treat',emoji:'💝',hint:'40 phút · mình trả cả hóa đơn'},
+  {id:'decline',emoji:'💬',hint:'Không tốn tiền · hẹn dịp khác'},
 ];
 
 /** Uses an existing pre-shop panel, not an additional WebGL scene. */
@@ -95,6 +100,27 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
         {motherCallDialogue(motherCallDecision(game)!,motherCallMemory(game).bond)}
       </p>}
       <small className="life-mother-bond">Gắn kết gia đình: {motherCallMemory(game).bond} điểm</small>
+    </section>}
+    {finished&&<section className="life-lan-invite" aria-label="Lời mời của Lan">
+      <p className="life-morning-prompt">💌 Lan nhắn: “Trước khi mở tiệm, đi ăn cùng mình nhé?”</p>
+      {morning.lanMeal == null ? <>
+        <p className="life-lan-hint">Chọn cách thanh toán trước khi đi. Không bắt buộc phải nhận lời.</p>
+        <div className="life-morning-options">
+          {lanChoices.map(({id,emoji,hint})=>{
+            const option=LAN_MEAL_OPTIONS[id],enough=game.cash>=option.cost;
+            return <button key={id} type="button" className="life-morning-option" disabled={!enough}
+              onClick={()=>onGame(chooseLanMeal(game,id))}>
+              <span aria-hidden="true">{emoji}</span>
+              <strong>{option.label}</strong>
+              <small>{hint}</small>
+              <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+              {!enough&&<small>Chưa đủ tiền</small>}
+            </button>;
+          })}
+        </div>
+      </> : <p className="life-lan-reply" aria-live="polite">
+        {lanMealDialogue(morning.lanMeal,game.city.stories.bonds.lan ?? 0)}
+      </p>}
     </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>

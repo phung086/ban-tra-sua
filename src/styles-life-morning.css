@@ -80,3 +80,9 @@
 /* Four family choices remain readable on portrait and landscape phones. */
 .life-mother-call .life-morning-options{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:580px){.life-mother-call .life-morning-options{grid-template-columns:1fr}}
+/* Lan's optional invitation uses DOM-only responsive choice cards. */
+.life-lan-invite{margin-top:14px;padding:12px;border:1px dashed #dc9cb9;border-radius:14px;background:#fff8fc}
+.life-lan-invite .life-morning-prompt{margin:0 0 6px}
+.life-lan-hint{font-size:12px;line-height:1.5;margin:0 0 12px;color:#885b73}
+.life-lan-reply{margin:8px 0 0;padding:10px;border-radius:10px;background:#fff;font-size:13px;line-height:1.5}
+@media(max-width:580px){.life-lan-invite{padding:10px}}

@@ -267,3 +267,13 @@ export function chooseLanMeal(game: GameState, choice: LanMealChoice): GameState
     notice: dialogue,
   };
 }
+
+export function lanMealDialogue(choice: LanMealChoice, bond: number): string {
+  if (choice === 'split') return bond >= 4
+    ? 'Lan: Lại đi ăn cùng nhau rồi! Chia đôi như lần trước nhé.'
+    : 'Lan: Chia đôi nhé, vậy cả hai đều thoải mái!';
+  if (choice === 'treat') return bond >= 4
+    ? 'Lan: Bạn đã mời mình nhiều rồi. Hôm khác nhất định để mình trả nhé!'
+    : 'Lan: Cảm ơn bạn đã mời. Hôm khác để mình mời lại nhé!';
+  return 'Lan: Không sao đâu, để hôm khác tụi mình đi ăn nhé!';
+}
