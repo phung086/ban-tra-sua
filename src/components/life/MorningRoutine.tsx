@@ -1,5 +1,6 @@
 import { SiblingAnCall } from "./SiblingAnCall";
 import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, LAN_MEAL_OPTIONS, LUNCH_PREP_OPTIONS, callFather, chooseBreakfast, chooseMotherCall, chooseLanMeal, prepareLunch, lanMealDialogue, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice, type LanMealChoice, type LunchPrepChoice, choosePlantCare, PLANT_CARE_OPTIONS, type PlantCareChoice } from "../../game/lifeSim/morning";
+import { MARKET_OPTIONS, marketChoice, marketDialogue, visitMorningMarket, type MarketChoice } from "../../game/lifeSim/marketEncounter";
 import { formatMoney } from '../../game/engine';
 import { chooseDayEpisode, getDayEpisode, getEpisodeCallback } from '../../game/lifeSim/dayEpisodes';
 import type { GameState } from '../../game/types';
@@ -46,6 +47,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
   const episode = getDayEpisode(game.day);
   const callback = getEpisodeCallback(game);
   const recorded = game.storyLog.find(item => item.id === `day-episode-${game.day}-${morning.episodeChoice}`);
+  const visited = marketChoice(game);
   return <section className="life-morning" aria-label="Sinh hoạt buổi sáng" data-step={morning.step}>
     <header className="life-morning-heading">
       <span className="life-morning-sun" aria-hidden="true">{morning.plan.wakeVariant==='overslept'?'⏰':'🌤️'}</span>
@@ -188,5 +190,28 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       </p>}
       <small className="life-lunch-note">Tùy chọn · Có thể mở tiệm ngay, không bắt buộc chuẩn bị.</small>
     </div>}
+    {finished&&<section className="life-market" aria-label="Ghé chợ buổi sáng">
+      <h4>🧺 Ghé chợ đầu ngõ</h4>
+      {visited === null ? <>
+        <p>Cô Hạnh đang xếp hoa quả. Mua trái cây, hỏi thăm hay đi thẳng tới tiệm?</p>
+        <div className="life-morning-options">
+          {(['fruit','chat','leave'] as MarketChoice[]).map(choice=>{
+            const option=MARKET_OPTIONS[choice];
+            return <button key={choice} type="button" className="life-morning-option"
+              disabled={game.cash<option.cost} onClick={()=>onGame(visitMorningMarket(game,choice))}>
+              <span aria-hidden="true">{choice==='fruit'?'🍎':choice==='chat'?'💬':'🏪'}</span>
+              <strong>{option.label}</strong>
+              <small>{option.minutes} phút · {choice==='fruit'?'No +12':choice==='chat'?'Thân cô Hạnh +2':'Mở tiệm ngay'}</small>
+              <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+              {game.cash<option.cost&&<small>Chưa đủ tiền · Có thể hỏi thăm miễn phí.</small>}
+            </button>;
+          })}
+        </div>
+      </> : <div className="life-market-reply" role="status">
+        <strong>✓ Đã ghé chợ hôm nay</strong>
+        <p>{marketDialogue(visited, game.city.stories.bonds.hanh ?? 0)}</p>
+        <small>Độ no {morning.satiety}/100 · Mỗi ngày chỉ chọn một lần.</small>
+      </div>}
+    </section>}
   </section>;
 }
