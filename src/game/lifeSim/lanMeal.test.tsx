@@ -33,6 +33,22 @@ describe('playable invitation from Lan', () => {
     expect(markup).toContain('Hẹn Lan hôm khác');
   });
 
+  it('lets Lan and the player take a free walk, remembers it after reload, and does not charge twice', () => {
+    const initial = ready();
+    const walked = chooseLanMeal(initial, 'walk');
+    expect(walked.cash).toBe(initial.cash);
+    expect(walked.city.minutes).toBe(initial.city.minutes + 15);
+    expect(walked.morning.satiety).toBe(initial.morning.satiety);
+    expect(walked.city.stories.bonds.lan).toBe((initial.city.stories.bonds.lan ?? 0) + 1);
+    expect(walked.notice).toContain('Đi dạo');
+    const persisted = JSON.parse(JSON.stringify(walked));
+    const morning = hydrateMorning(persisted.morning, {day:walked.day, city:walked.city}, walked.phase);
+    expect(morning.lanMeal).toBe('walk');
+    const restored = {...walked, morning};
+    expect(chooseLanMeal(restored, 'walk')).toBe(restored);
+    expect(renderToStaticMarkup(<MorningRoutine game={restored} onGame={()=>{}} />)).toContain('Đi dạo');
+  });
+
   it('keeps the decision and NPC relationship after v3 save hydration', () => {
     const paid = chooseLanMeal(ready(), 'treat');
     const persisted = JSON.parse(JSON.stringify(paid));

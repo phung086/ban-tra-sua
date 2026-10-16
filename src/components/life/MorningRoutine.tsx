@@ -28,6 +28,7 @@ const motherChoices: {id:MotherCallChoice;emoji:string;hint:string}[] = [
   {id:'photo',emoji:'📸',hint:'2 phút · gắn kết +1'},
 ];
 const lanChoices: {id:LanMealChoice;emoji:string;hint:string}[] = [
+  {id:'walk',emoji:'🌿',hint:'Đi dạo miễn phí · 12 phút · cùng Lan trò chuyện'},
   {id:'split',emoji:'🍜',hint:'40 phút · mỗi người tự trả phần mình'},
   {id:'treat',emoji:'💝',hint:'40 phút · mình trả cả hóa đơn'},
   {id:'decline',emoji:'💬',hint:'Không tốn tiền · hẹn dịp khác'},
