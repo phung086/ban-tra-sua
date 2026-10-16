@@ -12,6 +12,12 @@ describe('continuous character deformation',()=>{
     for(const limb of limbs){
       const g=limb.geometry,p=g.getAttribute('position'),weights=g.getAttribute('skinWeight');
       expect(g.index).not.toBeNull();expect(weights.count).toBe(p.count);
+      const normals=g.getAttribute('normal');
+      for(let row=0;row<p.count/21;row++){
+        const a=new T.Vector3().fromBufferAttribute(normals,row*21);
+        const b=new T.Vector3().fromBufferAttribute(normals,row*21+20);
+        expect(a.distanceTo(b)).toBeLessThan(1e-6);
+      }
       let blended=0;
       for(let i=0;i<p.count;i++){
         expect(weights.getX(i)+weights.getY(i)).toBeCloseTo(1);

@@ -315,7 +315,21 @@ describe('QG-05 daily opening decision', () => {
     expect(rush.phase).toBe('summary');
     expect(rush.served).toBe(regular.served + 2);
     expect(rush.summary?.averageScore).toBeGreaterThanOrEqual(80);
-    expect(rush.summary?.fansGained).toBeGreaterThanOrEqual(regular.summary!.fansGained + 2);
+    // Different random customer lineups award different relationship fans.
+    // Isolate the bonus using the SAME final cup and pre-delivery ledger.
+    const selected = chooseShiftPlan(dayNine(), 'rush');
+    const opened = startDay({...selected, inventory: Object.fromEntries(Object.keys(selected.inventory).map(key => [key, 100])) as GameState['inventory']}, 1000);
+    expect(opened.phase).toBe('open');
+    const order = opened.currentOrder!;
+    const last = {...opened, served: opened.targetOrders - 1,
+      dailyScoreTotal: 100 * (opened.targetOrders - 1),
+      draft: {...opened.draft, size: order.size, base: order.base, sugar: order.sugar,
+        ice: order.ice, topping: order.topping, fill: order.targetFill,
+        shake: order.targetShake, sealed: true}};
+    const withBonus = serveCurrentDrink(last, 1000);
+    const withoutBonus = serveCurrentDrink({...last, shiftPlan: 'regular'}, 1000);
+    expect(withBonus.summary!.fansGained).toBe(withoutBonus.summary!.fansGained + 2);
+    expect(withBonus.cash).toBe(withoutBonus.cash + 20000);
     expect(serveCurrentDrink(rush)).toBe(rush);
   });
 

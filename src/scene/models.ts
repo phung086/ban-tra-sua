@@ -500,34 +500,34 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   body.add(head);
   w.mesh(head,w.geometry('continuous-face',faceGeometry),l.skin,[0,0,0]);
   [-1, 1].forEach((side) => {
-    w.ball(head, l.skin, [side * 0.231, -0.018, 0], [0.049, 0.074, 0.038]);
+    w.ball(head, l.skin, [side * 0.202, -0.018, -0.006], [0.035, 0.062, 0.032]);
     const white = w.ball(
       head,
       "#efe1d4",
-      [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.203],
+      [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.177],
       [0.025, 0.016, 0.009],
     );
     const pupil = w.ball(
       head,
       "#332e28",
-      [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.211],
+      [side * 0.086, 0.022 + (side === 1 ? 0.008 : 0), 0.185],
       [0.014, 0.014, 0.008],
     );
     eyes.push(white, pupil);
     pupil.userData.gazeRestX = pupil.position.x;
     pupil.userData.gazeRestY = pupil.position.y;
     white.userData.blinkHeight = 0.016; pupil.userData.blinkHeight = 0.014;
-    w.ball(head, '#ffffff', [side * 0.086 - 0.004, 0.028 + (side === 1 ? 0.008 : 0), 0.218], [0.004, 0.004, 0.002]);
-    w.line(head, '#8b6650', [[side*0.055,0.042,0.204],[side*0.086,0.05,0.206],[side*0.115,0.039,0.198]],0.0035);
-    w.ball(head, '#ad7962', [side * 0.235, -0.018, 0.023], [0.023, 0.04, 0.018]);
-    w.ball(head, '#997058', [side * 0.022, -0.081, 0.258], [0.009, 0.006, 0.003]);
+    w.ball(head, '#ffffff', [side * 0.086 - 0.004, 0.028 + (side === 1 ? 0.008 : 0), 0.192], [0.004, 0.004, 0.002]);
+    w.line(head, '#8b6650', [[side*0.055,0.042,0.179],[side*0.086,0.05,0.180],[side*0.115,0.039,0.166]],0.0035);
+    w.ball(head, '#ad7962', [side * 0.213, -0.018, 0.017], [0.016, 0.035, 0.012]);
+    w.ball(head, '#997058', [side * 0.018, -0.06, 0.218], [0.009, 0.006, 0.003]);
     w.line(
       head,
       l.hair,
       [
-        [side * 0.045, 0.092, 0.199],
-        [side * 0.085, 0.105, 0.199],
-        [side * 0.135, 0.087, 0.183],
+        [side * 0.045, 0.075, 0.182],
+        [side * 0.085, 0.085, 0.171],
+        [side * 0.135, 0.074, 0.149],
       ],
       0.009,
     );
@@ -547,9 +547,9 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     head,
     "#885a47",
     [
-      [-0.07, -0.15, 0.173],
-      [0, -0.157, 0.186],
-      [0.066, -0.135, 0.171],
+      [-0.052, -0.143, 0.152],
+      [0, -0.148, 0.163],
+      [0.052, -0.14, 0.154],
     ],
     0.008,
   );
@@ -561,7 +561,7 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     ),
     l.hair,
     [0, 0.022, -0.019],
-    [0.245, 0.305, 0.225],
+    [0.218, 0.282, 0.204],
   );
   hair.rotation.z = -0.09;
   if (l.style === "bald") {
@@ -667,7 +667,7 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   }
   const arm = (side: number) => {
     const pivot = new T.Group();
-    pivot.position.set(side * 0.32, 1.42, 0);
+    pivot.position.set(side * 0.27, 1.42, 0);
     body.add(pivot);
     const limb=continuousLimb(w,pivot,'arm',l.shirt,l.skin,side);elbows.push(limb.joint);
     const forearm=new T.Group();forearm.position.y=.30;limb.joint.add(forearm);
@@ -727,11 +727,7 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   hand.position.set(0.018, -0.27, 0.11);
   elbows[1].add(hand);
   if (l.old) body.rotation.x = 0.09;
-  // Hair strands, skin folds and woven garments read at conversation distance.
-  if(l.style!=='bald')for(let i=0;i<20;i++){
-    const x=(i/19-.5)*.38;
-    w.line(head,i%3===0?'#635346':l.hair,[[x,.25,.08],[x*.94,.3,-.05],[x*.9,.19,-.19]],.0025);
-  }
+  // A continuous hair silhouette avoids floating wire-like strand geometry.
   root.traverse(object=>{if(object instanceof T.Mesh&&!Array.isArray(object.material)){
     if(object.material===w.material(l.shirt))object.material=w.surface('fabric',l.shirt);
     else if(object.material===w.material(l.pants))object.material=w.surface('fabric',l.pants);

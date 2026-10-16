@@ -13,7 +13,16 @@ function ringSurface(rings:Ring[],segments=20){
     colors.push(color.r*shade,color.g*shade,color.b*shade);uvs.push(col/segments,row/(rings.length-1));
     if(row<rings.length-1&&col<segments){const a=row*(segments+1)+col,b=a+segments+1;if(rings[row+1].y>ring.y)indices.push(a,a+1,b,b,a+1,b+1);else indices.push(a,b,a+1,b,b+1,a+1);}
   }
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setAttribute('uv',new T.Float32BufferAttribute(uvs,2));g.setIndex(indices);g.computeVertexNormals();return g;
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setAttribute('uv',new T.Float32BufferAttribute(uvs,2));g.setIndex(indices);g.computeVertexNormals();
+  // Duplicated UV seam vertices occupy the same point: share their normals so
+  // the garment does not acquire a dark vertical cut under directional light.
+  const normals=g.getAttribute('normal');
+  for(let row=0;row<rings.length;row++){
+    const a=row*(segments+1),b=a+segments;
+    const n=new T.Vector3().fromBufferAttribute(normals,a).add(new T.Vector3().fromBufferAttribute(normals,b)).normalize();
+    normals.setXYZ(a,n.x,n.y,n.z);normals.setXYZ(b,n.x,n.y,n.z);
+  }
+  return g;
 }
 function material(w:Workshop){
   const key='actor:continuous-color';
@@ -41,6 +50,7 @@ export function continuousLimb(w:Workshop,pivot:T.Group,kind:'arm'|'leg',cloth:s
     const radius=arm?(i<5?.09-i*.003:.057+Math.sin(i*.7)*.005):.105-(i/ys.length)*.031;
     return {y,rx:radius,rz:radius*(arm?.96:1.04),x:arm?side*.018*Math.min(1,-y/.25):0,z:arm?.012:0,color:arm&&i>=5||!arm&&y<-.30?skin:cloth};
   });
+  if(arm)rings.unshift({y:.085,rx:.001,rz:.001,x:0,z:.012,color:cloth},{y:.065,rx:.06,rz:.058,x:0,z:.012,color:cloth});
   const geometry=w.geometry(`continuous:${kind}:${cloth}:${skin}:${side}`,()=>{
     const g=ringSurface(rings),p=g.getAttribute('position'),weights:number[]=[],indices:number[]=[];
     for(let i=0;i<p.count;i++){

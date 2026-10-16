@@ -138,7 +138,7 @@ try {
       const delivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (delivered.lastScore < 80 ||
           delivered.storyLog[0]?.id !== 'remembered-service:return-e2e' ||
-          !delivered.notice.includes('Tiệm còn nhớ mình')) {
+          !delivered.notice.includes('Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!')) {
         throw new Error('Real tea delivery did not produce the expected NPC callback');
       }
       await page.screenshot({

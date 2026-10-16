@@ -1,3 +1,4 @@
+import {clearCameraFraction} from './followCamera';
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import {FramePacer} from './framePacing';
@@ -74,7 +75,7 @@ export class StreetRuntime {
   cargo=errandCargo(this.workshop);
   rod=fishingRod(this.workshop);
   sun = new T.DirectionalLight('#fff2ec', 2.5);
-  ambient = new T.HemisphereLight('#fff1ed', '#bc91aa', 1.7);
+  ambient = new T.HemisphereLight('#e3edf4', '#8b806c', 1.1);
   visits = new Visits();
   actors = new Map<string, Actor>();
   held = makeCup(this.workshop);
@@ -563,6 +564,10 @@ export class StreetRuntime {
       }
       this.followHeight+= (height-this.followHeight)*(this.motion?1-Math.exp(-10*dt):1);
       this.camera.position.y=this.followHeight;
+      const clear=clearCameraFraction(this.cameraFocus,this.camera.position,CITY_BLOCKS);
+      this.camera.position.x=this.cameraFocus.x+(this.camera.position.x-this.cameraFocus.x)*clear;
+      this.camera.position.z=this.cameraFocus.z+(this.camera.position.z-this.cameraFocus.z)*clear;
+      this.camera.position.y=.8+(this.camera.position.y-.8)*clear;
       this.camera.lookAt(this.cameraFocus.x,0.8,this.cameraFocus.z);
     } else if (this.overview) {
       this.camera.position.set(
@@ -691,14 +696,14 @@ export function portrait(customerId: string) {
   renderer.setPixelRatio(1);
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1;
   const scene = new T.Scene(),
     camera = new T.PerspectiveCamera(28, 192 / 224, 0.1, 10);
   const person = makePerson(w, getCustomer(customerId));
   person.root.rotation.y = -0.12;
   scene.add(person.root);
-  scene.add(new T.HemisphereLight("#fff2d9", "#93a591", 3));
-  const light = new T.DirectionalLight("#fff1da", 2.5);
+  scene.add(new T.HemisphereLight("#e3edf4", "#8b806c", 1.2));
+  const light = new T.DirectionalLight("#fff2ec", 2.5);
   light.position.set(-2, 4, 3);
   scene.add(light);
   camera.position.set(0.25, 1.69, 2.65);

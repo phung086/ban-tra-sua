@@ -13,8 +13,8 @@ export function buildShop(w: Workshop) {
     {root:awning,bounds:new T.Box3(new T.Vector3(-5.1,2.7,-6.1),new T.Vector3(5.1,3.6,-4.5))},
   ];
   const green = "#b67793",
-    cream = "#f2e2e5",
-    wood = "#b18a70",
+    cream = "#e7e3d6",
+    wood = "#977758",
     metal = "#b9bec5";
   w.box(root, "#a0a294", [0, -0.24, 0], [10.2, 0.4, 10]);
   // Individual tiles, grout and a raised pavement establish physical scale.
@@ -22,17 +22,17 @@ export function buildShop(w: Workshop) {
     "tile",
     () => new T.BoxGeometry(0.985, 0.055, 0.985),
   );
-  const tiles = new T.InstancedMesh(tileGeometry, w.material("#e9d8dc"), 100);
+  const tiles = new T.InstancedMesh(tileGeometry, w.material("#ffffff"), 100);
   const dummy = new T.Object3D();
   for (let i = 0; i < 100; i++) {
     dummy.position.set((i % 10) - 4.5, -0.018, Math.floor(i / 10) - 4.5);
     dummy.updateMatrix();
     tiles.setMatrixAt(i, dummy.matrix);
-    tiles.setColorAt(i, new T.Color(i % 3 ? "#f3e4e3" : "#e6cbd4"));
+    tiles.setColorAt(i, new T.Color(i % 3 ? "#d8d4c7" : "#c9c6b9"));
   }
   tiles.receiveShadow = true;
   root.add(tiles);
-  w.box(rear, cream, [0, 1.7, 4.9], [10.1, 3.5, 0.16]);
+  w.box(rear, cream, [0, 1.7, 4.9], [10.1, 3.5, 0.16]).material = w.surface("plaster", cream);
   w.box(rear, green, [0, 0.47, 4.79], [10, 0.92, 0.04]);
   for (const side of [-1, 1]) {
     w.box(root, cream, [side * 4.95, 0.73, 0.2], [0.16, 1.5, 9.5]);
@@ -43,7 +43,7 @@ export function buildShop(w: Workshop) {
     for (let i = 0; i < 5; i++)
       w.box(
         root,
-        "#ead1dc",
+        "#dad6c9",
         [side * 4.91, 2.45, -2.4 + i * 0.7],
         [0.07, 1.05, 0.63],
       );
@@ -73,7 +73,7 @@ export function buildShop(w: Workshop) {
   for (let i = 0; i < 12; i++)
     w.box(
       root,
-      i % 2 ? "#e3acbd" : "#d59bad",
+      i % 2 ? "#ac8b68" : "#a38260",
       [-2.63 + i * 0.47, 0.6, 0.403],
       [0.44, 0.93, 0.028],
     );
