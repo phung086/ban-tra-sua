@@ -9,6 +9,11 @@ import './styles-mobile-play.css';
 import './styles-life-morning.css';
 import './styles-world-foundation.css';
 import './styles-responsive-play.css';
+import "./styles-serve-feedback.css";
+import "./styles-chibi-reaction.css";
+import "./styles-chibi-fallback.css";
+import "./styles-tea-cup.css";
+import "./styles-quick-mix.css";
 import { syncMotionPreference } from "./game/preferences";
 
 syncMotionPreference();

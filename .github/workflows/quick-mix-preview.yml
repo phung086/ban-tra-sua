@@ -1,0 +1,59 @@
+name: Quick mix production preview
+
+on:
+  push:
+    branches: [codex/serve-remake-consequences-20261010]
+    paths:
+      - 'src/game/quickMix.ts'
+      - 'src/components/QuickMixChoice.tsx'
+      - 'src/components/CraftWorkbench.tsx'
+      - 'src/styles.css'
+      - 'src/styles-quick-mix.css'
+      - 'src/main.tsx'
+      - 'scripts/quick-mix-preview.mjs'
+      - '.github/workflows/quick-mix-preview.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: quick-mix-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Chromium
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test and production build
+        run: |
+          npm test
+          npm run build
+      - name: Exercise actual brewing choice in production preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --host 127.0.0.1 --port 5194 --strictPort >/tmp/quick-mix-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:5194/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5194/ >/dev/null
+          node scripts/quick-mix-preview.mjs
+      - name: Upload viewport before-after evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-mix-${{ github.sha }}
+          path: quick-mix-preview-artifacts/
+          retention-days: 21
+          if-no-files-found: warn

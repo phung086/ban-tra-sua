@@ -6,8 +6,11 @@ import { DrinkCup } from "./DrinkCup";
 import { HoldDispenser } from "./HoldDispenser";
 import { RecipeChecklist } from "./RecipeChecklist";
 import { ToppingTray } from "./ToppingTray";
+import { StockRescueHint } from "./StockRescueHint";
+import { QuickMixChoice } from "./QuickMixChoice";
 import { DRINKS } from "../game/content";
 import { updateDraft } from "../game/engine";
+import { missingDraftStock } from "../game/stockRescue";
 import type { BaseId, GameState, ToppingId } from "../game/types";
 
 interface Props {
@@ -21,6 +24,7 @@ interface Props {
 
 export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink, station, onStation: setStation }: Props) {
   const order = game.currentOrder!;
+  const stockMissing = missingDraftStock(game).length > 0;
   return (
       <div className="panel workstation v6-brew-bench v7-workbench" id="craft-workbench">
         <div className="workstation-head">
@@ -45,6 +49,7 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
           <DrinkCup draft={game.draft} />
 
           <div className="craft-controls v6-craft-controls" id="craft-station">
+            <StockRescueHint game={game} onGame={onGame} />
             {station === 0 && (<section id="craft-station-0" aria-label="Lắp ly">
             <ControlGroup title="1. Chọn nền trà" icon="🫖">
               <div className="choice-grid drink-choices v2-drink-choices">
@@ -116,7 +121,8 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             </section>)}
 
             {station === 2 && (<section id="craft-station-2" aria-label="Rót và lắc">
-            <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
+            <QuickMixChoice game={game} onGame={onGame} />
+            {!game.draft.rushed && <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
               <div className="timing-grid">
                 <CraftGauge
                   label="Rót"
@@ -139,14 +145,14 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
                   onCommit={(value) => onGame(updateDraft(game, { shake: value, sealed: false }))}
                 />
               </div>
-            </ControlGroup>
+            </ControlGroup>}
             </section>)}
 
             {station === 3 && (<section id="craft-station-3" aria-label="Hoàn thiện và giao khách">
             <AdaptiveCraftHint order={order} draft={game.draft} />
             <RecipeChecklist order={order} draft={game.draft} />
             <CraftHotkeys
-              enabled={station === 3}
+              enabled={station === 3 && !stockMissing}
               sealed={game.draft.sealed}
               onSeal={() => onGame(updateDraft(game, { sealed: true }))}
               onServe={serveDrink}
@@ -155,15 +161,19 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             <div className="finish-actions">
               <button
                 className={`seal-button ${game.draft.sealed ? "sealed" : ""}`}
-                onClick={() => onGame(updateDraft(game, { sealed: !game.draft.sealed }))}
+                disabled={game.draft.sealed || stockMissing}
+                aria-describedby={stockMissing ? "stock-seal-warning" : undefined}
+                onClick={() => onGame(updateDraft(game, { sealed: true }))}
               >
                 <span>{game.draft.sealed ? "🎀" : "🔘"}</span>
-                {game.draft.sealed ? "Nắp đã chuẩn" : "Dập nắp ly"}
+                {game.draft.sealed ? "Đã dập nắp · không sửa trực tiếp" : "Dập nắp ly"}
               </button>
-              <button className="primary-button serve-button" onClick={serveDrink}>
+              <button className="primary-button serve-button" disabled={!game.draft.sealed || stockMissing} onClick={serveDrink}>
                 <span>💗</span> Bê ly cho {customerName}
               </button>
             </div>
+            {stockMissing && <p id="stock-seal-warning" role="status">Thiếu nguyên liệu: hãy chọn Cứu đơn ở trên hoặc nhập thêm tại Kho trước khi dập nắp.</p>}
+            {!stockMissing && !game.draft.sealed && <p role="status">Dập nắp ly trước khi bê giao khách.</p>}
             </section>)}
             <div className="station-pagination">
               <button type="button" disabled={station === 0} onClick={() => setStation(station - 1)}>← Quay lại</button>

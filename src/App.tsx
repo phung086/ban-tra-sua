@@ -25,6 +25,10 @@ import {
   chooseClosingCare,
   formatMoney,
   getCustomer,
+  getDrinkCoachingTip,
+  getDraftIngredientCost,
+  remakeSealedDrink,
+  scoreDrink,
   nextDay,
 } from "./game/engine";
 import {
@@ -46,6 +50,8 @@ function App() {
   const [screen, setScreen] = useState<Screen>("shop");
   const [station, setStation] = useState(0);
   const [carrying, setCarrying] = useState(false);
+  // Transient post-delivery guidance: do not modify persisted save schema.
+  const [lastServeTip, setLastServeTip] = useState<string | null>(null);
   const [position, setPosition] = useState<Position>({ x: 0, z: 3.15 });
   const [exploring, setExploring] = useState(false);
   const [cityNavigation, setCityNavigation] = useState<{place: CityPlace; serial: number; ride?: boolean} | null>(null);
@@ -150,6 +156,7 @@ function App() {
     if (!order) return;
     const next = deliverDrink(game, carrying, position, order.id);
     if (next.served > game.served && next.lastScore !== null) {
+      setLastServeTip(getDrinkCoachingTip(order, game.draft));
       setCarrying(false);
       feedbackForScore(next.lastScore);
       recordCraftPerformance(next.lastScore, next.combo);
@@ -167,6 +174,7 @@ function App() {
     if (!window.confirm("Xóa toàn bộ tiến trình và mở lại tiệm từ ngày 1?"))
       return;
     clearSave();
+    setLastServeTip(null);
     setGame(createInitialState());
     setScreen("shop");
     setCarrying(false);
@@ -184,6 +192,8 @@ function App() {
         score={game.lastScore}
         combo={game.combo}
         customerId={game.lastService?.customerId}
+        tip={lastServeTip ?? undefined}
+        serviceMood={game.lastService?.mood}
       />
       <WorldChrome
         screen={screen}
@@ -338,6 +348,19 @@ function App() {
                       onStation={setStation}
                     />
                   </fieldset>
+                  {atCounter && game.draft.sealed && (
+                    <aside className="remake-choice" aria-label="Quyết định phục vụ">
+                      <p>🎯 Công thức hiện tại: {scoreDrink(order, game.draft)}/100 điểm (chưa tính thưởng máy và độ tươi).</p>
+                      <p>Ly đã dập nắp: bê giao ngay để giữ tip, hoặc làm lại và chịu hao nguyên liệu. Khách vẫn đang chờ.</p>
+                      <button type="button" onClick={() => {
+                        const next = remakeSealedDrink(game);
+                        setGame(next);
+                        if (!next.draft.sealed) setStation(0);
+                      }}>
+                        ♻️ Bỏ ly, pha lại · hao {formatMoney(getDraftIngredientCost(game.draft))}
+                      </button>
+                    </aside>
+                  )}
                 </>
               )}
             </>
