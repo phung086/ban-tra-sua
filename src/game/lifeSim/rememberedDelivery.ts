@@ -26,10 +26,13 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const correction = feedback(order, before.draft, after.lastScore);
   // A previous real delivery matters on the next visit, not just a generic
   // customer preference. Never change the customer's current recipe.
-  const previousComplaint = before.storyLog.find(moment =>
+  // Only the most recent earlier delivery determines whether feedback remains
+  // unresolved. A later satisfied delivery closes an older complaint across reloads.
+  const lastDelivery = before.storyLog.find(moment =>
     moment.customerId === order.customerId && moment.day < before.day &&
-    moment.title === 'Khách quen góp ý thêm' &&
-    moment.id.startsWith('remembered-service:'));
+    moment.id.startsWith('remembered-service:') &&
+    (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng'));
+  const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
   const message = correction
     ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
