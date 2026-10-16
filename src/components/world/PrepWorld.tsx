@@ -71,6 +71,7 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
     <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
     <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
     <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
+    <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
     {getCounterPatienceAdjustment(game) !== 0 && <p className="prep-counter-condition" role="status">{game.counterCondition === "fresh" ? "✨ Quầy sạch thơm từ tối qua: khách hôm nay kiên nhẫn thêm 10 giây." : "🧽 Quầy chưa gọn: khách hôm nay sốt ruột sớm hơn 10 giây."}</p>}
     <dl className="prep-numbers"><div><dt><GameIcon name="person"/>Người theo dõi</dt><dd>{game.fans}</dd></div><div><dt><GameIcon name="star"/>Lượt lan tỏa</dt><dd>{game.viral}</dd></div><div><dt><GameIcon name="board"/>Điểm nghiên cứu</dt><dd>{game.researchPoints}</dd></div><div><dt><GameIcon name="cup"/>Món trong menu</dt><dd>{game.unlockedBaseIds.length}</dd></div></dl>
