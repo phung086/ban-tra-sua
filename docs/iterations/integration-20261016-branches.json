@@ -2,7 +2,7 @@
   "date": "2026-10-16",
   "base": "36153f6",
   "integrationBranch": "codex/integrate-game-20261016",
-  "verifiedAt": "3288c37c345316ae1d2c54c84637f1c0fd75de7a",
+  "verifiedAt": "75402b8e849f2d1f5117820cd4c5b2219d97b41c",
   "refs": [
     {
       "branch": "origin",
@@ -26,7 +26,7 @@
     },
     {
       "branch": "origin/codex/integrate-game-20261016",
-      "sha": "3288c37c345316ae1d2c54c84637f1c0fd75de7a",
+      "sha": "3946b98e59e0216da3ebcc202081e6b7140d6cb5",
       "merged": true
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "branch": "origin/codex/life-review-repair-20261015-0744",
-      "sha": "7c0914f6c233b2a6693ca91021497701f3664402",
+      "sha": "6b81305decce07bab5b4d9a95a56c764f9cc071f",
       "merged": true
     },
     {

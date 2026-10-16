@@ -1,19 +1,25 @@
 // Production-preview regression; requires a runner with Playwright installed.
 // Run: npm run build && npm run preview -- --port 5193
 // Then: node scripts/remembered-customer-browser-smoke.mjs
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const KEY = 'tiem-tra-chibi-save-v3';
 const url = process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193';
 const sizes = [[360, 800], [390, 844], [844, 390], [1280, 800]];
-await mkdir('artifacts/remembered-customer', { recursive: true });
-const browser = await chromium.launch({ headless: true });
+const output = process.env.REMEMBERED_BROWSER_OUTPUT ?? 'artifacts/remembered-customer';
+await mkdir(output, { recursive: true });
+const report = { environment: 'Chromium simulated touch / SwiftShader; not physical mobile hardware', passed: [], errors: [] };
+const browser = await chromium.launch({ headless: true, args: ['--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let failures = 0;
 
 try {
   for (const [width, height] of sizes) {
-    const page = await browser.newPage({ viewport: { width, height } });
+    const page = await browser.newPage({ viewport: { width, height }, isMobile: width < 1000, hasTouch: width < 1000 });
+    page.setDefaultTimeout(90000);
+    await page.addInitScript(() => {
+      if (!localStorage.getItem('tiem-tra-chibi-ui-v1')) localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({ renderEngine: 'three', graphics: 'light', coachCompleted: true, motion: false, sound: false, music: false }));
+    });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => {
@@ -42,6 +48,11 @@ try {
           'review-care:remember-e2e:1:message',
           'review-followup:remember-e2e:remember',
         ];
+        state.storyLog = [{
+          id: 'remembered-service:previous', customerId: 'miu', customerName: 'Miu',
+          title: 'Khách quen góp ý thêm', text: 'Miu: Topping chưa đúng đơn.',
+          day: 1, rewardFans: 0,
+        }];
         state.currentOrder = {
           id: 'return-e2e', customerId: 'miu', size: 'M',
           base: 'classic-milk-tea', sugar: 25, ice: 50, topping: 'none',
@@ -82,7 +93,7 @@ try {
         throw new Error('Greeting changed cash/time/energy or the requested recipe incorrectly');
       }
       await page.screenshot({
-        path: `artifacts/remembered-customer/${width}x${height}.png`,
+        path: `${output}/${width}x${height}.png`,
         fullPage: true, animations: 'disabled',
       });
 
@@ -96,6 +107,22 @@ try {
           restored.city.energy !== 49 ||
           restored.relationshipRewardIds.filter(id => id === 'remembered-greeting:return-e2e').length !== 1) {
         throw new Error('Greeting ledger or cost changed after reload');
+      }
+      await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).click();
+      await page.waitForFunction(key => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}');
+        return state.storyLog?.[0]?.id === 'remembered-clarify:return-e2e';
+      }, KEY);
+      const clarified = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (clarified.cash !== 210000 || clarified.city.minutes !== 855 || clarified.city.energy !== 48 || clarified.currentOrder?.sugar !== 25 || !clarified.storyLog[0]?.text.includes('Topping chưa đúng đơn')) {
+        throw new Error('Clarification changed the recipe or charged the wrong cost');
+      }
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('note').filter({ hasText: 'Khách nhắc: Miu: Topping chưa đúng đơn.' }).waitFor();
+      if (await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).count()) throw new Error('Clarification offered twice after reload');
+      const clarificationReload = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (clarificationReload.city.minutes !== 855 || clarificationReload.city.energy !== 48 || clarificationReload.storyLog.filter(item => item.id === 'remembered-clarify:return-e2e').length !== 1) {
+        throw new Error('Clarification diary or cost lost or duplicated after reload');
       }
       // Actual crafting/delivery: no direct reducer call or fake callback.
       await page.locator('.craft-stations button').nth(3).click({ timeout: 20000 });
@@ -115,7 +142,7 @@ try {
         throw new Error('Real tea delivery did not produce the expected NPC callback');
       }
       await page.screenshot({
-        path: `artifacts/remembered-customer/delivered-${width}x${height}.png`,
+        path: `${output}/delivered-${width}x${height}.png`,
         fullPage: true, animations: 'disabled',
       });
       await page.reload({ waitUntil: 'domcontentloaded' });
@@ -129,12 +156,14 @@ try {
         throw new Error('Horizontal overflow');
       }
       if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
-      console.log('PASS', `${width}x${height}`, 'remember/greet/save/reload');
+      report.passed.push(`${width}x${height}: greet, clarify, diary, reload and physical delivery`);
+      console.log('PASS', report.passed.at(-1));
     } catch (error) {
       failures += 1;
+      report.errors.push(`${width}x${height}: ${String(error.stack || error)}`);
       console.error('FAIL', `${width}x${height}`, String(error));
       await page.screenshot({
-        path: `artifacts/remembered-customer/FAIL-${width}x${height}.png`,
+        path: `${output}/FAIL-${width}x${height}.png`,
         fullPage: true,
       }).catch(() => {});
     } finally {
@@ -142,6 +171,8 @@ try {
     }
   }
 } finally {
+  await writeFile(`${output}/results.json`, JSON.stringify(report, null, 2));
+  console.log('REMEMBERED_BROWSER_REPORT ' + JSON.stringify(report));
   await browser.close();
 }
 if (failures) process.exitCode = 1;

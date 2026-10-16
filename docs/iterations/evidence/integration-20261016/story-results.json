@@ -1,0 +1,18 @@
+{
+  "cases": [
+    "day15 rest/save/reload 360x800",
+    "day15 rest/save/reload 390x844",
+    "day15 rest/save/reload 844x390",
+    "day15 rest/save/reload 1280x800",
+    "day20 reserve ice -> day21 father callback",
+    "day22 transport and once-only save/reload",
+    "day23 zero-cash fallback and NPC callback",
+    "day24 cook -> day25 callback on desktop",
+    "day25–27 friends, safe delivery, birthday and reload",
+    "day28-30 recovery, planning, milestone and day31 memory",
+    "day40 sugar purchase and day41 callback on mobile",
+    "day44 community reward and day45 callback on desktop"
+  ],
+  "errors": [],
+  "environment": "Chromium SwiftShader simulated mobile and desktop"
+}

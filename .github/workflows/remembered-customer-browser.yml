@@ -1,0 +1,56 @@
+name: Remembered customer dialogue and delivery
+on:
+  push:
+    branches: [main, 'codex/**']
+    paths:
+      - 'src/game/lifeSim/remembered*.ts'
+      - 'src/components/CustomerScene.tsx'
+      - 'src/game/service.ts'
+      - 'scripts/remembered-customer-browser-smoke.mjs'
+      - '.github/workflows/remembered-customer-browser.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: remembered-customer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install project and browser
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build production app
+        run: npm run build
+      - name: Test returning customer at four viewport sizes
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --host 127.0.0.1 --port 5193 --strictPort > /tmp/remembered-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:5193/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5193/ >/dev/null
+          node scripts/remembered-customer-browser-smoke.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remembered-customer-${{ github.sha }}
+          path: artifacts/remembered-customer/
+          retention-days: 14

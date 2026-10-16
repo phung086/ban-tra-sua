@@ -5,7 +5,9 @@
 Nguồn: `origin/main` tại `36153f6` và toàn bộ đầu nhánh `origin` đã fetch ngày
 16/10/2026. Nhánh thực hiện: `codex/integrate-game-20261016`.
 Hợp nhất bằng merge commit, giữ lịch sử và không force push các nhánh AI.
-486 commit được đưa vào lịch sử kể từ main khởi đầu, gồm các merge commit.
+Snapshot tích hợp đầu đưa 486 commit vào lịch sử kể từ main khởi đầu, gồm các
+merge commit. Lần fetch cuối nhận thêm ba commit đến `6b81305` về hỏi lại góp ý
+của khách quen; đã merge thêm và kiểm tra lại.
 Các bản cũ của cùng một tính năng được đối chiếu với bản mới, không cộng dồn UI.
 [Manifest 109 đầu nhánh](integration-20261016-branches.json): tất cả là ancestor
 của bản tích hợp được kiểm tra; mỗi mục ghi nguyên SHA để truy vết.
@@ -20,6 +22,8 @@ của bản tích hợp được kiểm tra; mỗi mục ghi nguyên SHA để t
   Nấu cơm cần đã mua rau; không thể lấy thưởng hoặc trả tiền lặp sau reload.
 - Pha nhanh có đánh đổi điểm, rót thủ công, xử lý thiếu nguyên liệu, phản hồi
   khách quen, hệ quả pha lại, kế hoạch ca đông và dọn quầy cuối ngày.
+- Hỏi kỹ góp ý của khách quen lưu lời giải thích vào nhật ký và hiển thị ở quầy
+  sau reload; giữ nguyên đơn, thu thời gian/năng lượng đúng một lần.
 - Animation giữ blend bước đi/ngồi, chớp mắt, ánh nhìn, tay bê ly và thêm chào
   hàng xóm. Sửa transform instancing để cập nhật cả cây cha trước khi batch.
 - Chỉ một nút mở tiệm và một `RushShiftPanel` trong màn chuẩn bị.
@@ -48,7 +52,7 @@ dạng dữ liệu, không kích hoạt automation ghi Git.
 
 ## Kiểm chứng
 
-- `npm test`: 129 file Vitest, 631 test passed, không còn todo; Node acceptance gate 6/6;
+- `npm test`: 130 file Vitest, 633 test passed, không còn todo; Node acceptance gate 6/6;
   validator world/story dependency DAG passed.
 - `npm run build`: TypeScript và Vite production passed. Cảnh báo chunk lớn còn
   tồn tại (Babylon khoảng 1,66 MB trước gzip); chưa đạt production budget mobile.
@@ -60,6 +64,10 @@ dạng dữ liệu, không kích hoạt automation ghi Git.
   dập nắp/bê ly/giao sau xoay và mở/đóng sổ khu phố; không pageerror.
 - [Chợ và nấu cơm](evidence/integration-20261016/kitchen-results.json): 360×800,
   390×844, 844×390, 1280×800; mua rau/nấu/reload/mở tiệm passed cả bốn.
+- [Cốt truyện trên trình duyệt](evidence/integration-20261016/story-results.json):
+  12 kịch bản kiểm tra, gồm ngày 15 ở bốn màn hình và các tình huống mẫu ngày
+  20–31, 40–41, 44–45. Dùng fixture để vào đúng ngày, rồi thao tác UI thật;
+  kiểm tra tiền, kho, reload và lời nhắc tiếp nối. Không pageerror.
 - Thay todo bằng hai test giao thật thường/cuối ca: giao sai chỗ hoặc chưa bê ly
   không trừ sức; giao thành công trừ đúng một lần và giữ tiền thưởng.
 - Giới hạn Vitest bốn worker để không chạy quá nhiều tác vụ đồng thời trên máy
