@@ -7,6 +7,8 @@ Nguồn: `origin/main` tại `36153f6` và toàn bộ đầu nhánh `origin` đ�
 Hợp nhất bằng merge commit, giữ lịch sử và không force push các nhánh AI.
 486 commit được đưa vào lịch sử kể từ main khởi đầu, gồm các merge commit.
 Các bản cũ của cùng một tính năng được đối chiếu với bản mới, không cộng dồn UI.
+[Manifest 109 đầu nhánh](integration-20261016-branches.json): tất cả là ancestor
+của bản tích hợp được kiểm tra; mỗi mục ghi nguyên SHA để truy vết.
 
 ## Những phần đang chạy trong app
 
@@ -46,15 +48,28 @@ dạng dữ liệu, không kích hoạt automation ghi Git.
 
 ## Kiểm chứng
 
-- `npm test`: 129 file Vitest, 629 test passed, 1 todo; Node acceptance gate 6/6;
+- `npm test`: 129 file Vitest, 631 test passed, không còn todo; Node acceptance gate 6/6;
   validator world/story dependency DAG passed.
 - `npm run build`: TypeScript và Vite production passed. Cảnh báo chunk lớn còn
   tồn tại (Babylon khoảng 1,66 MB trước gzip); chưa đạt production budget mobile.
 - `node --check` toàn bộ script `.mjs` và extractor passed; `git diff --check` passed.
 - Chạy bản production tại `http://127.0.0.1:5188/`. Kiểm tra trực tiếp mua bánh mì,
   mua trái cây, reload còn 188.000 ₫, mở tiệm, dập nắp, bê ly, đến bàn và giao khách.
-- Bằng chứng local và log browser ở `.impeccable/review/integration-20261016/`
-  (ignored); kết quả browser/CI cuối cùng cập nhật sau khi hoàn tất.
+- [Mobile smoke](evidence/integration-20261016/mobile-results.json): 9 kích thước
+  320×568 đến desktop, giữ canvas khi xoay, nhả joystick, sáng/cơm hộp/reload,
+  dập nắp/bê ly/giao sau xoay và mở/đóng sổ khu phố; không pageerror.
+- [Chợ và nấu cơm](evidence/integration-20261016/kitchen-results.json): 360×800,
+  390×844, 844×390, 1280×800; mua rau/nấu/reload/mở tiệm passed cả bốn.
+- Thay todo bằng hai test giao thật thường/cuối ca: giao sai chỗ hoặc chưa bê ly
+  không trừ sức; giao thành công trừ đúng một lần và giữ tiền thưởng.
+- Giới hạn Vitest bốn worker để không chạy quá nhiều tác vụ đồng thời trên máy
+  đang render WebGL; không tăng timeout để bỏ qua test collision.
+- Bằng chứng local đầy đủ ở `.impeccable/review/integration-20261016/` (ignored).
+  Ảnh và kết quả chính đã commit bên cạnh tài liệu để AI khác đọc được.
+
+![Giao diện mobile](evidence/integration-20261016/mobile.png)
+![Toàn tiệm ngang](evidence/integration-20261016/shop-overview.png)
+![Khu phố](evidence/integration-20261016/city.png)
 
 ## Giới hạn đã thấy
 

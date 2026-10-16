@@ -1,0 +1,553 @@
+{
+  "date": "2026-10-16",
+  "base": "36153f6",
+  "integrationBranch": "codex/integrate-game-20261016",
+  "verifiedAt": "3288c37c345316ae1d2c54c84637f1c0fd75de7a",
+  "refs": [
+    {
+      "branch": "origin",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/chibi-counter-idle-20261010",
+      "sha": "f8d6db1637633d058bb10d6887dd8427039673a6",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/frame-pacing-30fps-20261008",
+      "sha": "69d72a1050ad1da4ad4637d21d604bea29a20cba",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/integrate-game-20261009",
+      "sha": "a4aeec3746a1fec7c9cf7222530280f6f820cc83",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/integrate-game-20261016",
+      "sha": "3288c37c345316ae1d2c54c84637f1c0fd75de7a",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-an-morning-call-20261015-0646",
+      "sha": "9fdb5873e6fb632f7a4a13c971f74e03691507b4",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-review-repair-20261015-0744",
+      "sha": "7c0914f6c233b2a6693ca91021497701f3664402",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-sim-world-bible-20261008",
+      "sha": "528a55e84d8ee28540e87696efedb1f8baf6550c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-sim-world-bible-v1",
+      "sha": "a78e1210944e1b434ac6ceb51f8c0ace7368056c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-01-seeded-rng",
+      "sha": "c760efffa919f7442198cc2fa41278c491cd877c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-02-acceptance-20261009",
+      "sha": "b7a484085d1a16213e6f654a019437081c5945a7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-02-calendar-planner-20261008",
+      "sha": "647c69ad18ff4ee90a7c1e1f2277a2d80698ae45",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-boundary-tests-20261009",
+      "sha": "77cfa17d2d5835c8f1adf7d9b821f54634274ff7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-content-validator-20261009",
+      "sha": "f7a23de84c7f9b87c925d112b2b20dd76d1a036a",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-delta-guards-20261009",
+      "sha": "77cfa17d2d5835c8f1adf7d9b821f54634274ff7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-delta-guards-20261010",
+      "sha": "564c8dc0327bfa90efd989036c3982f2ba9388e6",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-delta-guards-complete-20261010",
+      "sha": "4bf5762a8fe2a1bd8a6ed37a55008a4fbf17dfeb",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-evidence-20261009",
+      "sha": "576e209e0e552a2e7ddf3e867ed6d92252980114",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-flag-guards-20261010",
+      "sha": "fbb3bbea2297dd39f7ee5d3197298e46423f4a37",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-guarded-transitions-20261009",
+      "sha": "ac5adbb00f19b28226efa62e15f6ee1f77aa6364",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/life-t1-03-predicate-windows-20261010",
+      "sha": "3e159a7ac6c1c5e4eb2f85eb9fdd3071dbd1a870",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/m1-benchmark-gate-isolated",
+      "sha": "edd0085d6d52235263bd86728eef16620111caf0",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/m1-evidence-acceptance-gate-20261010",
+      "sha": "e234886e5121b999d72ab45cecb7144d394c8ac4",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/m2-static-instance-transform-20261010",
+      "sha": "9413a427b191c6ccb739f4d9b75eb7ebb370e550",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/mobile-auto-quality-cycle-01",
+      "sha": "97f26b65e269c61d84c53f5d3982546eb95c5d08",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/mobile-beta-foundation",
+      "sha": "e81b000d8b9385efdbd676fb54c512d45a899650",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/morning-browser-smoke-20261011",
+      "sha": "7bd3faef5def4f6bdb154582cbef170836251f25",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/npc-greeting-character-motion-20261010",
+      "sha": "ea5d7bc90e17686555d85ed01cfc4c2ece3fd50b",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/pastel-chibi-v8",
+      "sha": "1b22cd29d0e793e0b710cd66fcf89b05c7711402",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-breakfast-cooking-20261014-0737",
+      "sha": "f0b80e6ea59da2b4a2f5173428a3b316114350e2",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-day-episodes-20261013-1020",
+      "sha": "8bca3e976e2a973b186690893d3eadae38defcf9",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-22-24-20261013-2041",
+      "sha": "828fda1398eebfe2bae1911d11264fd3fbb569aa",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-25-27-20261013-2147",
+      "sha": "ea078fddddfa7ea07ea46138d6ca8a65e270e762",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-28-30-20261013-2244",
+      "sha": "03aba3c7e6af3564c6e1ea2efd98c1194fbe7f5f",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-31-37-20261013-2340",
+      "sha": "30b2c78b08396db1184436af7412dadea9fe9f17",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-38-44-20261014-0039",
+      "sha": "20d2cec68d5cadd08cbbd38070281b322fe62f75",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-45-51-20261014-0142",
+      "sha": "8fca2b4af19a76bb91ca6f27f2370154c1217e0c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-days-52-58-20261014-0240",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-evening-neighbor-ha-20261014-1442",
+      "sha": "ae2c11c5861f7a3c0793d6032d9f6ae319a4518e",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-family-breakfast-memory-20261013-0544",
+      "sha": "e272f1a2e1a27d49103c767a5d6772e794e287dd",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-family-call-20261012-1954",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-family-photo-20261013-0040",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-family-photo-reactions-20261013-0243",
+      "sha": "bfe89436ea739b99045dfe358998a4a7a0fc582a",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-garden-morning-20261013-0646",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-bill-20261012-1356",
+      "sha": "752530fe0dec86a57a03967e6a3ba1dc4dad3a0c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-breakfast-invite-20261012-1239",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-invite-release-20261012-1544",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-invite-reload-20261012-1738",
+      "sha": "6ed1f2f74e9b38ebef62282adcb27aa692f32bcb",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-invite-ui-20261012-1459",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-meal-20261012-1644",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lan-memory-20261012-1846",
+      "sha": "d570ced80273a51b726b223a10fa244ad2e87c89",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-lunchbox-20261013-0445",
+      "sha": "2b6022de389eb6f31997531a10d758f0a6f5ed6e",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-20261012-1041",
+      "sha": "4774f8ac3aa5d74cdeebba514d2fe73f80409b14",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-complete-20261012-0445",
+      "sha": "d4d24cdb6ca01b4330738298fda3a217a8fb9714",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-complete-20261012-0539",
+      "sha": "bf0fa443d3e3ae50508f5983ef0783f9108d79b5",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-cooking-20261013-0840",
+      "sha": "78bda949e3b353fdb5f2f7f7d3ffd0a9cd4aab4c",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-final-20261012",
+      "sha": "f25f6e5072dc00ffbefaca46e69474b11fab427d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-integration-20261012-0338",
+      "sha": "09ebc640aed9ab1d6657fe894b50ec7995230cb6",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-qa-20261012-0743",
+      "sha": "9f7bf436b61823a058c44ed29413d7d2616829ef",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-qa-fixed-20261012-0751",
+      "sha": "75bd4e002d5dfe97a17b44c97e1f50444d2cfe59",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-recovered-20261012-0445",
+      "sha": "b7d7ed7c6d8e583691ac3dae86ccf66c400e447d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-release-20261012-0646",
+      "sha": "c33c036bf83e522c69b1e4bdbcebf47d95c8e41e",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-review-20261012-0445",
+      "sha": "01303020f227766bca54a26a135d60453a1e242a",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-save-reload-20261012-1141",
+      "sha": "9612a87d7d19ac367572d78eedb7bb2fee36de62",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-typed-save-20261012-0939",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-market-verified-20261012-0843",
+      "sha": "f969109df3509764a84c73ada52c5f0ef8c61603",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-morning-market-20261012",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-morning-market-20261012-cycle10",
+      "sha": "eef822db3a61c0e8868f2f11bf1c6130a4a33d18",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-morning-market-ui-20261012-0239",
+      "sha": "b7d7ed7c6d8e583691ac3dae86ccf66c400e447d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-morning-routine-20261011",
+      "sha": "b097da03d12fa7b63793513d0664863eb66746a7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-advice-browserfix-20261013-0339",
+      "sha": "06cf200a6a463ecc7cad45722bcc502523814945",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-call-20261012-2051",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-call-20261012-2143",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-mai-20261012-2246",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-mai-20261012-2342",
+      "sha": "f06d4a5ddef5ecb6552e504e55e1ffabcd8c04e9",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-mother-photo-20261013-0147",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-plant-care-20261013-0741",
+      "sha": "194054b3f66fc1bf6e57850677ce2a3709671603",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-street-moments-20261014-0217",
+      "sha": "6ccf070e044819131896e875785dfdef6706cb73",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-thao-bill-integrated-20261013-0941",
+      "sha": "044bf4627b2230fd79e34169d1515dfc7b3d955f",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-thao-breakfast-bill-20261013-0941",
+      "sha": "f4bd96db21ccd84eff837bf4327103fb7f32e824",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-thu-tasting-20261014-1351",
+      "sha": "3bdb0603890e3a557b6eefffe1bd44fe08ef9d93",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-three-ui-20261013-1842",
+      "sha": "110e40a3ed9861aec331c01e1de93f98d8cba395",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-integrated-20261013-1246",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-integrated-20261013-1438",
+      "sha": "ba8e5d77c0552c396eb89f4e7a69cbb9ac252cdc",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-stories-20261013-1038",
+      "sha": "8698b69c75782f6520efcc5b2dc77be8592ccee7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-tested-20261013-1740",
+      "sha": "1670010ccc49eb76bd378428dc290f039f893cf3",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-ui-20261013-1146",
+      "sha": "fb16c3ee61cc7307e5a21e8107e2ea064d4cc803",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-ui-20261013-1544",
+      "sha": "3f240583360348178dc3ac12478df919428fdf80",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-vertical-20261013-1340",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/playable-week-two-vertical-20261013-1643",
+      "sha": "7e0163fc1eb3dc75b7120b2a21165675f192921a",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/pour-control-integration-20261011",
+      "sha": "24d197f4f4cc8638844de9048cedec0e281d3612",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/release-verified-foundation-20261008",
+      "sha": "c18c87e238bc5e335c40c96c48e90ad8625ab3ef",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/serve-feedback-coaching-20261010",
+      "sha": "64ef3932c350bc5ed3232619bb31b394226888f7",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/serve-remake-consequences-20261010",
+      "sha": "d3cf1efeaa85b2879e575ebbd047189a11146749",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/system-ui-ux-v7",
+      "sha": "13515df9afc25a8ebf8bc77a95456ea432122aaa",
+      "merged": true
+    },
+    {
+      "branch": "origin/codex/vietnamese-street-3d",
+      "sha": "86b345f9e6d688bccbec4b84dc2a47f9a9023e31",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/chibi-playable-base",
+      "sha": "efdca73c1c6c1b863fe103d85309e3e290590147",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/customer-ai-patience-queue-v7-sol",
+      "sha": "b3f923242058d1f8d76a88d107bc7bd7980aebad",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/dev-port-ui-layout-v5-isolated",
+      "sha": "8fd2dd5b88ad9d7ac832b5996ad4111b5a57c1ae",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/gameplay-feel-v3",
+      "sha": "194d01a0744b59645d87ef5b1060318e97d97987",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/gameplay-progression-v2",
+      "sha": "d7f27ad57290daa5fee6065d52f33936f3e5db97",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/immersive-tea-counter-v6",
+      "sha": "f673302bcea4b2a1f0db796c1b05b7a90dae86fe",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/order-service-flow-v4",
+      "sha": "5c0cf4a40239710cf8961ca6cb38a32e01dcc5eb",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/order-service-flow-v4-sync",
+      "sha": "efd70136b2a8295fcb697d4ca620b5a0bd5cfe4d",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/spatial-interactions-v4-sol",
+      "sha": "a47f9caeb3b21ef5263a657133bdc4790c5d49b2",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/ui-art-direction-v5-sol",
+      "sha": "5de04f55c9d64504889ddd91b64ec16e19c0843a",
+      "merged": true
+    },
+    {
+      "branch": "origin/feat/world-first-ui-v6-sol",
+      "sha": "f334e21c04f492019befb7048e9bc46249e1f626",
+      "merged": true
+    },
+    {
+      "branch": "origin/gemini/day-transition-morning-wake-20261014-1130",
+      "sha": "faca800598b4b495767cd0f76bbd23950275b1a2",
+      "merged": true
+    },
+    {
+      "branch": "origin/main",
+      "sha": "36153f6a8bf92c35e454d4fd7966a8935784655d",
+      "merged": true
+    }
+  ]
+}

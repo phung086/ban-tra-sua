@@ -2,7 +2,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { ShiftBreakPanel } from '../../components/life/ShiftBreakPanel';
-import { createInitialState, nextDay, startDay } from '../engine';
+import { createInitialState, nextDay, startDay, updateDraft } from '../engine';
+import { deliverDrink, deliveryFor, PLACES } from '../service';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import {
   applyShiftFatigue, canTakeShiftBreak, takeShiftBreak,
@@ -79,5 +80,31 @@ describe('playable between-order recovery', () => {
     expect(takeShiftBreak(invalid, 'rest')).toBe(invalid);
   });
 
-  it.todo('deduct satiety and energy only after successful physical delivery in service.ts');
+  it.each([false, true])('charges fatigue once after physical delivery, final order=%s', finalOrder => {
+    let game = ready('skip');
+    if (finalOrder) game = { ...game, served: game.targetOrders - 1 };
+    const order = game.currentOrder!;
+    game = updateDraft(game, {
+      size: order.size, base: order.base, topping: order.topping,
+      sugar: order.sugar, ice: order.ice, fill: order.targetFill,
+      shake: order.targetShake, sealed: true,
+    });
+    const destination = PLACES[deliveryFor(order)];
+    for (const blocked of [
+      deliverDrink(game, false, destination, order.id),
+      deliverDrink(game, true, { x: 4.1, z: 3.1 }, order.id),
+    ]) {
+      expect(blocked.morning.satiety).toBe(game.morning.satiety);
+      expect(blocked.city.energy).toBe(game.city.energy);
+      expect(blocked.served).toBe(game.served);
+    }
+    const delivered = deliverDrink(game, true, destination, order.id);
+    const expected = applyShiftFatigue(game);
+    expect(delivered.served).toBe(game.served + 1);
+    expect(delivered.morning.satiety).toBe(expected.morning.satiety);
+    expect(delivered.city.energy).toBe(expected.city.energy);
+    expect(delivered.cash).toBeGreaterThan(game.cash);
+    expect(deliverDrink(delivered, true, destination, order.id)).toBe(delivered);
+    if (finalOrder) expect(delivered.phase).toBe('summary');
+  });
 });

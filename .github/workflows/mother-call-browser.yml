@@ -9,9 +9,16 @@ on:
       - 'scripts/mother-call-browser-smoke.mjs'
       - '.github/workflows/mother-call-browser.yml'
   pull_request:
+concurrency:
+  group: mother-call-browser-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +28,16 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: npm run build
-      - run: |
-          npx vite preview --host 127.0.0.1 --port 5193 &
-          sleep 5
+      - name: Production browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --host 127.0.0.1 --port 5193 --strictPort > /tmp/mother-call-preview.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:5193/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5193/ >/dev/null
           node scripts/mother-call-browser-smoke.mjs

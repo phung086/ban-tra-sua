@@ -1,13 +1,23 @@
 import { chromium } from 'playwright';
 
-const browser = await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--no-sandbox']});
+const browser = await chromium.launch({ headless: true, args: ['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const base = process.env.GAME_BROWSER_URL || 'http://127.0.0.1:5193';
+const errors = [];
+async function newPage(viewport) {
+  const page = await browser.newPage({viewport, isMobile: viewport.width < 1000, hasTouch: viewport.width < 1000});
+  page.setDefaultTimeout(90000);
+  page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({renderEngine:'three',graphics:'light',coachCompleted:false,motion:false,sound:false,music:false})));
+  return page;
+}
+
 const viewports = [[360,800],[390,844],[844,390],[1280,800]];
 try {
   for (const [width,height] of viewports) {
-    const page = await browser.newPage({viewport:{width,height}});
+    const page = await newPage({width,height});
     const errors = [];
     page.on('pageerror',error=>errors.push(error.message));
-    await page.goto('http://127.0.0.1:5193',{waitUntil:'domcontentloaded'});
+    await page.goto(base,{waitUntil:'domcontentloaded'});
     const skip = page.getByRole('button',{name:'Bỏ qua'});
     if (await skip.isVisible()) await skip.click();
     await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
@@ -30,8 +40,8 @@ try {
     console.log('PASS mother call and reload',width,height);
     await page.close();
   }
-  const page=await browser.newPage({viewport:{width:390,height:844}});
-  await page.goto('http://127.0.0.1:5193',{waitUntil:'domcontentloaded'});
+  const page=await newPage({width:390,height:844});
+  await page.goto(base,{waitUntil:'domcontentloaded'});
   const skip=page.getByRole('button',{name:'Bỏ qua'});
   if (await skip.isVisible()) await skip.click();
   await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
@@ -43,12 +53,13 @@ try {
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}').phase==='open');
   console.log('PASS postponement, reload and existing shop opening');
   await page.close();
-  const photoPage=await browser.newPage({viewport:{width:390,height:844}});
-  await photoPage.goto('http://127.0.0.1:5193',{waitUntil:'domcontentloaded'});
+  const photoPage=await newPage({width:390,height:844});
+  await photoPage.goto(base,{waitUntil:'domcontentloaded'});
   const photoSkip=photoPage.getByRole('button',{name:'Bỏ qua'});
   if(await photoSkip.isVisible()) await photoSkip.click();
   await photoPage.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
-  await photoPage.getByRole('button',{name:/Nấu cơm trứng ở nhà/}).click();
+  await photoPage.getByRole('button',{name:/Vo gạo, chuẩn bị chảo/}).click();
+  await photoPage.getByRole('button',{name:/Lửa nhỏ, trứng mềm/}).click();
   await photoPage.getByText('Mẹ Mai: Nghe con tự nấu cơm sáng mẹ vui lắm. Giữ sức khỏe nhé!').waitFor();
   await photoPage.getByRole('button',{name:/Gửi ảnh tiệm cho mẹ/}).click();
   await photoPage.waitForFunction(()=>{
@@ -60,4 +71,5 @@ try {
   if(await photoPage.getByRole('button',{name:/Gửi ảnh tiệm cho mẹ/}).count()) throw Error('Photo decision offered twice');
   console.log('PASS photo, breakfast reaction and reload');
   await photoPage.close();
+  if (errors.length) throw new Error('Browser errors: '+errors.join('; '));
 } finally {await browser.close();}

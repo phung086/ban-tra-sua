@@ -55,7 +55,7 @@ describe('independent branch features share one daily save', () => {
     expect(cookMarketMeal(visited)).toBe(visited);
   });
 
-  it('blocks fruit after buying vegetables, including after a full reload', () => {
+  it('blocks fruit and conversation after buying vegetables', () => {
     const vegetables = buyVegetables(ready(), 'basket');
     expect(buyFruit(vegetables, 'fruit')).toBe(vegetables);
     expect(buyFruit(vegetables, 'chat')).toBe(vegetables);
