@@ -1,5 +1,5 @@
 import type { GameState, Order } from '../types';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, getPreviousRememberedServiceFeedback } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
@@ -28,10 +28,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   // customer preference. Never change the customer's current recipe.
   // Only the most recent earlier delivery determines whether feedback remains
   // unresolved. A later satisfied delivery closes an older complaint across reloads.
-  const lastDelivery = before.storyLog.find(moment =>
-    moment.customerId === order.customerId && moment.day < before.day &&
-    moment.id.startsWith('remembered-service:') &&
-    (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng'));
+  const lastDelivery = getPreviousRememberedServiceFeedback(before);
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
   const message = correction
