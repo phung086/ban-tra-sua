@@ -88,6 +88,23 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
             </button>
           </article>)}
         </div>}
+        {selected === 'school' && game.day === 12 && <article className="market-basket" aria-label="Ngày 12: Lan và nhóm trực nhật">
+          <h4>☔ Ngày 12 · Lan trực nhật giữa mưa phùn</h4>
+          <p>Nhóm Lan cần 2 ly trà đào. Bạn tặng nhóm, bán giá bạn bè 38.000 ₫, hay thành thật hẹn lần khác? Lựa chọn sẽ ảnh hưởng đơn giao Ngày 13.</p>
+          {game.relationshipRewardIds.some(id => id.startsWith('school.day12.'))
+            ? <p role="status">{game.relationshipRewardIds.includes('school.day12.gift')
+                ? 'Bạn đã tặng 2 ly. Lan sẽ giới thiệu một đơn lớn hơn vào Ngày 13.'
+                : game.relationshipRewardIds.includes('school.day12.sell')
+                  ? 'Bạn đã bán 2 ly giá bạn bè. Nhóm sẽ đặt thêm vào Ngày 13.'
+                  : 'Bạn đã hẹn lại, không mất nguyên liệu.'}</p>
+            : <div className="market-day-actions">
+              <p>Cần 2 trà đào, 2 ly M, 1 đường và 2 đá còn tươi. Thiếu hàng vẫn có thể hẹn lại.</p>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 10 || city.minutes + 20 > CITY_PLACES.school.hours[1] || game.inventory.peachTea < 2 || game.inventory.cupsM < 2 || game.inventory.sugar < 1 || game.inventory.ice < 2 || !(['peachTea','cupsM','sugar','ice'] as const).every(key => game.freshness[key] >= 20)} onClick={() => onAction({ type: 'school', choice: 'gift' })}>Tặng 2 ly · 20 phút · 10 sức · +4 thiện cảm</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 6 || city.minutes + 12 > CITY_PLACES.school.hours[1] || game.inventory.peachTea < 2 || game.inventory.cupsM < 2 || game.inventory.sugar < 1 || game.inventory.ice < 2 || !(['peachTea','cupsM','sugar','ice'] as const).every(key => game.freshness[key] >= 20)} onClick={() => onAction({ type: 'school', choice: 'sell' })}>Bán 2 ly · 38.000 ₫ · 12 phút · 6 sức</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 1 || city.minutes + 3 > CITY_PLACES.school.hours[1]} onClick={() => onAction({ type: 'school', choice: 'reschedule' })}>Hẹn lần sau · 3 phút · 1 sức</button>
+            </div>}
+        </article>}
+        {selected === 'school' && game.day === 13 && (game.relationshipRewardIds.includes('school.day12.gift') || game.relationshipRewardIds.includes('school.day12.sell')) && <p role="status" className="market-day-story">Lan nhớ cuộc gặp hôm qua: đơn trà đào ở mục Giao trà hôm nay có giá trị cao hơn.</p>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}
