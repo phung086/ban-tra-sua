@@ -28,7 +28,7 @@ export function marketDialogue(choice: MarketChoice, hanhBond = 0): string {
 
 export function visitMorningMarket(game: GameState, choice: MarketChoice): GameState {
   if (game.phase !== 'prep' || game.morning.day !== game.day ||
-    game.morning.step !== 'finished' || marketChoice(game) !== null) return game;
+    game.morning.step !== 'finished' || game.morning.marketVisit != null) return game;
   const option = MARKET_OPTIONS[choice];
   if (!option) return game;
   if (game.cash < option.cost) return {

@@ -29,7 +29,8 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 plantCare?: PlantCareChoice | null;
 lastPlantCare?: PlantCareChoice | null;
-marketVisit?: 'fruit' | 'chat' | 'leave' | null;
+marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null;
+homeCooked?: boolean;
 }
 
 export const MOTHER_CALL_OPTIONS = {listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
@@ -109,7 +110,8 @@ lanMeal: null,
 lunchPrep: null,
 plantCare: null,
 lastPlantCare: null,
-marketVisit: null};
+marketVisit: null,
+homeCooked: false};
 }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -147,7 +149,8 @@ lanMeal: meal === 'split' || meal === 'treat' || meal === 'walk' || meal === 'de
 lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null,
 plantCare: value.plantCare==="water"||value.plantCare==="ask-binh" ? value.plantCare : null,
 lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null,
-marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave" ? value.marketVisit : null};
+marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave"||value.marketVisit==="basket" ? value.marketVisit : null,
+homeCooked: value.marketVisit==='basket' && value.homeCooked === true};
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -338,5 +341,59 @@ export function choosePlantCare(game: GameState, choice: PlantCareChoice): GameS
       journal: [`Ngày ${game.day} · ${option.label} (+${option.goodwill} thiện cảm).`, ...game.city.journal].slice(0, 24) },
     morning: { ...morning, plantCare: choice },
     notice: choice === 'water' ? 'Cây trước hiên đã được tưới. Bác Bình đi qua gật đầu khen chăm chỉ.' : 'Bác Bình nhắn: “Tưới sáng sớm, nhớ nhìn đất trước khi thêm nước nhé.”',
+  };
+}
+
+export type MarketVisitChoice = 'basket' | 'chat';
+
+export const MARKET_OPTIONS = {
+  basket: { label: 'Mua rau và trứng ở chợ', cost: 12000, minutes: 12, energy: 2 },
+  chat: { label: 'Hỏi thăm cô Hạnh', cost: 0, minutes: 4, energy: 0 },
+} as const;
+
+export function visitMorningMarket(game: GameState, choice: MarketVisitChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.marketVisit != null) return game;
+  const option = MARKET_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return { ...game, notice: 'Chưa đủ tiền mua rau. Có thể hỏi thăm cô Hạnh miễn phí.' };
+  const remembered = game.storyLog.some(moment => moment.customerId === 'hanh' && moment.id.startsWith('morning-market-'));
+  const reply = choice === 'basket'
+    ? remembered ? 'Cô Hạnh nhớ mặt: “Lại nấu cơm à? Rau hôm nay tươi lắm!”' : 'Cô Hạnh lựa cho mình mớ rau và hai quả trứng tươi.'
+    : remembered ? 'Cô Hạnh cười: “Hôm trước nói chuyện vui quá, hôm nay bán đắt nhé!”' : 'Cô Hạnh kể chuyện chợ sớm và chúc tiệm đông khách.';
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      energy: Math.max(0, game.city.energy - option.energy),
+      goodwill: game.city.goodwill + 1,
+      journal: [`Ngày ${game.day} · ${option.label} (${option.cost.toLocaleString('vi-VN')} ₫).`, ...game.city.journal].slice(0, 24),
+    },
+    morning: { ...morning, marketVisit: choice, homeCooked: false },
+    storyLog: [{
+      id: `morning-market-${game.day}`, customerId: 'hanh', customerName: 'Cô Hạnh',
+      title: 'Chợ đầu ngõ', text: reply, day: game.day, rewardFans: 0,
+    }, ...game.storyLog].slice(0, 24),
+    notice: reply,
+  };
+}
+
+export function cookMarketMeal(game: GameState): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' ||
+      morning.marketVisit !== 'basket' || morning.homeCooked === true) return game;
+  if (game.city.energy < 3) return { ...game, notice: 'Mệt quá rồi, nghỉ ngơi trước khi nấu nhé.' };
+  return {
+    ...game,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + 18),
+      energy: game.city.energy - 3,
+      journal: [`Ngày ${game.day} · Nấu canh rau và trứng tại nhà.`, ...game.city.journal].slice(0, 24),
+    },
+    morning: { ...morning, homeCooked: true, satiety: Math.min(100, morning.satiety + 20) },
+    notice: 'Bữa cơm nhà đã xong! No bụng hơn trước khi mở tiệm.',
   };
 }
