@@ -1,5 +1,5 @@
 import type { GameState, Order } from '../types';
-import { getRememberedGreetingChoice, hasRememberedLowSugar } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
@@ -33,10 +33,13 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
     moment.id.startsWith('remembered-service:') &&
     (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng'));
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
+  const asked = hasAskedRememberedCustomerAboutComplaint(before);
   const message = correction
     ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
-      ? name + ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”'
+      ? name + (asked
+        ? ': “Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!”'
+        : ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”')
       : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
   return {
