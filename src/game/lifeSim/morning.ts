@@ -29,7 +29,7 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 plantCare?: PlantCareChoice | null;
 lastPlantCare?: PlantCareChoice | null;
-marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null | 'fruit' | 'chat' | 'leave' | null;
+marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null | 'fruit' | 'chat' | 'leave' | null | 'fruit' | 'chat' | 'leave' | null;
 homeCooked?: boolean;
 }
 
