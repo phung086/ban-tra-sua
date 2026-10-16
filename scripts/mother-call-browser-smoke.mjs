@@ -21,7 +21,7 @@ try {
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto(base,{waitUntil:'domcontentloaded'});
     const skip = page.getByRole('button',{name:'Bỏ qua'});
-    if (await skip.isVisible()) await skip.click();
+    await skip.click();
     await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click({timeout:30000});
     await page.getByRole('button',{name:/Đi làm luôn/}).click({timeout:15000});
     await page.getByText('Mẹ Mai: Con lại bỏ bữa sáng à? Nhớ ăn gì đó khi rảnh nhé.').waitFor({timeout:15000});
@@ -45,7 +45,7 @@ try {
   const page=await newPage({width:390,height:844});
   await page.goto(base,{waitUntil:'domcontentloaded'});
   const skip=page.getByRole('button',{name:'Bỏ qua'});
-  if (await skip.isVisible()) await skip.click();
+  await skip.click();
   await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
   await page.getByRole('button',{name:/Đi làm luôn/}).click();
   await page.getByRole('button',{name:/Nhắn mẹ tối gọi lại/}).click();
@@ -58,7 +58,7 @@ try {
   const photoPage=await newPage({width:390,height:844});
   await photoPage.goto(base,{waitUntil:'domcontentloaded'});
   const photoSkip=photoPage.getByRole('button',{name:'Bỏ qua'});
-  if(await photoSkip.isVisible()) await photoSkip.click();
+  await photoSkip.click();
   await photoPage.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
   await photoPage.getByRole('button',{name:/Vo gạo, chuẩn bị chảo/}).click();
   await photoPage.getByRole('button',{name:/Lửa nhỏ, trứng mềm/}).click();
@@ -69,7 +69,8 @@ try {
     return s.morning?.motherCall==='photo'&&s.city?.stories?.choices?.includes('family-mother-mai:1:photo');
   });
   await photoPage.reload({waitUntil:'domcontentloaded'});
-  await photoPage.getByText(/Mẹ xem ảnh tiệm rồi/).waitFor();
+  await photoPage.getByRole('region',{name:'Cuộc gọi của mẹ Mai'})
+    .getByText(/Mẹ xem ảnh tiệm rồi/).waitFor();
   if(await photoPage.getByRole('button',{name:/Gửi ảnh tiệm cho mẹ/}).count()) throw Error('Photo decision offered twice');
   console.log('PASS photo, breakfast reaction and reload');
   await photoPage.close();

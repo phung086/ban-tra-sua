@@ -195,7 +195,7 @@ try {
   }, saveKey, { timeout: 20000 });
   const day29 = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), saveKey);
   await fixture(30, day29, 'Câu chuyện tuần bốn');
-  assert(await weekFour.getByText(/Lan nhắn cả nhóm lịch hẹn mới/).isVisible(), 'Day 30 friend callback missing');
+  assert(await weekFour.getByText('💌 Lan nhắn lịch mới cho cả nhóm.', { exact: true }).isVisible(), 'Day 30 friend callback missing');
   assert(await weekFour.getByText(/Tổng kết tháng đầu/).isVisible(), 'Day 30 milestone missing');
   await weekFour.getByRole('button', { name: /Viết lời cảm ơn/ }).click({ timeout: 45000 });
   await page.waitForFunction(key => {
@@ -245,8 +245,10 @@ try {
   await context.close();
 } catch (error) {
   report.errors.push(String(error.stack || error));
+  console.error('STORY_BROWSER_FAIL ' + String(error.stack || error));
   process.exitCode = 1;
 } finally {
   await writeFile(path.join(dir, 'week-three-results.json'), JSON.stringify(report, null, 2));
+  console.log('STORY_BROWSER_REPORT ' + JSON.stringify(report));
   await browser.close();
 }
