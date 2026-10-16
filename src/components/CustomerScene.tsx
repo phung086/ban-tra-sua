@@ -6,7 +6,7 @@ import {
   canGreetRememberedCustomer, greetRememberedCustomer,
   canKeepRememberedPreferencePrivate, keepRememberedPreferencePrivate,
   getRememberedGreetingChoice, hasRememberedLowSugar, shouldMentionLowSugar,
-  getPreviousRememberedServiceFeedback, getUnresolvedRememberedComplaint,
+  getLatestRememberedReview, getPreviousRememberedServiceFeedback, getUnresolvedRememberedComplaint,
   canAskRememberedCustomerAboutComplaint, askRememberedCustomerAboutComplaint,
   hasAskedRememberedCustomerAboutComplaint,
 } from "../game/lifeSim/rememberedCustomer";
@@ -30,6 +30,7 @@ export function CustomerScene({ game, onGame }: {
   const remembersSugar = remembered && shouldMentionLowSugar(game, order.customerId, order.sugar);
   const greetingChoice = remembered ? getRememberedGreetingChoice(game) : null;
   const previousServiceFeedback = remembered ? getPreviousRememberedServiceFeedback(game) : null;
+  const savedReview = remembered ? getLatestRememberedReview(game, order.customerId) : null;
   const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   return <div className="customer-service">
@@ -38,6 +39,9 @@ export function CustomerScene({ game, onGame }: {
     {remembered && <aside className="life-review-care life-remembered-order" aria-label="Góp ý khách quen">
       <strong>{remembersSugar ? '💗 Nhớ khách thích ít ngọt' : '💗 Nhớ góp ý của khách quen'}</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
+      {!previousServiceFeedback && savedReview && <p className="life-remembered-history" role="note">
+        <b>Góp ý đã lưu (ngày {savedReview.day}):</b> {savedReview.text}
+      </p>}
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
       </p>}

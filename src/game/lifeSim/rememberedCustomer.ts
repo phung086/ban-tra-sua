@@ -1,26 +1,28 @@
 import type { GameState } from '../types';
 import { getReviewCareDecision, getReviewFollowupChoice, isLowSugarFeedback } from './reviewCare';
 
-/** A preference is learned only from a customer's explicit next-day response. */
-export function hasRememberedLowSugar(game: GameState, customerId: string): boolean {
-  if (!customerId) return false;
-  return game.reviews.some(review => {
-    if (review.customerId !== customerId || review.day >= game.day) return false;
+/** Latest consented review wins even if imported save arrays are unordered. */
+export function getLatestRememberedReview(game: GameState, customerId: string): GameState['reviews'][number] | null {
+  if (!customerId) return null;
+  return game.reviews.reduce<GameState['reviews'][number] | null>((latest, review) => {
+    if (review.customerId !== customerId || review.day >= game.day) return latest;
     const decision = getReviewCareDecision(game, review.id);
-    return (decision?.choice === 'refund' || decision?.choice === 'message') &&
-      getReviewFollowupChoice(game, review.id) === 'remember';
-  });
+    if (!decision || (decision.choice !== 'refund' && decision.choice !== 'message') ||
+        getReviewFollowupChoice(game, review.id) !== 'remember') return latest;
+    return !latest || review.day > latest.day ? review : latest;
+  }, null);
+}
+
+/** Compatibility name: any consented feedback makes this a remembered customer. */
+export function hasRememberedLowSugar(game: GameState, customerId: string): boolean {
+  return getLatestRememberedReview(game, customerId) !== null;
 }
 
 /** Do not turn a remembered topping/timing complaint into an invented sugar preference. */
 export function shouldMentionLowSugar(game: GameState, customerId: string, sugar: number): boolean {
   if (!customerId || sugar > 50) return false;
-  return game.reviews.some(review => {
-    if (review.customerId !== customerId || review.day >= game.day || !isLowSugarFeedback(review)) return false;
-    const decision = getReviewCareDecision(game, review.id);
-    return (decision?.choice === 'refund' || decision?.choice === 'message') &&
-      getReviewFollowupChoice(game, review.id) === 'remember';
-  });
+  const latest = getLatestRememberedReview(game, customerId);
+  return latest !== null && isLowSugarFeedback(latest);
 }
 
 const greetingId = (orderId: string) => 'remembered-greeting:' + encodeURIComponent(orderId);
