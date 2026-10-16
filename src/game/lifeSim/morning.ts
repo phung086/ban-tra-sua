@@ -29,7 +29,7 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 plantCare?: PlantCareChoice | null;
 lastPlantCare?: PlantCareChoice | null;
-marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null | 'fruit' | 'chat' | 'leave' | null | 'fruit' | 'chat' | 'leave' | null;
+marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null | 'fruit' | 'chat' | 'leave' | null | 'fruit' | 'chat' | 'leave' | null | MarketChoice | null;
 homeCooked?: boolean;
 }
 
@@ -346,10 +346,10 @@ export function choosePlantCare(game: GameState, choice: PlantCareChoice): GameS
 
 export type MarketVisitChoice = 'basket' | 'chat';
 
-export const MARKET_OPTIONS = {
-  basket: { label: 'Mua rau và trứng ở chợ', cost: 12000, minutes: 12, energy: 2 },
-  chat: { label: 'Hỏi thăm cô Hạnh', cost: 0, minutes: 4, energy: 0 },
-} as const;
+export const MARKET_OPTIONS = {basket: { label: 'Mua rau và trứng ở chợ', cost: 12000, minutes: 12, energy: 2 },
+chat: { label: 'Hỏi thăm cô Hạnh', cost: 0, minutes: 4, energy: 0 },
+fruit: { label: 'Mua trái cây cô Hạnh', cost: 12000, minutes: 8, satiety: 12, bond: 1, reply: 'Cô Hạnh: “Quả vừa về sáng nay đấy. Nhớ ăn giữa ca cho có sức nhé!”' },
+leave: { label: 'Đi thẳng tới tiệm', cost: 0, minutes: 0, satiety: 0, bond: 0, reply: 'Bạn chào cô Hạnh từ xa rồi đi mở cửa tiệm.' }} as const;
 
 export function visitMorningMarket(game: GameState, choice: MarketVisitChoice): GameState {
   const morning = game.morning;
@@ -397,3 +397,5 @@ export function cookMarketMeal(game: GameState): GameState {
     notice: 'Bữa cơm nhà đã xong! No bụng hơn trước khi mở tiệm.',
   };
 }
+
+export type MarketChoice = 'fruit' | 'chat' | 'leave';
