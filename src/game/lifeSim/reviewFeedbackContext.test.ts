@@ -12,5 +12,9 @@ describe('customer feedback context', () => {
     expect(isLowSugarFeedback(review)).toBe(true);
     expect(isLowSugarFeedback({ ...review, text: 'Topping chưa đúng đơn' })).toBe(false);
     expect(isLowSugarFeedback({ ...review, text: 'Trà không đủ ngọt' })).toBe(false);
+    expect(isLowSugarFeedback({ ...review, text: 'Trà ít đường quá' })).toBe(false);
+    expect(isLowSugarFeedback({ ...review, text: 'Không thích ít đường' })).toBe(false);
+    expect(isLowSugarFeedback({ ...review, text: 'Đừng giảm đường' })).toBe(false);
+    expect(isLowSugarFeedback({ ...review, text: 'Trà hơi ngọt' })).toBe(true);
   });
 });
