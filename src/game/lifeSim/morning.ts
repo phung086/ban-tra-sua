@@ -6,6 +6,7 @@ export type MorningStep = 'asleep' | 'awake' | 'finished';
 export type DayEpisodeChoice = 'help' | 'focus';
 export type FatherCallChoice = 'listen' | 'promise';
 export type MotherCallChoice = 'listen' | 'promise' | 'later' | 'photo';
+export type LanMealChoice = 'split' | 'treat' | 'decline';
 
 export interface MorningRoutineState {
   day: number;
@@ -20,6 +21,8 @@ export interface MorningRoutineState {
   fatherCall: FatherCallChoice | null;
   /** Optional on older v3 saves; one family decision per day. */
   motherCall?: MotherCallChoice | null;
+  /** Optional once-only friend invitation, persisted with the morning save. */
+  lanMeal?: LanMealChoice | null;
 }
 
 export const MOTHER_CALL_OPTIONS = {
@@ -74,6 +77,12 @@ export function motherCallDialogue(choice: MotherCallChoice, bond: number): stri
   return 'Mẹ Mai: Ừ, con cứ lo cho tiệm trước. Tối rảnh thì nhắn mẹ một câu nhé.';
 }
 
+export const LAN_MEAL_OPTIONS = {
+  split: { label: 'Đi ăn cùng Lan · chia đôi', cost: 65000, minutes: 40, satiety: 20, bond: 2 },
+  treat: { label: 'Mời Lan ăn · mình trả cả hai', cost: 130000, minutes: 40, satiety: 20, bond: 3 },
+  decline: { label: 'Hẹn Lan hôm khác', cost: 0, minutes: 0, satiety: 0, bond: 0 },
+} as const;
+
 export const BREAKFAST_OPTIONS = {
   cook: { label: 'Nấu cơm trứng ở nhà', cost: 14000, minutes: 20, satiety: 80, energy: 5 },
   street: { label: 'Mua bánh mì đầu ngõ', cost: 20000, minutes: 10, satiety: 70, energy: 2 },
@@ -96,6 +105,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     episodeChoice: null,
     fatherCall: null,
     motherCall: null,
+    lanMeal: null,
   };
 }
 
@@ -127,7 +137,10 @@ export function hydrateMorning(
     const fatherCall = value.fatherCall === 'listen' || value.fatherCall === 'promise' ? value.fatherCall : null;
     const restored = value as unknown as MorningRoutineState;
     const call = value.motherCall;
-    return { ...restored, fatherCall, motherCall: call === 'listen' || call === 'promise' || call === 'later' || call === 'photo' ? call : null };
+    const meal = value.lanMeal;
+    return { ...restored, fatherCall,
+      motherCall: call === 'listen' || call === 'promise' || call === 'later' || call === 'photo' ? call : null,
+      lanMeal: meal === 'split' || meal === 'treat' || meal === 'decline' ? meal : null };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -225,5 +238,32 @@ export function chooseMotherCall(game: GameState, choice: MotherCallChoice): Gam
       journal: [`Ngày ${game.day} · Gọi mẹ Mai: ${option.label}. ${reply}`, ...game.city.journal].slice(0, 24),
     },
     notice: reply,
+  };
+}
+
+/** Lan invites the player to a small meal before opening. Costs are shown in the UI first. */
+export function chooseLanMeal(game: GameState, choice: LanMealChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.lanMeal) return game;
+  const option = LAN_MEAL_OPTIONS[choice];
+  if (!option) return game;
+  if (game.cash < option.cost) return { ...game, notice: 'Chưa đủ tiền đi ăn. Có thể hẹn Lan hôm khác, không mất phí.' };
+  const lanBond = Math.min(1000, (game.city.stories.bonds.lan ?? 0) + option.bond);
+  const dialogue = choice === 'split'
+    ? 'Lan: Chia đôi nhé, vậy cả hai đều thoải mái!'
+    : choice === 'treat'
+      ? 'Lan: Cảm ơn bạn đã mời. Hôm khác để mình mời lại nhé!'
+      : 'Lan: Không sao đâu, để hôm khác tụi mình đi ăn nhé!';
+  return {
+    ...game,
+    cash: game.cash - option.cost,
+    morning: { ...morning, lanMeal: choice, satiety: Math.min(100, morning.satiety + option.satiety) },
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      journal: [`Ngày ${game.day} · ${option.label} (${option.cost.toLocaleString('vi-VN')} ₫). ${dialogue}`, ...game.city.journal].slice(0, 24),
+      stories: { ...game.city.stories, bonds: { ...game.city.stories.bonds, lan: lanBond } },
+    },
+    notice: dialogue,
   };
 }
