@@ -142,6 +142,30 @@ try{
   assert(restored.morning?.breakfast==='street' && restored.cash===200000,
     'Reload must preserve breakfast choice and deduct its cost only once');
   report.passes.push('wake, buy breakfast (-20,000 VND), save/reload and unlock shop');
+  for(const [width,height] of [[360,800],[390,844],[844,390],[1280,800]]){
+    await page.setViewportSize({width,height});
+    await page.waitForFunction(()=>!!document.querySelector('.life-lunch-options'),null,{timeout:12000});
+    assert(await page.getByRole('button',{name:/Nấu cơm hộp mang theo/}).count()===1,
+      'Lunchbox choice missing at '+width+'x'+height);
+    const info=await layoutSnapshot(page,'lunch-options');
+    assert(info.documentWidth<=width+2,'Lunch choices overflow at '+width+'x'+height);
+  }
+  await page.setViewportSize({width:844,height:390});
+  await page.waitForFunction(()=>document.querySelector('main')?.dataset.playLayout==='landscape');
+  await page.getByRole('button',{name:/Nấu cơm hộp mang theo/}).click({timeout:15000});
+  await page.waitForFunction(()=>{
+    try{
+      const s=JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3')||'{}');
+      return s.morning?.lunchPrep==='lunchbox'&&s.cash===184000;
+    }catch{return false}
+  },null,{timeout:12000});
+  await page.reload({waitUntil:'domcontentloaded',timeout:90000});
+  await page.waitForSelector('.life-lunch-result',{timeout:90000});
+  assert((await page.locator('.life-lunch-result').innerText()).includes('cơm hộp'),
+    'Lunchbox not restored after reload');
+  assert(await page.getByRole('button',{name:/Nấu cơm hộp mang theo/}).count()===0,
+    'Lunchbox can be purchased twice after reload');
+  report.passes.push('breakfast, lunchbox, 4 viewport choices, reload and once-only payment');
   await page.getByRole('button',{name:/Mở cửa tiệm/}).click({timeout:30000});
   await page.locator('.craft-stations button').nth(3).click({timeout:20000});
   await page.locator('.seal-button').click({timeout:20000});

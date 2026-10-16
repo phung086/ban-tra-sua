@@ -86,3 +86,10 @@
 .life-lan-hint{font-size:12px;line-height:1.5;margin:0 0 12px;color:#885b73}
 .life-lan-reply{margin:8px 0 0;padding:10px;border-radius:10px;background:#fff;font-size:13px;line-height:1.5}
 @media(max-width:580px){.life-lan-invite{padding:10px}}
+
+.life-lunch{margin-top:14px;padding-top:12px;border-top:1px solid #e9bed0}
+.life-lunch .life-morning-prompt{margin:2px 0 10px}
+.life-lunch-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.life-lunch-result{margin:8px 0;padding:10px;border-radius:12px;background:#f2fff4;color:#35644a;font-size:12px;font-weight:700}
+.life-lunch-note{display:block;margin-top:8px;color:#88617a;font-size:11px}
+@media(max-width:580px){.life-lunch-options{grid-template-columns:1fr}}
