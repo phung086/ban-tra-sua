@@ -87,10 +87,15 @@ export function greetRememberedCustomer(game: GameState): GameState {
 export function getPreviousRememberedServiceFeedback(game: GameState): GameState['storyLog'][number] | null {
   const order = game.currentOrder;
   if (!order || !hasRememberedLowSugar(game, order.customerId)) return null;
-  return game.storyLog.find(moment =>
-    moment.customerId === order.customerId && moment.day < game.day &&
-    moment.id.startsWith('remembered-service:') &&
-    (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng')) ?? null;
+  // Save migrations and imported journals may not preserve newest-first order.
+  // The latest earlier *day* wins; ties keep the first (newest in normal saves).
+  return game.storyLog
+    .filter(moment =>
+      moment.customerId === order.customerId && moment.day < game.day &&
+      moment.id.startsWith('remembered-service:') &&
+      (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng'))
+    .reduce<GameState['storyLog'][number] | null>(
+      (latest, moment) => !latest || moment.day > latest.day ? moment : latest, null);
 }
 
 export function getUnresolvedRememberedComplaint(game: GameState): GameState['storyLog'][number] | null {
