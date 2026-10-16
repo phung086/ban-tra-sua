@@ -1,4 +1,5 @@
 import { serveCurrentDrink } from "./engine";
+import { withRememberedDeliveryReaction } from "./lifeSim/rememberedDelivery";
 import type { GameState, Order } from "./types";
 import { CITY_BOUNDS, outdoorsWalkable } from './cityMap';
 import {overlapsFootprint,SHOP_FURNITURE,PLAYER_RADIUS,type Footprint} from './collision';
@@ -159,5 +160,5 @@ export function deliverDrink(
       notice: `Mang ly đến ${destination.label.toLowerCase()} để giao đúng khách.`,
     };
   }
-  return serveCurrentDrink(state);
+  return withRememberedDeliveryReaction(state, serveCurrentDrink(state));
 }

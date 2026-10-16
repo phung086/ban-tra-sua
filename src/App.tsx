@@ -303,7 +303,7 @@ function App() {
           )}
           {screen === "shop" && game.phase === "open" && order && (
             <>
-              <CustomerScene game={game} />
+              <CustomerScene game={game} onGame={setGame} />
               <RushShiftProgress game={game} />
               <OrderExperience
                 key={order.id}

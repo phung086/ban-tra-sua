@@ -1,0 +1,27 @@
+.life-review-care{margin-top:12px;padding:12px;border:1px solid #e6b6c9;border-radius:12px;background:#fff6f9;color:#613b50}
+.life-review-care-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.life-review-care-action{min-width:0;display:flex;flex-direction:column;gap:4px}
+.life-review-care-actions button{min-height:60px;width:100%;text-align:left;padding:8px;background:#fff;border:1px solid #dba8bf;border-radius:10px;color:#65394f;cursor:pointer}
+.life-review-care-actions button:disabled{opacity:.55;cursor:not-allowed}
+.life-review-care-action small{font-size:.76rem;line-height:1.35;color:#814d65}
+.life-review-care-complete,.life-review-care-callbacks{padding:10px;border-radius:10px;background:#f1fff2;color:#3d6d4b}
+.life-review-care-callbacks{margin:12px;background:#fff5fa;color:#693d53}
+.life-review-care-callbacks strong{display:block;margin-bottom:6px}
+.life-review-care-callbacks p{margin:6px 0;overflow-wrap:anywhere}
+@media(max-width:900px){.life-review-care-actions{grid-template-columns:1fr}}
+.life-review-followup{margin:8px 0;padding:8px;border:1px solid #e9c5d5;border-radius:10px}
+.life-review-followup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.life-review-followup-actions button{min-height:48px;padding:8px;text-align:left;border:1px solid #dba8bf;border-radius:9px;background:#fff;color:#65394f;cursor:pointer}
+.life-review-followup-actions button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:900px){.life-review-followup-actions{grid-template-columns:1fr}}
+
+/* The remembered preference is a readable, tappable part of the live order. */
+.life-remembered-order{flex:1 1 100%;min-width:0;margin-top:8px;padding:10px 12px;border:1px solid #e6b6c9;border-radius:12px;background:#fff6f9;color:#613b50}
+.life-remembered-order strong{display:block;font-size:.9rem}
+.life-remembered-order p{margin:6px 0;line-height:1.4;overflow-wrap:anywhere}
+.life-remembered-order button{display:block;width:100%;min-height:48px;margin-top:8px;padding:9px 12px;text-align:left;border:1px solid #dba8bf;border-radius:10px;background:#fff;color:#65394f;cursor:pointer}
+.life-remembered-order button:disabled{opacity:.55;cursor:not-allowed}
+.life-remembered-order small{display:block;margin-top:6px;color:#3d6d4b}
+
+.life-remembered-history{padding:8px 10px;border-radius:8px;background:#fff;border-left:3px solid #d88bab}
+.life-remembered-history b{color:#733a55}
