@@ -91,3 +91,8 @@ Thời gian, giá và nhu cầu **tương tự logic cuộc sống** nhưng tỷ
 - **World ledger:** lịch sử giao dịch/sự kiện exactly-once.
 - **Seed:** số hạt tái lập các biến cố ngẫu nhiên của save/ngày, không sinh nội dung tùy tiện.
 - **Acceptance gate:** cổng định lượng + thử nghiệm thiết bị + bằng chứng cần trước khi chuyển mốc.
+
+
+## Bổ sung 10/10/2026 — backlog chất lượng tương tác và mỹ thuật
+
+Phản hồi chủ dự án ưu tiên **nâng chất lượng cảm nhận khi chơi** thay vì chỉ có nhiều hệ thống: điều khiển/camera, nhân vật/rig, ánh sáng/vật liệu/cảnh Việt, VFX, âm thanh, NPC/va chạm, nhịp đơn hàng/khách/nhiệm vụ. Danh sách giao việc theo ID và cổng thẩm định ở [Experience Quality Initiative](../experience-quality/README.md), [backlog](../experience-quality/backlog.md), [quality gates](../experience-quality/quality-gates.md), [AI handoff](../experience-quality/ai-handoff.md). Phần này chỉ là plan; phải đo/đánh giá trước–sau và theo milestone.

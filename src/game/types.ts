@@ -1,5 +1,6 @@
 import type { CityState } from './city';
 import type { MorningRoutineState } from './lifeSim/morning';
+import type { ShiftPlan } from './shiftPlans';
 export type Phase = "prep" | "open" | "summary";
 export type Screen = "shop" | "stock" | "upgrades" | "reviews" | "goals";
 export type Size = "M" | "L";
@@ -40,6 +41,8 @@ export type ResearchId =
 export type QuestMetric = "serve" | "perfect" | "revenue" | "reply" | "combo";
 export type AchievementMetric = "served" | "perfect" | "revenue" | "replies" | "days" | "fans";
 export type CustomerMood = "delighted" | "happy" | "neutral" | "restless" | "upset";
+export type ClosingCareChoice = "clean" | "skip";
+export type CounterCondition = "normal" | "fresh" | "untidy";
 
 export type InventoryKey =
   | "cupsM"
@@ -277,6 +280,7 @@ export interface DaySummary {
   averageScore: number;
   fansGained: number;
   researchGained: number;
+  closingCost?: number;
 }
 
 export interface GameState {
@@ -285,6 +289,9 @@ export interface GameState {
   day: number;
   morning: MorningRoutineState;
   phase: Phase;
+  closingCareChoice: ClosingCareChoice | null;
+  shiftPlan?: ShiftPlan;
+  counterCondition: CounterCondition;
   cash: number;
   reputation: number;
   fans: number;

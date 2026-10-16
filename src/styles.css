@@ -1827,3 +1827,37 @@ input:focus-visible {
     transition-duration: .001ms !important;
   }
 }
+
+
+/* Day 9+: a consequential decision, not another mandatory menu. */
+.shift-decision { padding: 14px; margin: 10px 0; border-radius: 16px; background: #fff3e6; border: 1px solid #ebc7a9; }
+.shift-decision h3 { margin: 0 0 6px; font-size: 1rem; }
+.shift-decision p { margin: 0 0 12px; line-height: 1.4; font-size: .9rem; }
+.shift-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.shift-choice { min-height: 78px; padding: 12px 9px; display: grid; gap: 6px; text-align: left;
+  border: 2px solid #e1c9b8; border-radius: 12px; background: #fff; color: #5e3a4c; cursor: pointer; }
+.shift-choice[aria-pressed="true"] { border-color: #bc6378; background: #fff0f5; box-shadow: inset 0 0 0 1px #bc6378; }
+.shift-choice:focus-visible { outline: 3px solid #7655b3; outline-offset: 2px; }
+.shift-choice b { font-size: .9rem; }
+.shift-choice small { font-size: .78rem; line-height: 1.4; }
+@media (max-width: 355px) { .shift-choices { grid-template-columns: 1fr; } }
+.shift-stock-warning { margin: 10px 0 0; color: #7d2638; font-weight: 600; font-size: .85rem; }
+.shift-stock-warning button { margin-left: 8px; border: 0; border-radius: 8px; padding: 7px 12px; background: #9d4c68; color: white; font: inherit; cursor: pointer; }
+
+.shift-ready-note { margin: 10px 0 0; color: #276e4d; font-size: .85rem; font-weight: 600; }
+/* Recover a blocked rush opening in-place using the same priced stock action. */
+.shift-stock-rescue { margin: 10px 0; padding: 10px; border: 1px dashed #c18c9a; border-radius: 12px; background: #fffaf7; display: flex; flex-wrap: wrap; gap: 8px; }
+.shift-stock-rescue p { width: 100%; margin: 0; }
+.shift-stock-rescue button { min-height: 48px; flex: 1 1 145px; padding: 10px 12px; border: 1px solid #8f4664; border-radius: 10px; background: #fff; color: #6c2945; font: inherit; font-weight: 650; cursor: pointer; }
+.shift-stock-rescue button:focus-visible { outline: 3px solid #7655b3; outline-offset: 2px; }
+.shift-stock-rescue button:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Preview only the deterministic commuter orders; no extra renderer assets. */
+.shift-preorders{margin:10px 0;padding:12px;border:1px solid rgba(123,88,65,.2);border-radius:14px;background:rgba(255,248,232,.85)}
+.shift-preorders h4{margin:0 0 8px;font-size:1rem}
+.shift-preorders ol{display:grid;gap:8px;list-style:none;margin:0 0 8px;padding:0}
+.shift-preorders li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.8)}
+.shift-preorders li strong,.shift-preorders li span{font-size:.9rem;line-height:1.45}
+.shift-preorders li span{color:#584636}
+.shift-preorders small{display:block;font-size:.8rem;line-height:1.5}
+@media (max-width:390px){.shift-preorders li{display:block}.shift-preorders li span{display:block;margin-top:2px}}

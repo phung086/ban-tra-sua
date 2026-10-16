@@ -24,6 +24,27 @@ describe("customer choreography", () => {
       cup: false,
     });
   });
+  it("eases the customer greeting before the guest heads to a table", () => {
+    const customer = visit("table-1");
+    expect(visitPose(customer, 1600).gesture).toBe(0);
+    expect(visitPose(customer, 1610).gesture).toBeLessThan(0.05);
+    expect(visitPose(customer, 1900).gesture).toBeGreaterThan(0.65);
+    expect(visitPose(customer, 2690).gesture).toBeLessThan(0.02);
+    expect(visitPose(customer, 2700)).toMatchObject({ gesture: 0, walking: true });
+    expect(visitPose(customer, 1900, false).gesture).toBe(0);
+  });
+  it("paces the trip to a table by meters instead of equal time per waypoint", () => {
+    const customer = visit("table-1");
+    const pose = visitPose(customer, 3080); // 20% of the 2.7s–4.6s route
+    // The first leg is only ~1.43m of a ~5.68m path, not 1/3 of the time.
+    expect(pose.x).toBeCloseTo(-1.11, 1);
+    expect(pose.z).toBeCloseTo(-0.54, 1);
+    expect(pose.walking).toBe(true);
+    const mirrored = visitPose(visit("table-2"), 3080);
+    expect(mirrored.x).toBeCloseTo(-pose.x, 4);
+    expect(mirrored.z).toBeCloseTo(pose.z, 4);
+    expect(visitPose(customer, 3080, false).walking).toBe(false);
+  });
   it("keeps takeaway guests at the counter", () => {
     expect(visitPose(visit("counter"), 6000)).toMatchObject({
       x: 0,
@@ -31,6 +52,18 @@ describe("customer choreography", () => {
       sitting: false,
     });
   });
+  it("stands at the table before walking away, without delaying takeaway guests", () => {
+    const table = { ...visit("table-1"), receivedAt: 7000 };
+    const takeaway = { ...visit("counter"), receivedAt: 7000 };
+    const rising = visitPose(table, 8200);
+    expect(rising).toMatchObject({ walking: false, sitting: false, y: 0, cup: true });
+    expect(rising.x).toBeCloseTo(-2.8);
+    expect(rising.z).toBeCloseTo(-3.45);
+    expect(visitPose(table, 8450)).toMatchObject({ walking: true, sitting: false });
+    expect(visitPose(takeaway, 8200)).toMatchObject({ walking: true, sitting: false });
+    expect(visitPose(table, 10960).finished).toBe(true);
+  });
+
   it("receives a cup, stands up, carries it outside and finishes", () => {
     const customer = { ...visit("table-2"), receivedAt: 7000 };
     expect(visitPose(customer, 7400)).toMatchObject({

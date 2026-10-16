@@ -3,6 +3,7 @@
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { summarizePairedAB } from './m1-ab-statistics.mjs';
 
 // Reuse the same Chromium protocol for other same-SHA geometry comparisons.
 const variantNames=(process.env.M1_AB_VARIANTS||'near16,near12').split(',');
@@ -25,17 +26,21 @@ const percentile=(values,p)=>{const sorted=[...values].sort((a,b)=>a-b);
 const average=values=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
 const round=n=>n===null?null:Math.round(n*100)/100;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const records=[],failures=[];
+const records=[],failures=[],runOrder=[];
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,args:[
   '--no-sandbox','--disable-dev-shm-usage','--enable-webgl',
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'
 ]});
 try {
-  // Alternate variant order between qualities to limit systematic warm-run bias.
+  // Two AB/BA pairs per quality limit systematic cache and warm-run bias.
   for(const quality of ['light','balanced']){
-    const order=quality==='light'?[control,candidate]:[candidate,control];
-    for(const variant of order){
+    const order=quality==='light'
+      ?[control,candidate,candidate,control]
+      :[candidate,control,control,candidate];
+    for(const [orderIndex,variant] of order.entries()){
+      const repeat=orderIndex<2?1:2;
+      runOrder.push({quality,variant,repeat,orderIndex});
       const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,reducedMotion:'reduce'});
       const page=await context.newPage();
       const errors=[];
@@ -62,7 +67,7 @@ try {
           },mode);
           await sleep(warmupMs);
           // Capture the same real WebGL render for both configurations.
-          const filename=path.join(output,`${variant}-${quality}-${mode}.png`);
+          const filename=path.join(output,`${variant}-${quality}-${mode}-r${repeat}.png`);
           await page.evaluate(()=>{
             const r=window.__m1Runtime;
             r.m1ScreenshotDataUrl=null;r.m1ScreenshotError=null;r.m1ScreenshotPending=true;
@@ -87,7 +92,7 @@ try {
           await sleep(sampleMs);
           const snap=await page.evaluate(()=>window.__m1Runtime.m1Snapshot());
           if(snap.frames.length<5)throw new Error('Too few frames for '+variant+'/'+quality+'/'+mode);
-          const row={variant,quality,mode,viewport:'390x844',dpr:1,
+          const row={variant,quality,mode,repeat,orderIndex,viewport:'390x844',dpr:1,
             frames:snap.frames.length,
             calls:round(average(snap.frames.map(f=>f.calls))),
             triangles:round(average(snap.frames.map(f=>f.triangles))),
@@ -100,25 +105,22 @@ try {
         }
         if(errors.length)throw new Error('Console errors: '+JSON.stringify(errors));
       }catch(error){
-        const failure={variant,quality,error:String(error.stack||error)};
+        const failure={variant,quality,repeat,orderIndex,error:String(error.stack||error)};
         failures.push(failure);console.error(logPrefix+' FAIL '+JSON.stringify(failure));
       }finally{await context.close()}
     }
   }
 }finally{
-  const comparisons=[];
-  for(const quality of ['light','balanced'])for(const mode of ['follow','overview']){
-    const a=records.find(r=>r.variant===control&&r.quality===quality&&r.mode===mode);
-    const b=records.find(r=>r.variant===candidate&&r.quality===quality&&r.mode===mode);
-    if(!a||!b){failures.push({quality,mode,error:'Missing paired samples'});continue}
-    const delta=(key)=>round((b[key]-a[key])/a[key]*100);
-    comparisons.push({quality,mode,[comparisonKey]:{callsPercent:delta('calls'),trianglesPercent:delta('triangles'),p95Percent:delta('intervalP95')},
-      controlFrames:a.frames,candidateFrames:b.frames});
-  }
+  const {comparisons,failures:pairFailures}=summarizePairedAB(records,{
+    control,candidate,comparisonKey
+  });
+  failures.push(...pairFailures);
   console.log(logPrefix+' COMPARISONS '+JSON.stringify(comparisons));
-  await writeFile(path.join(output,'results.json'),JSON.stringify({records,comparisons,failures,
+  await writeFile(path.join(output,'results.json'),JSON.stringify({records,comparisons,failures,runOrder,
     environment:{browser:'Playwright Chromium SwiftShader software WebGL Ubuntu',viewport:'390x844',dpr:1,
       warmupMs,sampleMs,scene:'player (0,-7), yaw 0, pitch -0.23',
+      repetitions:2,order:'ABBA for light, BAAB for balanced',
+      pairedDeltaMethod:'median of two matched AB/BA percent deltas; min/max retained; never pooled P95',
       control:controlDescription,candidate:candidateDescription,sourceSha:process.env.GITHUB_SHA||null,
       gpuTiming:'unsupported',device:'CI, not a real Android or iPhone',
       drawCalls:'renderer.info.render.calls includes refreshed shadow passes'}},null,2));

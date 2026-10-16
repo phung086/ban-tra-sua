@@ -1,5 +1,8 @@
 import { deliveryFor, type Place } from "../game/service";
 import type { DrinkDraft, GameState, Order } from "../game/types";
+import { greetingGesture } from "./greetingGesture";
+import { TABLE_SEAT_DROP } from "./seatTransition";
+import { sampleRouteByDistance } from "./routePacing";
 
 export type Visit = {
   order: Order;
@@ -22,18 +25,7 @@ export type VisitPose = {
 const seat = (place: Place): [number, number] =>
   place === "counter" ? [0, -0.3] : [place === "table-1" ? -2.8 : 2.8, -3.45];
 function along(points: number[][], amount: number) {
-  const segment = Math.min(
-    points.length - 2,
-    Math.floor(amount * (points.length - 1)),
-  );
-  const local = Math.min(1, amount * (points.length - 1) - segment);
-  const a = points[segment],
-    b = points[segment + 1];
-  return {
-    x: a[0] + (b[0] - a[0]) * local,
-    z: a[1] + (b[1] - a[1]) * local,
-    rotation: Math.atan2(b[0] - a[0], b[1] - a[1]),
-  };
+  return sampleRouteByDistance(points as [number, number][], amount);
 }
 export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
   const [x, z] = seat(visit.location);
@@ -41,7 +33,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
   const base = {
     x,
     z,
-    y: dineIn ? -0.27 : 0,
+    y: dineIn ? TABLE_SEAT_DROP : 0,
     rotation: 0,
     walking: false,
     sitting: dineIn,
@@ -53,6 +45,9 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
     const elapsed = (now - visit.receivedAt) / 1000;
     if (!motion) return { ...base, cup: true, finished: elapsed > 0.8 };
     if (elapsed < 1.15) return { ...base, gesture: 1.05, cup: true };
+    // Table guests stand at the chair before walking; takeaway timing is unchanged.
+    if (dineIn && elapsed < 1.45)
+      return { ...base, y: 0, sitting: false, gesture: 0.6, cup: true };
     const path = dineIn
       ? [
           [x, z],
@@ -64,7 +59,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
           [x, z],
           [0, -5.8],
         ];
-    const progress = Math.min(1, (elapsed - 1.15) / 2.5);
+    const progress = Math.min(1, (elapsed - (dineIn ? 1.45 : 1.15)) / 2.5);
     return {
       ...base,
       ...along(path, progress),
@@ -99,7 +94,7 @@ export function visitPose(visit: Visit, now: number, motion = true): VisitPose {
       z: -0.3,
       y: 0,
       sitting: false,
-      gesture: 0.8 + Math.sin(elapsed * 6) * 0.15,
+      gesture: greetingGesture(elapsed, visit.order.customerId),
     };
   if (dineIn && elapsed < 4.6)
     return {

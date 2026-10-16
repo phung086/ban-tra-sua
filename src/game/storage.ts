@@ -3,6 +3,8 @@ import type { GameState, Inventory, Review } from "./types";
 import { hydrateCity } from './city';
 import { initialCity } from './city';
 import { createMorning, hydrateMorning } from './lifeSim/morning';
+import { QUEUE_ARRIVAL_SPACING_MS } from './customerAi';
+import { getShiftQueueSpacingMs } from './shiftPlans';
 
 const SAVE_KEY = "tiem-tra-chibi-save-v3";
 const LEGACY_V2_KEY = "tiem-tra-chibi-save-v2";
@@ -30,9 +32,13 @@ function hydrate(parsed: StoredGame): GameState {
   const city = hydrateCity(parsed.city, day);
   const xp = typeof parsed.xp === "number" ? parsed.xp : initial.xp;
   const now = Date.now();
+  const queueSpacing = getShiftQueueSpacingMs({
+    day: parsed.day ?? 1,
+    shiftPlan: parsed.shiftPlan === 'rush' ? 'rush' : 'regular',
+  }, QUEUE_ARRIVAL_SPACING_MS);
   const rebasedQueue = (parsed.customerQueue ?? []).map((entry, index) => ({
     ...entry,
-    joinedAt: now + (index + 1) * 10000,
+    joinedAt: now + (index + 1) * queueSpacing,
   }));
 
   return {
@@ -42,6 +48,7 @@ function hydrate(parsed: StoredGame): GameState {
     day,
     city,
     morning: hydrateMorning(parsed.morning, { day, city }, parsed.phase ?? 'prep'),
+    shiftPlan: parsed.shiftPlan === 'rush' && (parsed.day ?? 1) >= 9 ? 'rush' : 'regular',
     xp,
     level: getLevelFromXp(xp),
     inventory: { ...initial.inventory, ...(parsed.inventory ?? {}) },

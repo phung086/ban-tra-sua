@@ -1,5 +1,7 @@
 import { initialCity, newCityDay } from './city';
 import { createMorning, createWorldSeed } from './lifeSim/morning';
+import { CLEANING_SUPPLY_COST, getClosingScenario } from './closingCare';
+import { completionBonus, getRushCommuterRequest, getRushCupShortage, getRushOrderSize, getRushOfficeCustomerId, getRushCommuterPreferredBase, getShiftDisplayAverage, getShiftQueueSpacingMs, targetOrdersFor } from './shiftPlans';
 import {
   ACHIEVEMENTS,
   BASE_IDS,
@@ -30,6 +32,7 @@ import type {
   AchievementMetric,
   BaseId,
   CustomerQueueEntry,
+  ClosingCareChoice,
   DecorationId,
   DrinkDraft,
   Freshness,
@@ -123,9 +126,7 @@ function makeDailyQuests(day: number): Quest[] {
   ];
 }
 
-function targetOrdersFor(day: number, demandBonus: number) {
-  return Math.max(4, 5 + Math.min(5, Math.floor((day - 1) / 2)) + demandBonus);
-}
+
 
 export function hasResearch(state: GameState, researchId: ResearchId) {
   return state.researchedIds.includes(researchId);
@@ -203,6 +204,9 @@ export function createInitialState(): GameState {
     day: 1,
     morning,
     phase: "prep",
+    shiftPlan: 'regular',
+    closingCareChoice: null,
+    counterCondition: "normal",
     cash: 220000,
     reputation: 12,
     fans: 0,
@@ -260,16 +264,19 @@ export function createInitialState(): GameState {
 }
 
 export function generateOrder(state: GameState, orderIndex: number): Order {
-  const customer = pickCustomerForOrder(state);
+  const officeCustomerId = getRushOfficeCustomerId(state, orderIndex);
+  const customer = (officeCustomerId && CUSTOMERS.find(item => item.id === officeCustomerId)) || pickCustomerForOrder(state);
   const basePool = state.unlockedBaseIds.length ? state.unlockedBaseIds : getUnlockedBases(state.level);
   const toppingPool = state.unlockedToppingIds.length ? state.unlockedToppingIds : getUnlockedToppings(state.level);
   const favoriteChance = hasResearch(state, "regulars-club") ? 0.42 : 0.28;
   const favoriteAvailable = customer.favorite && basePool.includes(customer.favorite);
-  const base = favoriteAvailable && Math.random() < favoriteChance ? customer.favorite! : pick(basePool);
-  const size = pick<Size>(["M", "L"]);
+  const commuterFavorite = getRushCommuterPreferredBase(state, orderIndex, customer.favorite, basePool);
+  const base = commuterFavorite ?? (favoriteAvailable && Math.random() < favoriteChance ? customer.favorite! : pick(basePool));
+  const size = getRushOrderSize(state, orderIndex) ?? pick<Size>(["M", "L"]);
   const topping = pick(toppingPool);
-  const sugar = pick(PERCENT_OPTIONS);
-  const ice = pick(PERCENT_OPTIONS);
+  const commuterRequest = getRushCommuterRequest(state, orderIndex);
+  const sugar = commuterRequest?.sugar ?? pick(PERCENT_OPTIONS);
+  const ice = commuterRequest?.ice ?? pick(PERCENT_OPTIONS);
   const targetFill = pick(FILL_OPTIONS);
   const targetShake = pick(SHAKE_OPTIONS);
   const drink = DRINKS[base];
@@ -297,7 +304,7 @@ function buildCustomerQueue(
   const count = Math.min(CUSTOMER_QUEUE_SIZE, remaining);
   return Array.from({ length: count }, (_, index) => ({
     order: generateOrder(state, firstOrderIndex + index),
-    joinedAt: now + (index + 1) * QUEUE_ARRIVAL_SPACING_MS,
+    joinedAt: now + (index + 1) * getShiftQueueSpacingMs(state, QUEUE_ARRIVAL_SPACING_MS),
   }));
 }
 
@@ -316,14 +323,19 @@ function refillCustomerQueue(
     const lastArrival = next[next.length - 1]?.joinedAt ?? now;
     next.push({
       order: generateOrder(state, orderIndex),
-      joinedAt: Math.max(now, lastArrival) + QUEUE_ARRIVAL_SPACING_MS,
+      joinedAt: Math.max(now, lastArrival) + getShiftQueueSpacingMs(state, QUEUE_ARRIVAL_SPACING_MS),
     });
   }
   return next;
 }
 
 export function startDay(state: GameState, now = Date.now()): GameState {
+  if (state.phase !== 'prep') return state;
   if (state.city.contract) return { ...state, notice: 'Hoàn tất hoặc hủy đơn giao trà trong khu phố trước khi mở tiệm.' };
+  const missingCups = getRushCupShortage(state);
+  if (missingCups > 0) {
+    return { ...state, notice: `Ca đông khách còn thiếu ít nhất ${missingCups} cốc. Nhập thêm trước khi mở cửa.` };
+  }
   const prepared = syncProgression(state);
   const currentOrder = generateOrder(prepared, 0);
   return {
@@ -644,10 +656,14 @@ export function serveCurrentDrink(state: GameState, now = Date.now()): GameState
   };
 
   if (served >= state.targetOrders) {
+    const bonus = completionBonus(state.shiftPlan, state.day, served, state.targetOrders, scoreTotal);
     const completedStats = { ...stats, days: stats.days + 1 };
     return applyAchievements({
       ...baseNext,
       phase: "summary",
+      cash: baseNext.cash + bonus.cash,
+      fans: baseNext.fans + bonus.fans,
+      dailyFansGained: baseNext.dailyFansGained + bonus.fans,
       currentOrder: null,
       customerQueue: [],
       currentOrderQueuedAt: null,
@@ -661,12 +677,13 @@ export function serveCurrentDrink(state: GameState, now = Date.now()): GameState
         revenue: dailyRevenue,
         ingredientCost: dailyCost,
         wasteCost: state.dailyWaste,
-        profit: dailyRevenue - dailyCost,
-        averageScore: Math.round(scoreTotal / served),
-        fansGained: state.dailyFansGained + fanGain + (story?.rewardFans ?? 0),
+        profit: dailyRevenue - dailyCost + bonus.cash,
+        averageScore: getShiftDisplayAverage(state.shiftPlan, state.day, served, scoreTotal),
+        fansGained: baseNext.dailyFansGained + bonus.fans,
         researchGained: state.dailyResearchGained + researchGain,
       },
-      notice: "Hết ca rồi! Mở sổ tổng kết xem hôm nay tiệm tiến bộ tới đâu nhé." + storyNotice,
+      notice: (bonus.cash ? 'Ca đông khách thành công! Thưởng 20.000 ₫ và 2 fan. ' : '') +
+        "Hết ca rồi! Mở sổ tổng kết xem hôm nay tiệm tiến bộ tới đâu nhé." + storyNotice,
     });
   }
 
@@ -912,7 +929,36 @@ function decayInventory(state: GameState) {
   return { inventory, freshness, wasteValue };
 }
 
+export function chooseClosingCare(state: GameState, choice: ClosingCareChoice): GameState {
+  if (state.phase !== "summary" || !getClosingScenario(state.day) || state.closingCareChoice) return state;
+  if (choice !== "clean" && choice !== "skip") return state;
+  if (choice === "clean" && state.cash < CLEANING_SUPPLY_COST) {
+    return { ...state, notice: "Quỹ tiệm chưa đủ mua đồ vệ sinh. Có thể thu dọn cơ bản và mở ca sau." };
+  }
+  const cost = choice === "clean" ? CLEANING_SUPPLY_COST : 0;
+  return {
+    ...state,
+    closingCareChoice: choice,
+    cash: state.cash - cost,
+    dailyCost: state.dailyCost + cost,
+    summary: state.summary ? {
+      ...state.summary,
+      closingCost: cost,
+      profit: state.summary.profit - cost,
+    } : null,
+    notice: choice === "clean"
+      ? "Đã lau quầy, rửa dụng cụ và thay khăn sạch. Khách ngày mai sẽ dễ chịu hơn khi chờ."
+      : "Bạn khóa cửa sau khi dọn sơ. Sáng mai quầy chưa thật gọn, khách có thể mất kiên nhẫn nhanh hơn.",
+  };
+}
+
 export function nextDay(state: GameState): GameState {
+  if (state.phase === "summary" && getClosingScenario(state.day) && !state.closingCareChoice) {
+    return { ...state, notice: "Chọn cách thu dọn quầy trước khi sang ngày mới." };
+  }
+  const counterCondition = getClosingScenario(state.day)
+    ? state.closingCareChoice === "clean" ? "fresh" : "untidy"
+    : "normal";
   const day = state.day + 1;
   const event = getEventForDay(day);
   const city = newCityDay(state.city, day);
@@ -924,6 +970,9 @@ export function nextDay(state: GameState): GameState {
     phase: "prep",
     city,
     morning,
+    shiftPlan: 'regular',
+    closingCareChoice: null,
+    counterCondition,
     fans: state.fans + (state.city.projects.includes('club') ? 3 : 0),
     served: 0,
     combo: 0,

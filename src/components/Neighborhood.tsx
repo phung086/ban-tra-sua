@@ -3,7 +3,8 @@ import { useState } from 'react';
 import type { BaseId, GameState } from '../game/types';
 import type { Position } from '../game/service';
 import { CITY_PLACES, nearCityPlace, type CityPlace } from '../game/cityMap';
-import { CITY_PROJECTS, cityContracts, cityTime, cityWeather, type CityAction } from '../game/city';
+import { CITY_PROJECTS, cityContracts, cityTime, cityWeather, getMarketOffers, type CityAction } from '../game/city';
+import { RESTOCK_ITEMS } from '../game/content';
 import { formatMoney, getDrink } from '../game/engine';
 import { CraftGauge } from './CraftGauge';
 import { GameIcon } from './GameIcon';
@@ -61,7 +62,32 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
       <div className="city-location"><h3>{CITY_PLACES[selected].name}</h3><p>{CITY_PLACES[selected].detail}</p><small>Mở {cityTime(CITY_PLACES[selected].hours[0])} đến {cityTime(CITY_PLACES[selected].hours[1])} · {near ? 'Bạn đã đến nơi' : 'Đang chọn điểm đến'}</small>
         {!near && <button onClick={() => travel(selected)}>Đi đến đây</button>}
         {selected === 'shop' ? <button disabled={!near} onClick={onReturn}>Trở lại quầy pha chế</button> : RESIDENTS.some(r=>r.place===selected)&&<button disabled={!near} onClick={() => onTalk(RESIDENTS.find(r=>r.place===selected)!.id)}>Trò chuyện với {RESIDENTS.find(r=>r.place===selected)!.name}</button>}
-        {selected === 'market' && <><p className="market-offer">Gói hàng 48.000 ₫: 8 trà đen, 6 trà đào, 12 ly M, 8 đường và 12 đá. Mỗi ngày một gói.</p><button disabled={!near || city.errands.includes('market') || game.cash<48000} onClick={() => onAction({type:'market'})}><GameIcon name="box"/>{city.errands.includes('market') ? 'Đã nhập hàng hôm nay' : 'Mua gói nguyên liệu'}</button></>}
+        {selected === 'market' && <div className="market-day-choices" aria-label="Chọn giỏ hàng tại chợ">
+          {game.day === 10 && <p className="market-day-story" role="status">🥬 Ngày 10 · Chợ Ngọc Hà tăng giá. Cô Hạnh đưa ra hai giỏ nhập hàng, bạn chọn theo tiền quỹ và số đơn dự kiến.</p>}
+          {game.day === 11 && <article className="market-basket" aria-label="Ngày 11: lời nhờ của cô Hạnh">
+            <h4>📦 Ngày 11 · Cô Hạnh thiếu người dọn quầy</h4>
+            <p>Bạn giúp cô dọn thùng hàng để được giảm 6.000 ₫ vào ngày mai, hay về tiệm sớm với 2 ly M dự phòng? Cả hai đều có hậu quả lưu qua ngày.</p>
+            {game.relationshipRewardIds.includes('market.day11.help') || game.relationshipRewardIds.includes('market.day11.hurry')
+              ? <p role="status">{game.relationshipRewardIds.includes('market.day11.help')
+                  ? 'Đã giúp cô Hạnh. Ngày 12 cô sẽ giảm 6.000 ₫ giỏ nguyên liệu.'
+                  : 'Đã chọn về tiệm sớm. Bạn nhận thêm 2 ly M hôm nay.'}</p>
+              : <div className="market-day-actions">
+                <button type="button" disabled={!near || game.phase === 'open' || city.energy < 12 || city.minutes + 20 > CITY_PLACES.market.hours[1]}
+                  onClick={() => onAction({ type: 'supplier', choice: 'help' })}>Giúp dọn quầy · 20 phút · 12 sức lực</button>
+                <button type="button" disabled={!near || game.phase === 'open' || city.energy < 2 || city.minutes + 5 > CITY_PLACES.market.hours[1]}
+                  onClick={() => onAction({ type: 'supplier', choice: 'hurry' })}>Về tiệm sớm · 5 phút · 2 sức lực</button>
+              </div>}
+          </article>}
+          {getMarketOffers(game).map(offer => <article className="market-basket" key={offer.id}>
+            <h4>{offer.title} · {formatMoney(offer.cost)}</h4>
+            <p>{offer.detail}</p>
+            <small>{offer.stock.map(([key, count]) => `${count} ${RESTOCK_ITEMS.find(item => item.key === key)?.label ?? key}`).join(' · ')} · {offer.minutes} phút · {offer.energy} sức lực</small>
+            <button type="button" disabled={!near || city.errands.includes('market') || game.cash < offer.cost || city.energy < offer.energy || game.phase === 'open' || city.minutes + offer.minutes > CITY_PLACES.market.hours[1]}
+              onClick={() => onAction({type:'market', basket:offer.id})}>
+              <GameIcon name="box"/>{city.errands.includes('market') ? 'Đã mua hôm nay' : `Chọn giỏ · ${formatMoney(offer.cost)}`}
+            </button>
+          </article>)}
+        </div>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}

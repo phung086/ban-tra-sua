@@ -4,6 +4,11 @@ import type { Customer, DrinkDraft } from "../game/types";
 import { mergeRigid } from './batching';
 import {makeSurface,type SurfaceKind} from './materials';
 import {continuousTorso,continuousHips,continuousLimb,faceGeometry} from './actorGeometry';
+import {advanceSeatBlend} from './seatTransition';
+import {carryGripPitch} from './carryGrip';
+import {applyBlink} from './blinkMotion';
+import {idleEyeGaze} from './eyeGaze';
+import {footGroundLift} from './footContact';
 
 export class Workshop {
   geometries = new Map<string, T.BufferGeometry>();
@@ -405,6 +410,8 @@ export interface Person {
   eyes: T.Mesh[];
   knees: T.Bone[];
   elbows:T.Bone[];
+  // Per-actor blending/idle timing; no new GPU meshes or draw calls.
+  animation:{lastTime:number|null;walkWeight:number;seatWeight:number;seed:number;basePitch:number;turnStride:number};
 }
 
 export function makePerson(w: Workshop, customer: Customer): Person {
@@ -506,6 +513,8 @@ export function makePerson(w: Workshop, customer: Customer): Person {
       [0.014, 0.014, 0.008],
     );
     eyes.push(white, pupil);
+    pupil.userData.gazeRestX = pupil.position.x;
+    pupil.userData.gazeRestY = pupil.position.y;
     white.userData.blinkHeight = 0.016; pupil.userData.blinkHeight = 0.014;
     w.ball(head, '#ffffff', [side * 0.086 - 0.004, 0.028 + (side === 1 ? 0.008 : 0), 0.218], [0.004, 0.004, 0.002]);
     w.line(head, '#8b6650', [[side*0.055,0.042,0.204],[side*0.086,0.05,0.206],[side*0.115,0.039,0.198]],0.0035);
@@ -729,7 +738,9 @@ export function makePerson(w: Workshop, customer: Customer): Person {
   const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
   const parts=[body,head,leftArm,rightArm,leftLeg,rightLeg];
   parts.forEach((part,i)=>mergeRigid(part,[head,leftArm,rightArm,...knees,...elbows,...eyes].filter(p=>p!==part),register,`person:${customer.id}:${i}`));
-  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows };
+  const seed=Array.from(customer.id).reduce((value,char)=>(value*31+char.charCodeAt(0))%997,0)/997;
+  return { root, body, head, leftArm, rightArm, leftLeg, rightLeg, hand, eyes, knees,elbows,
+    animation:{lastTime:null,walkWeight:0,seatWeight:0,seed,basePitch:body.rotation.x,turnStride:1} };
 }
 
 export function pose(
@@ -740,20 +751,66 @@ export function pose(
   sitting: boolean,
   motion: boolean,
   gaitPhase=time*7,
+  holdingCup=false,
+  strideScale=1,
 ) {
-  const swing = motion && walking ? Math.sin(gaitPhase) * 0.34 : 0;
-  person.leftLeg.rotation.x = sitting ? -1.35 : swing;
-  person.rightLeg.rotation.x = sitting ? -1.35 : -swing;
-  person.knees.forEach((knee,i) => { knee.rotation.x = sitting ? 1.35 : motion && walking ? Math.max(0, Math.sin(gaitPhase + i*Math.PI))*0.38 : 0; });
-  const blinking = motion && (time + person.root.scale.y*3) % 4.7 > 4.55;
-  person.eyes.forEach(eye => { eye.scale.y = blinking ? 0.002 : eye.userData.blinkHeight; });
-  person.elbows.forEach((elbow,i)=>{elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):-.12-(motion&&walking?Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.12:0);});
-  person.leftArm.rotation.x = -swing * 0.55;
-  person.rightArm.rotation.x = gesture ? -gesture : swing * 0.55;
-  person.body.position.y =
-    motion && walking ? Math.abs(Math.sin(gaitPhase)) * 0.014 : motion ? Math.sin(time*1.8)*0.006 : 0;
-  person.head.rotation.y =
-    motion && !walking ? Math.sin(time * 0.65) * 0.075 : 0;
+  // Blend locomotion instead of snapping all limbs when a step starts/stops.
+  // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
+  const anim=person.animation;
+  const firstFrame=anim.lastTime===null;
+  const dt=firstFrame?0:Math.min(0.05,Math.max(0,time-anim.lastTime!));
+  anim.lastTime=time;
+  // Spawn seated actors in their correct pose; ease subsequent sit/stand changes.
+  anim.seatWeight=firstFrame?(sitting?1:0):advanceSeatBlend(anim.seatWeight,sitting,motion,dt);
+  const target=motion&&!sitting&&walking?1:0;
+  anim.walkWeight=!motion?0:anim.walkWeight+(target-anim.walkWeight)*(1-Math.exp(-14*dt));
+  const weight=anim.walkWeight,seated=anim.seatWeight;
+  // Hold the braking stride while the walk blend fades out. Resetting it to
+  // full stride at a stop would kick the feet forward on the last frame.
+  const targetStride=motion&&!walking?anim.turnStride:
+    motion&&Number.isFinite(strideScale)?Math.max(.13,Math.min(1,strideScale)):1;
+  anim.turnStride=firstFrame?targetStride:anim.turnStride+(targetStride-anim.turnStride)*(1-Math.exp(-12*dt));
+  const legWeight=weight*anim.turnStride;
+  const phase=Math.sin(gaitPhase),swing=phase*0.39*legWeight;
+  person.leftLeg.rotation.x=swing*(1-seated)-1.35*seated;
+  person.rightLeg.rotation.x=-swing*(1-seated)-1.35*seated;
+  person.knees.forEach((knee,i)=>{
+    const stepBend=Math.max(0,Math.sin(gaitPhase+i*Math.PI))*0.43*legWeight;
+    knee.rotation.x=stepBend*(1-seated)+1.35*seated;
+  });
+  // Keep each shoe's sole above the pavement during toe-off and tight turns.
+  // The knee and shoe share a rigid socket, so correct the leg pivot rather
+  // than bobbing the whole character or adding a per-frame ground raycast.
+  person.leftLeg.position.y=.83+footGroundLift(person.leftLeg.rotation.x,person.knees[0].rotation.x,seated);
+  person.rightLeg.position.y=.83+footGroundLift(person.rightLeg.rotation.x,person.knees[1].rotation.x,seated);
+
+  // Distinct, deterministic eye/idle rhythms keep nearby residents from
+  // blinking and turning their heads together; paused motion stays still.
+  applyBlink(person.eyes,time,anim.seed,motion);
+  const gaze=idleEyeGaze(time,anim.seed,motion&&!walking&&gesture===0);
+  person.eyes.forEach((eye,i)=>{
+    if(i%2===1){
+      eye.position.x=(eye.userData.gazeRestX as number)+gaze.x;
+      eye.position.y=(eye.userData.gazeRestY as number)+gaze.y;
+    }
+  });
+  person.elbows.forEach((elbow,i)=>{
+    elbow.rotation.x=gesture&&i===1?-Math.min(.75,gesture*.6):
+      -.12-Math.max(0,Math.sin(gaitPhase+i*Math.PI))*.15*weight;
+  });
+  person.leftArm.rotation.x=-swing*.7;
+  person.rightArm.rotation.x=gesture?-gesture:swing*.7;
+  person.hand.rotation.x=carryGripPitch(person.rightArm.rotation.x,person.elbows[1].rotation.x,holdingCup);
+
+  const idle=motion?(1-weight)*(1-seated):0;
+  const breath=motion?Math.sin(time*1.8+anim.seed*5)*.007:0;
+  person.body.position.y=Math.abs(phase)*.024*legWeight*(1-seated)+breath*idle;
+  // Preserve the base posture of older characters rather than overwriting it.
+  person.body.rotation.x=anim.basePitch+weight*.035;
+  person.body.rotation.z=motion?Math.sin(gaitPhase*.5)*.022*weight*(1-seated):0;
+  person.head.rotation.y=idle*Math.sin(time*.56+anim.seed*6)*.115;
+  person.head.rotation.x=motion?Math.sin(time*.9+anim.seed*4)*.026*idle:0;
+  person.head.rotation.z=motion?Math.sin(time*.7+anim.seed*3)*.025*idle:0;
 }
 
 export const DRINK_COLORS: Record<DrinkDraft["base"], string> = {

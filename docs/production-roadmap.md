@@ -19,8 +19,8 @@ Mỗi dòng gồm nhiều vòng nhỏ, mỗi vòng chỉ có một prompt. Chỉ
 | Mốc | Kết quả cần xây | Cổng nghiệm thu | Trạng thái |
 | --- | --- | --- | --- |
 | M0 | Lưu code, CI, ảnh và báo cáo baseline | Remote đúng SHA; test/build/CI xanh | Đã đạt cho baseline code |
-| M1 | Đo hiệu năng đáng tin và giảm tải cảnh nặng nhất | Báo cáo tái lập, bộ đếm rõ nghĩa, trước/sau cùng máy và góc nhìn; giảm ít nhất 40% draw call cảnh toàn phố chế độ nhẹ; không hỏng di chuyển hay tương tác | Prompt kế tiếp |
-| M2 | LOD, phân khu tải cảnh, instancing và pipeline texture | Đạt ngân sách mobile bên dưới; chuyển khu không mất vật thể tương tác; bộ nhớ ổn định sau 10 lượt ra/vào | Chờ M1 |
+| M1 | Đo hiệu năng đáng tin và giảm tải cảnh nặng nhất | Báo cáo tái lập, bộ đếm rõ nghĩa, trước/sau cùng máy và góc nhìn; giảm ít nhất 40% draw call cảnh toàn phố chế độ nhẹ; không hỏng di chuyển hay tương tác | **OWNER-ACCEPTED 10/10/2026** — xem báo cáo nghiệm thu; raw device logs chưa đính kèm |
+| M2 | LOD, phân khu tải cảnh, instancing và pipeline texture | Đạt ngân sách mobile bên dưới; chuyển khu không mất vật thể tương tác; bộ nhớ ổn định sau 10 lượt ra/vào | **ĐANG TRIỂN KHAI** — QR-05, chưa nghiệm thu |
 | M3 | Bộ asset mẫu: người, tiệm, nhà phố, cây, xe và ánh sáng | Duyệt ảnh gần/xa, chuyển động và hiệu năng trên máy yếu trước khi nhân rộng | Chờ M2 |
 | M4 | Hoàn thiện điều khiển, camera, va chạm và NPC | Đi/chạm/xoay đồng thời; không xuyên vật cản, kẹt đường hoặc camera xuyên tường; kiểm tra thiết bị thật | Chờ M3 |
 | M5 | Engine cốt truyện có trạng thái và công cụ kiểm tra nội dung | Mọi nhánh khả dụng đi tới điểm tiếp tục/kết thúc; hiệu ứng chạy đúng một lần; save cũ chuyển đổi được | Chờ M4 |
@@ -118,3 +118,10 @@ Production cần nội dung từ đầu tới cuối, cân bằng kinh tế, ass
 **Mở theo dependency, không theo mong muốn ngày mới:** sau core beta M1–M10, thực hiện `LC-00` (contract, validator) → `LC-01` (clock/day director/seed/save) → `LC-02` (nhà/chợ/ăn) → `LC-03/04` (social + kinh tế) → `LC-05/06` (sức khỏe + lịch cư dân/traffic) → `LC-07` (day packs/30 ngày) → `LC-08` (liên vùng/biển) → `LC-09` (tooling và các batch ngày tiếp theo). Vòng bổ sung ngày `LC-DNN` chỉ được mở sau content engine + cần zones/assets/QA đã đạt; một ngày cần ít nhất hook, hành động, lựa chọn có hậu quả và closure, test seed/reload/save/perf/device; nếu không đạt tiếp tục ngày đang làm, không chuyển N+1.
 
 Những thành phần nền như data contracts, story outline, validator design hoặc asset budget có thể được nghiên cứu song song **chỉ khi không làm chệch cổng hiện tại**. Mục tiêu mobile và ngưỡng kiểm thử giữ nguyên bảng ngân sách ở trên; không coi số đo software Chromium là nghiệm thu thiết bị thật.
+
+
+## Trục chất lượng trải nghiệm theo phản hồi 10/10/2026
+
+Chủ dự án yêu cầu thay trọng tâm trải nghiệm: **gameplay bớt nhàm, nhân vật đẹp và có biểu cảm, animation/tương tác tự nhiên, VFX/âm thanh giàu phản hồi, phố và đồ họa có chiều sâu nhưng vẫn chạy được trên điện thoại yếu**. Đây là định hướng bắt buộc cho các vòng triển khai tiếp theo, không phải bằng chứng các hạng mục đã cải tiến.
+
+Bộ tài liệu giao việc cho mọi AI: [Experience Quality Initiative](experience-quality/README.md), [91 task IDs có acceptance/dependency](experience-quality/backlog.md), [quality gates](experience-quality/quality-gates.md), [AI ownership và handoff](experience-quality/ai-handoff.md). Thực thi từng slice có ảnh/clip trước–sau, gameplay, performance và human review; **không nới lỏng các cổng M2–M10 hoặc đảo thứ tự milestone**. M1 đã được chủ dự án xác nhận nghiệm thu ngày 10/10/2026; M2 tiếp tục kiểm chứng instancing, LOD, streaming và ngân sách máy yếu trước khi mở M3. Mẫu nhân vật và gameplay mở rộng làm ở đúng mốc roadmap.

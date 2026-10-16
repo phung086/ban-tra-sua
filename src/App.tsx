@@ -15,12 +15,14 @@ import { ServeCelebration } from "./components/ServeCelebration";
 import { StreetWorld } from "./components/StreetWorld";
 import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
+import { RushShiftProgress } from "./components/world/RushShiftProgress";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
 import { WorldChrome } from "./components/world/WorldChrome";
 import {
   createInitialState,
+  chooseClosingCare,
   formatMoney,
   getCustomer,
   nextDay,
@@ -32,6 +34,7 @@ import {
   type Position,
 } from "./game/service";
 import { feedbackForScore } from "./game/feedback";
+import { CLEANING_SUPPLY_COST, getClosingScenario } from "./game/closingCare";
 import { recordCraftPerformance } from "./game/performance";
 import { getSeasonForDay } from "./game/season";
 import { clearSave, loadGame, saveGame } from "./game/storage";
@@ -236,6 +239,7 @@ function App() {
             <div className="panel summary-card">
               <span className="eyebrow">HẾT CA · NGÀY {game.day}</span>
               <h2>Cảm ơn một ngày bận rộn.</h2>
+              <RushShiftProgress game={game} />
               <p>
                 {game.summary.eventName} · điểm trung bình{" "}
                 {game.summary.averageScore}/100
@@ -260,8 +264,27 @@ function App() {
                   Nhận thưởng {claimable} mục tiêu đã xong →
                 </button>
               )}
+              {getClosingScenario(game.day) && (
+                <section className="closing-scenario" aria-label="Việc cuối ca">
+                  <h3>🧽 {getClosingScenario(game.day)?.title}</h3>
+                  <p>{getClosingScenario(game.day)?.description}</p>
+                  {game.closingCareChoice ? (
+                    <p className="closing-choice-done" role="status">{game.closingCareChoice === "clean" ? "Đã dọn kỹ · khách ngày mai kiên nhẫn hơn." : "Đã dọn sơ · khách ngày mai dễ sốt ruột hơn."}</p>
+                  ) : (
+                    <div className="closing-choices">
+                      <button disabled={game.cash < CLEANING_SUPPLY_COST} onClick={() => setGame(state => chooseClosingCare(state, "clean"))}>
+                        <b>Lau quầy và rửa dụng cụ</b><small>Chi {formatMoney(CLEANING_SUPPLY_COST)} · ngày mai khách chờ lâu hơn 10 giây</small>
+                      </button>
+                      <button onClick={() => setGame(state => chooseClosingCare(state, "skip"))}>
+                        <b>Dọn sơ rồi nghỉ</b><small>Không tốn tiền · ngày mai khách sốt ruột sớm hơn 10 giây</small>
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
               <button
                 className="primary-button"
+                disabled={Boolean(getClosingScenario(game.day) && !game.closingCareChoice)}
                 onClick={() => setGame(nextDay(game))}
               >
                 Chuẩn bị ngày {game.day + 1} →
@@ -271,6 +294,7 @@ function App() {
           {screen === "shop" && game.phase === "open" && order && (
             <>
               <CustomerScene game={game} />
+              <RushShiftProgress game={game} />
               <OrderExperience
                 key={order.id}
                 order={order}
