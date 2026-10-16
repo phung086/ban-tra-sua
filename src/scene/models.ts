@@ -1,4 +1,5 @@
 import * as T from "three";
+import { neighborGreeting, INITIAL_GREETING } from "./neighborGreeting";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Customer, DrinkDraft } from "../game/types";
 import { mergeRigid } from './batching';
@@ -753,6 +754,7 @@ export function pose(
   gaitPhase=time*7,
   holdingCup=false,
   strideScale=1,
+  greeting=0,
 ) {
   // Blend locomotion instead of snapping all limbs when a step starts/stops.
   // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
@@ -811,6 +813,18 @@ export function pose(
   person.head.rotation.y=idle*Math.sin(time*.56+anim.seed*6)*.115;
   person.head.rotation.x=motion?Math.sin(time*.9+anim.seed*4)*.026*idle:0;
   person.head.rotation.z=motion?Math.sin(time*.7+anim.seed*3)*.025*idle:0;
+  // Welcome gesture is procedural: no additional geometry or textures.
+  // Neighborhood NPCs currently signal proximity with gesture=0.35.
+  // A one-shot pulse prevents endless waving while the player stands nearby.
+  const nearNeighbor = !walking && gesture > 0.1 && gesture < 0.4;
+  const response = neighborGreeting(person.root.userData.greetingState ?? INITIAL_GREETING,
+    nearNeighbor ? 2.5 : 5, time);
+  person.root.userData.greetingState = response.state;
+  const hello = motion ? T.MathUtils.clamp(greeting || response.strength, 0, 1) : 0;
+  person.rightArm.rotation.z = -hello * 0.16;
+  person.hand.rotation.z = hello > 0 ? hello * Math.sin(time * 8) * 0.24 : 0;
+  person.head.rotation.z += hello * 0.07;
+  person.head.rotation.x += hello * (0.04 + Math.sin(time * 3) * 0.015);
 }
 
 export const DRINK_COLORS: Record<DrinkDraft["base"], string> = {

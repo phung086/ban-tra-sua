@@ -36,6 +36,21 @@
   ],
   "tasks": [
     {
+      "id": "T7-02",
+      "owner": "A04",
+      "title": "NPC neighborhood welcome gesture and character idle transition",
+      "dependsOn": [],
+      "track": "social",
+      "status": "in_progress",
+      "acceptance": "Wave only once on approach, reset on departure, motion-off safe, CI and four-viewport visual preview",
+      "branch": "codex/npc-greeting-character-motion-20261010",
+      "pr": null,
+      "evidence": {
+        "scope": "Lightweight character pose animation, no extra mesh or district",
+        "status": "Awaiting exact-head CI and visual proof; not accepted or released"
+      }
+    },
+    {
       "id": "T0-01",
       "owner": "A00",
       "title": "Publish master world bible and agent contract",
