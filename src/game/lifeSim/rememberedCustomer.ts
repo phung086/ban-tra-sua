@@ -1,11 +1,22 @@
 import type { GameState } from '../types';
-import { getReviewCareDecision, getReviewFollowupChoice } from './reviewCare';
+import { getReviewCareDecision, getReviewFollowupChoice, isLowSugarFeedback } from './reviewCare';
 
 /** A preference is learned only from a customer's explicit next-day response. */
 export function hasRememberedLowSugar(game: GameState, customerId: string): boolean {
   if (!customerId) return false;
   return game.reviews.some(review => {
     if (review.customerId !== customerId || review.day >= game.day) return false;
+    const decision = getReviewCareDecision(game, review.id);
+    return (decision?.choice === 'refund' || decision?.choice === 'message') &&
+      getReviewFollowupChoice(game, review.id) === 'remember';
+  });
+}
+
+/** Do not turn a remembered topping/timing complaint into an invented sugar preference. */
+export function shouldMentionLowSugar(game: GameState, customerId: string, sugar: number): boolean {
+  if (!customerId || sugar > 50) return false;
+  return game.reviews.some(review => {
+    if (review.customerId !== customerId || review.day >= game.day || !isLowSugarFeedback(review)) return false;
     const decision = getReviewCareDecision(game, review.id);
     return (decision?.choice === 'refund' || decision?.choice === 'message') &&
       getReviewFollowupChoice(game, review.id) === 'remember';
@@ -64,7 +75,10 @@ export function greetRememberedCustomer(game: GameState): GameState {
   if (!canGreetRememberedCustomer(game)) return game;
   const order = game.currentOrder!;
   const id = greetingId(order.id);
-  const notice = 'Bạn nhớ khách thích ít ngọt. Hãy pha đúng mức đường khách đặt hôm nay nhé!';
+  const sweetness = shouldMentionLowSugar(game, order.customerId, order.sugar);
+  const notice = sweetness
+    ? 'Bạn nhớ khách thích ít ngọt. Hãy pha đúng mức đường khách đặt hôm nay nhé!'
+    : 'Bạn nhớ góp ý trước đây của khách. Hãy pha đúng đơn hôm nay nhé!';
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, id],
@@ -77,7 +91,7 @@ export function greetRememberedCustomer(game: GameState): GameState {
       minutes: game.city.minutes + 2,
       energy: game.city.energy - 1,
       goodwill: game.city.goodwill + 1,
-      journal: [`Ngày ${game.day} · Chào khách quen và nhớ sở thích ít ngọt.`, ...game.city.journal].slice(0, 24),
+      journal: [`Ngày ${game.day} · ${sweetness ? 'Chào khách quen và nhớ sở thích ít ngọt.' : 'Chào khách quen và ghi nhận góp ý cũ.'}`, ...game.city.journal].slice(0, 24),
     },
     notice,
   };
