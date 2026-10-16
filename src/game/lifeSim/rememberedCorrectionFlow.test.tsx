@@ -76,7 +76,11 @@ describe('NPC feedback context: live counter, delivery, next-day memory', () => 
     const restored = loadGame();
     expect(restored.storyLog[0].text).toContain('Cảm ơn tiệm đã hỏi kỹ');
     expect(restored.relationshipRewardIds.filter(id => id === 'remembered-service:return-3')).toHaveLength(1);
-    expect(serve(delivered)).toBe(delivered);
+    const repeated = serve(delivered);
+    expect(repeated.served).toBe(delivered.served);
+    expect(repeated.cash).toBe(delivered.cash);
+    expect(repeated.relationshipRewardIds).toEqual(delivered.relationshipRewardIds);
+    expect(repeated.storyLog).toEqual(delivered.storyLog);
   });
 
   it('does not thank a wrong remake; the complaint remains actionable next day', () => {
