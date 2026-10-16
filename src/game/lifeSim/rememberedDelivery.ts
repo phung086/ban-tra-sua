@@ -24,9 +24,18 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   if (!choice || after.relationshipRewardIds.includes(id)) return after;
   const name = before.reviews.find(r => r.customerId === order.customerId)?.customerName ?? 'Khách quen';
   const correction = feedback(order, before.draft, after.lastScore);
-  const message = correction ? name + ': “' + correction + '”' :
-    choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
-      name + ': “Ly hôm nay vừa miệng mình rồi.”';
+  // A previous real delivery matters on the next visit, not just a generic
+  // customer preference. Never change the customer's current recipe.
+  const previousComplaint = before.storyLog.find(moment =>
+    moment.customerId === order.customerId && moment.day < before.day &&
+    moment.title === 'Khách quen góp ý thêm' &&
+    moment.id.startsWith('remembered-service:'));
+  const message = correction
+    ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    : previousComplaint
+      ? name + ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”'
+      : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
+        name + ': “Ly hôm nay vừa miệng mình rồi.”';
   return {
     ...after,
     relationshipRewardIds: [...after.relationshipRewardIds, id],
