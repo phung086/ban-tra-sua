@@ -29,6 +29,7 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 plantCare?: PlantCareChoice | null;
 lastPlantCare?: PlantCareChoice | null;
+marketVisit?: 'fruit' | 'chat' | 'leave' | null;
 }
 
 export const MOTHER_CALL_OPTIONS = {listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
@@ -107,7 +108,8 @@ motherCall: null,
 lanMeal: null,
 lunchPrep: null,
 plantCare: null,
-lastPlantCare: null};
+lastPlantCare: null,
+marketVisit: null};
 }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -144,7 +146,8 @@ motherCall: call === 'listen' || call === 'promise' || call === 'later' || call 
 lanMeal: meal === 'split' || meal === 'treat' || meal === 'walk' || meal === 'decline' ? meal : null,
 lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null,
 plantCare: value.plantCare==="water"||value.plantCare==="ask-binh" ? value.plantCare : null,
-lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null};
+lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null,
+marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave" ? value.marketVisit : null};
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
