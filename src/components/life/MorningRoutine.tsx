@@ -1,6 +1,7 @@
 import { SiblingAnCall } from './SiblingAnCall';
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
+import { chooseDayEpisode, getDayEpisode, getEpisodeCallback } from '../../game/lifeSim/dayEpisodes';
 import type { GameState } from '../../game/types';
 import { BreakfastCookingPanel } from './BreakfastCookingPanel';
 
@@ -24,6 +25,9 @@ const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
 export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:GameState)=>void}) {
   const {morning} = game;
   const finished = morning.step === 'finished';
+  const episode = getDayEpisode(game.day);
+  const callback = getEpisodeCallback(game);
+  const recorded = game.storyLog.find(item => item.id === `day-episode-${game.day}-${morning.episodeChoice}`);
   return <section className="life-morning" aria-label="Sinh hoạt buổi sáng" data-step={morning.step}>
     <header className="life-morning-heading">
       <span className="life-morning-sun" aria-hidden="true">{morning.plan.wakeVariant==='overslept'?'⏰':'🌤️'}</span>
@@ -63,5 +67,21 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <small>Đã lưu trong ngày, không tính tiền lần hai.</small>
     </div>}
     {finished&&<SiblingAnCall game={game} onGame={onGame}/>}
+    {callback && <p className="life-episode-callback" aria-live="polite">💌 Hôm qua được nhắc lại: {callback}</p>}
+    {finished && episode && <section className="life-day-episode" aria-label={`Câu chuyện ngày ${game.day}`}>
+      <span className="life-morning-label">CÂU CHUYỆN NGÀY {game.day} · {episode.character}</span>
+      <h4>{episode.title}</h4>
+      <p>{morning.episodeChoice != null ? (recorded?.text ?? 'Bạn đã chọn xong câu chuyện hôm nay.') : episode.question}</p>
+      {morning.episodeChoice == null ? <div className="life-episode-choices">
+        <button type="button" disabled={game.city.energy < episode.energy || game.city.minutes + episode.minutes > 1260}
+          onClick={() => onGame(chooseDayEpisode(game, 'help'))}>
+          {episode.helpLabel}
+          <small>{episode.minutes} phút · -{episode.energy} sức · +{episode.goodwill} thiện cảm</small>
+        </button>
+        <button type="button" onClick={() => onGame(chooseDayEpisode(game, 'focus'))}>
+          {episode.focusLabel}<small>Không tốn tiền hay thời gian</small>
+        </button>
+      </div> : <small className="life-episode-resolved">✓ Đã lưu lựa chọn hôm nay. Ngày mai câu chuyện sẽ tiếp nối.</small>}
+    </section>}
   </section>;
 }
