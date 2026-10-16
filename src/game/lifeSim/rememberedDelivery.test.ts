@@ -83,6 +83,41 @@ describe('remembered NPC callback on actual delivery', () => {
     expect(closeEnough.storyLog[0].title).toBe('Khách quen hài lòng');
   });
 
+  it('closes yesterday’s complaint after a corrected delivery and remembers that resolution after reload', () => {
+    const greeted = greetRememberedCustomer(returning());
+    const complaint = serve({ ...greeted, draft: { ...greeted.draft, fill: 0 } });
+    expect(complaint.storyLog[0].title).toBe('Khách quen góp ý thêm');
+
+    const nextBase = returning();
+    const nextDay: GameState = {
+      ...nextBase, day: 3, city: { ...nextBase.city, day: 3 },
+      storyLog: complaint.storyLog, relationshipRewardIds: complaint.relationshipRewardIds,
+      currentOrder: { ...nextBase.currentOrder!, id: 'corrected-day-3' },
+    };
+    const corrected = serve(greetRememberedCustomer(nextDay));
+    expect(corrected.notice).toContain('Lần trước mình có góp ý');
+    expect(corrected.storyLog[0].title).toBe('Khách quen hài lòng');
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => { store.set(k, v); },
+      removeItem: (k: string) => { store.delete(k); },
+    });
+    saveGame(corrected);
+    const reloaded = loadGame();
+    const fourthBase = returning();
+    const fourthDay: GameState = {
+      ...fourthBase, day: 4, city: { ...fourthBase.city, day: 4 },
+      storyLog: reloaded.storyLog, relationshipRewardIds: reloaded.relationshipRewardIds,
+      currentOrder: { ...fourthBase.currentOrder!, id: 'satisfied-day-4' },
+    };
+    const satisfied = serve(greetRememberedCustomer(fourthDay));
+    expect(satisfied.notice).toContain('Tiệm còn nhớ mình');
+    expect(satisfied.notice).not.toContain('Lần trước mình có góp ý');
+    expect(satisfied.relationshipRewardIds.filter(id => id === 'remembered-service:satisfied-day-4')).toHaveLength(1);
+  });
+
   it('never creates callback without consent or a real delivery', () => {
     const noGreeting = serve(returning());
     expect(noGreeting.relationshipRewardIds).not.toContain('remembered-service:return-serve-1');
