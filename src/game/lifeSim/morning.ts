@@ -29,7 +29,7 @@ lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
 plantCare?: PlantCareChoice | null;
 lastPlantCare?: PlantCareChoice | null;
-marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null;
+marketVisit?: 'fruit' | 'chat' | 'leave' | null | MarketVisitChoice | null | 'fruit' | 'chat' | 'leave' | null;
 homeCooked?: boolean;
 }
 
@@ -149,8 +149,8 @@ lanMeal: meal === 'split' || meal === 'treat' || meal === 'walk' || meal === 'de
 lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null,
 plantCare: value.plantCare==="water"||value.plantCare==="ask-binh" ? value.plantCare : null,
 lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null,
-marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave"||value.marketVisit==="basket" ? value.marketVisit : null,
-homeCooked: value.marketVisit==='basket' && value.homeCooked === true};
+homeCooked: value.marketVisit==='basket' && value.homeCooked === true,
+marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave"||value.marketVisit==="basket" ? value.marketVisit : null};
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
