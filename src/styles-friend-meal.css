@@ -1,0 +1,9 @@
+.life-friend-meal{margin:12px 0 18px;padding:15px;border:1px solid #e7b5cf;border-radius:18px;background:#fff9fc;color:#673d56}
+.life-friend-meal h3{font-size:16px;margin:0 0 6px}
+.life-friend-meal p{font-size:13px;line-height:1.5;margin:6px 0 12px}
+.life-friend-meal-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.life-friend-meal-options button{display:flex;flex-direction:column;gap:5px;min-height:76px;padding:11px;border:1px solid #e5b8d0;border-radius:12px;background:white;color:#683b52;text-align:left;cursor:pointer}
+.life-friend-meal-options button:focus-visible{outline:3px solid #ba5488;outline-offset:2px}
+.life-friend-meal-options button:disabled{opacity:.5;cursor:not-allowed}
+.life-friend-meal-options small{font-size:11px}
+@media(max-width:580px){.life-friend-meal-options{grid-template-columns:1fr}.life-friend-meal-options button{min-height:52px}}
