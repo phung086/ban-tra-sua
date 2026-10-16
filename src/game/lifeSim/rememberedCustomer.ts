@@ -122,6 +122,15 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, clarificationId(order.id)],
+    storyLog: [{
+      id: clarificationId(order.id),
+      customerId: order.customerId,
+      customerName: game.reviews.find(review => review.customerId === order.customerId)?.customerName ?? 'Khách quen',
+      title: 'Khách quen kể kỹ góp ý',
+      text: notice,
+      day: game.day,
+      rewardFans: 0,
+    }, ...game.storyLog].slice(0, 24),
     customerBond: {
       ...game.customerBond,
       [order.customerId]: (game.customerBond[order.customerId] ?? 0) + 1,
