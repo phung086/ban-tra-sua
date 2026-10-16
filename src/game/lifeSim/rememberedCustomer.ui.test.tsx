@@ -6,7 +6,7 @@ import { createInitialState } from '../engine';
 import { loadGame, saveGame } from '../storage';
 import { deliverDrink, deliveryFor, PLACES } from '../service';
 import type { GameState, Review } from '../types';
-import { canGreetRememberedCustomer, getLatestRememberedReview, greetRememberedCustomer, hasRememberedLowSugar, shouldMentionLowSugar } from './rememberedCustomer';
+import { askRememberedCustomerAboutComplaint, canAskRememberedCustomerAboutComplaint, canGreetRememberedCustomer, getLatestRememberedReview, greetRememberedCustomer, hasRememberedLowSugar, shouldMentionLowSugar } from './rememberedCustomer';
 
 const complaint: Review = {
   id: 'return-1', customerId: 'miu', customerName: 'Miu',
@@ -130,6 +130,35 @@ describe('remembered customer at the real tea counter', () => {
     const greeted = greetRememberedCustomer(game);
     expect(greeted.city.minutes).toBe(game.city.minutes + 2);
     expect(greeted.currentOrder).toEqual(game.currentOrder);
+  });
+
+  it('lets a first-return customer clarify saved feedback at the live counter, then reacts to a corrected tea', () => {
+    const original = returningCustomer();
+    const game = { ...original, reviews: [{ ...complaint, text: 'Topping chưa đúng đơn' }] };
+    expect(render(game)).not.toContain('Hỏi kỹ góp ý đã lưu');
+    const greeted = greetRememberedCustomer(game);
+    expect(canAskRememberedCustomerAboutComplaint(greeted)).toBe(true);
+    expect(render(greeted)).toContain('Hỏi kỹ góp ý đã lưu');
+    const asked = askRememberedCustomerAboutComplaint(greeted);
+    expect(render(asked)).toContain('Đã hỏi kỹ góp ý cũ');
+    expect(asked.currentOrder).toEqual(game.currentOrder);
+    const prepared = {
+      ...asked,
+      draft: { ...asked.draft, base: 'classic-milk-tea' as const, size: 'M' as const,
+        topping: 'none' as const, sugar: 25, ice: 50, fill: 80, shake: 60, sealed: true },
+    };
+    const order = prepared.currentOrder!;
+    const delivered = deliverDrink(prepared, true, PLACES[deliveryFor(order)], order.id);
+    expect(delivered.storyLog[0].title).toBe('Khách quen hài lòng');
+    expect(delivered.notice).toContain('Cảm ơn tiệm đã hỏi kỹ góp ý cũ');
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(asked);
+    expect(render(loadGame())).toContain('Đã hỏi kỹ góp ý cũ');
   });
 
   it('prioritizes the latest consented review over an older sugar complaint in shuffled saves', () => {

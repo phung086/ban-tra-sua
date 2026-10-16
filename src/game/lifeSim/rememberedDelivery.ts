@@ -37,6 +37,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       ? name + (asked
         ? ': “Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!”'
         : ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”')
+      : asked ? name + ': “Cảm ơn tiệm đã hỏi kỹ góp ý cũ. Ly hôm nay vừa miệng mình!”'
       : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
   return {

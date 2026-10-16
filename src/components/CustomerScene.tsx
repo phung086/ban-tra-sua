@@ -6,7 +6,7 @@ import {
   canGreetRememberedCustomer, greetRememberedCustomer,
   canKeepRememberedPreferencePrivate, keepRememberedPreferencePrivate,
   getRememberedGreetingChoice, hasRememberedLowSugar, shouldMentionLowSugar,
-  getLatestRememberedReview, getPreviousRememberedServiceFeedback, getUnresolvedRememberedComplaint,
+  getLatestRememberedReview, getPreviousRememberedServiceFeedback, getRememberedClarificationSource,
   canAskRememberedCustomerAboutComplaint, askRememberedCustomerAboutComplaint,
   hasAskedRememberedCustomerAboutComplaint,
 } from "../game/lifeSim/rememberedCustomer";
@@ -31,7 +31,7 @@ export function CustomerScene({ game, onGame }: {
   const greetingChoice = remembered ? getRememberedGreetingChoice(game) : null;
   const previousServiceFeedback = remembered ? getPreviousRememberedServiceFeedback(game) : null;
   const savedReview = remembered ? getLatestRememberedReview(game, order.customerId) : null;
-  const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
+  const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   return <div className="customer-service">
     <div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
@@ -45,14 +45,14 @@ export function CustomerScene({ game, onGame }: {
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
       </p>}
-      {unresolvedComplaint && greetingChoice === 'greet' && <div className="life-remembered-reply">
+      {clarificationSource && greetingChoice === 'greet' && <div className="life-remembered-reply">
         {askedAboutComplaint ? <p role="status">✓ Đã hỏi kỹ góp ý cũ; hãy pha đúng đơn để khách thấy sự thay đổi.</p> :
           <button type="button" disabled={!canAskRememberedCustomerAboutComplaint(game)}
             onClick={() => onGame(current => askRememberedCustomerAboutComplaint(current))}>
-            Hỏi kỹ lỗi lần trước · 3 phút · 1 năng lượng · +1 thân thiết
+            {previousServiceFeedback ? 'Hỏi kỹ lỗi lần trước' : 'Hỏi kỹ góp ý đã lưu'} · 3 phút · 1 năng lượng · +1 thân thiết
           </button>}
         {askedAboutComplaint && <p className="life-remembered-history" role="note">
-          Khách nhắc: {unresolvedComplaint.text}
+          Khách nhắc: {clarificationSource.text}
         </p>}
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
