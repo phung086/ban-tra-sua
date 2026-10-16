@@ -48,7 +48,7 @@ export function mergeRigid(root:T.Group, dynamic:T.Object3D[], register:(key:str
 
 // Only immutable opaque props; actors, cups and live inventory stay independent.
 export function batchStatic(root: T.Group, dynamic: T.Object3D[]) {
-  root.updateMatrixWorld(true);
+  root.updateWorldMatrix(true, true);
   // Instance matrices are relative to the batch parent, not world space.
   // This also keeps streamed/rotated zone roots from applying transforms twice.
   const inverseRoot = root.matrixWorld.clone().invert();
