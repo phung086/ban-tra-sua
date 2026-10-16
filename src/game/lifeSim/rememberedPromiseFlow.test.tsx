@@ -96,7 +96,7 @@ describe('remembered customer: optional promise with consequences', () => {
     expect(delivered.customerBond.miu).toBe((baseline.customerBond.miu ?? 0) + 1);
     expect(delivered.city.goodwill).toBe(baseline.city.goodwill + 1);
     expect(delivered.cash).toBe(baseline.cash);
-    expect(serve(delivered)).toBe(delivered);
+    expect(deliverDrink(delivered, true, PLACES[deliveryFor(promised.currentOrder!)], promised.currentOrder!.id)).toBe(delivered);
     const dayFour: GameState = {
       ...delivered, day: 4, phase: 'open',
       city: { ...delivered.city, day: 4 },
@@ -115,7 +115,7 @@ describe('remembered customer: optional promise with consequences', () => {
     expect(delivered.customerBond.miu).toBe(Math.max(0, (baseline.customerBond.miu ?? 0) - 1));
     expect(delivered.city.goodwill).toBe(Math.max(0, baseline.city.goodwill - 1));
     expect(delivered.cash).toBe(baseline.cash);
-    expect(serve(delivered)).toBe(delivered);
+    expect(deliverDrink(delivered, true, PLACES[deliveryFor(promised.currentOrder!)], promised.currentOrder!.id)).toBe(delivered);
     const dayFour: GameState = {
       ...delivered, day: 4, phase: 'open',
       city: { ...delivered.city, day: 4 },
