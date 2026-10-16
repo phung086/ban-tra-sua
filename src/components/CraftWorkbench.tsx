@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AdaptiveCraftHint } from "./AdaptiveCraftHint";
 import { CraftGauge } from "./CraftGauge";
+import { PourControl } from "./PourControl";
 import { CraftHotkeys } from "./CraftHotkeys";
 import { DrinkCup } from "./DrinkCup";
 import { HoldDispenser } from "./HoldDispenser";
@@ -124,14 +125,11 @@ export function CraftWorkbench({ game, customerName, onGame, onServe: serveDrink
             <QuickMixChoice game={game} onGame={onGame} />
             {!game.draft.rushed && <ControlGroup title="5. Kỹ thuật tay · timing" icon="🪄">
               <div className="timing-grid">
-                <CraftGauge
-                  label="Rót"
-                  icon="🫗"
+                <PourControl
+                  key={order.id}
                   value={game.draft.fill}
                   target={order.targetFill}
-                  tolerance={5 + game.upgrades.brewer}
-                  speed={62 - Math.min(15, game.upgrades.brewer * 3)}
-                  helper="Bấm bắt đầu, canh kim vào vùng chuẩn rồi CHỐT."
+                  brewerLevel={game.upgrades.brewer}
                   onCommit={(value) => onGame(updateDraft(game, { fill: value, sealed: false }))}
                 />
                 <CraftGauge

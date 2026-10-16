@@ -950,6 +950,26 @@
         "released": false
       }
     }
+    ,{
+      "id": "UX-POUR-01",
+      "owner": "A07",
+      "title": "Make short manual pour presses responsive in production brewing",
+      "dependsOn": [],
+      "track": "gameplay",
+      "priority": "P0-player-feedback",
+      "status": "in_progress",
+      "branch": "codex/pour-control-integration-20261011",
+      "pr": 25,
+      "acceptance": "Exact-head CI, real production browser 360x800 390x844 844x390 desktop, touch/keyboard, save/reload, and PR24 reconciliation before merge",
+      "evidence": {
+        "headSha": "4443c4f6ebde3431f21afa0fb61d7b38f2ac0298",
+        "ciPush": "https://github.com/phung086/ban-tra-sua/actions/runs/38153639290",
+        "local": "4-viewport CSS fixture: tea surface shading, meniscus and reduced-motion; no horizontal overflow",
+        "productionPreview": "not verified; React threshold pulse integration still blocked",
+        "physicalDevices": "not verified",
+        "released": false
+      }
+    }
   ],
   "rule": "Only mark accepted with linked head SHA, passing tests, evidence and merge result; one new validated playable day per cycle when dependencies are green",
   "qualityIterations": [

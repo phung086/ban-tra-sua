@@ -1,0 +1,41 @@
+.manual-pour{display:grid;gap:10px;padding:14px;border:1px solid #edc2d2;border-radius:18px;background:linear-gradient(145deg,#fffaf3,#ffedf4);color:#673b4c;min-width:0}
+.manual-pour-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px}
+.manual-pour-heading span{font-variant-numeric:tabular-nums;font-weight:800;color:#aa416c}
+.manual-pour-vessel{position:relative;isolation:isolate;overflow:hidden;width:min(100%,176px);height:145px;margin:auto;border:5px solid #eac6d3;border-top:8px solid #fff;border-radius:16px 16px 28px 28px;background:#fff8e8;box-shadow:inset 0 2px 14px #b8888930}
+.manual-pour-liquid{position:absolute;inset:auto 0 0;height:0;background:linear-gradient(0deg,#946143 0%,#b47b54 65%,#e4bf88 100%);transition:height .07s linear;box-shadow:inset 0 9px 12px #fce9c744}
+.manual-pour-liquid::after{content:"";position:absolute;left:3%;right:3%;top:-4px;height:8px;border-radius:50%;background:linear-gradient(90deg,#fff8dc55,#f9d5a4e8 50%,#fff5d499);box-shadow:0 2px 5px #70492e55}
+.manual-pour-vessel::before{content:"";position:absolute;z-index:3;pointer-events:none;top:8px;bottom:9px;left:9px;width:15px;border-radius:12px;background:linear-gradient(90deg,#ffffff77,#ffffff0b);opacity:.65}
+.manual-pour-target{position:absolute;left:0;right:0;border-top:2px dashed #b04174;z-index:1}
+.manual-pour-target span{position:absolute;right:4px;bottom:4px;padding:2px 5px;border-radius:5px;background:#fff9f2ef;font-size:11px;font-weight:700}
+.manual-pour-stream{position:absolute;top:0;left:49%;height:60%;width:5px;border-radius:5px;background:linear-gradient(#b8764b,#dfb681);opacity:0;transform:translateY(-100%);z-index:2}
+.manual-pour-vessel.pouring .manual-pour-stream{opacity:.9;transform:translateY(0);transition:transform .12s ease-out}
+.manual-pour-vessel.pouring .manual-pour-liquid::after{animation:pour-ripple .55s ease-in-out infinite alternate}
+@keyframes pour-ripple{from{transform:scaleY(.7) translateY(0)}to{transform:scaleY(1.2) translateY(-1px)}}
+.manual-pour-verdict{min-height:2.7em;margin:0;text-align:center;font-size:13px;line-height:1.35}
+.manual-pour-verdict.grade-perfect{color:#26764d;font-weight:800}
+.manual-pour-tradeoff{margin:0;font-size:12px;line-height:1.4;color:#795a67}
+.manual-pour-speeds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.manual-pour button{min-width:0;min-height:48px;padding:10px 8px;border:1px solid #df9db8;border-radius:12px;background:#fff;color:#75405b;font-size:12px;font-weight:800;cursor:pointer}
+.manual-pour-speeds button[aria-pressed=true]{background:#f7d9e5;border-color:#c76c94}
+.manual-pour .manual-pour-hold{min-height:62px;background:#df5e94;color:#fff;font-size:13px;touch-action:none;user-select:none}
+.manual-pour .manual-pour-assist{background:#fff9f0}
+.manual-pour button:disabled{opacity:.6;cursor:not-allowed}
+.manual-pour button:focus-visible{outline:3px solid #963b6a;outline-offset:2px}
+@media(max-width:360px){.manual-pour{padding:10px}.manual-pour-speeds{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.manual-pour-liquid,.manual-pour-vessel.pouring .manual-pour-stream{transition:none}.manual-pour-vessel.pouring .manual-pour-liquid::after{animation:none}}
+
+/* CSS-only live release cue uses the verdict already rendered by PourControl. */
+.manual-pour-vessel.cue-approaching{border-color:#e6a54d}
+.manual-pour-vessel.cue-release{border-color:#31945f;box-shadow:0 0 0 3px #31945f33,inset 0 2px 14px #b8888930}
+.manual-pour-vessel.cue-over{border-color:#b74848}
+.manual-pour .manual-pour-hold.cue-release{background:#28794d}
+.manual-pour .manual-pour-hold.cue-approaching{background:#a66a20}
+.manual-pour .manual-pour-hold.cue-over{background:#9c4a4a}
+
+/* The verdict updates each pour frame: color the existing controls at the right moment. */
+.manual-pour:has(.manual-pour-verdict.grade-perfect) .manual-pour-vessel{border-color:#31945f;box-shadow:0 0 0 3px #31945f33,inset 0 2px 14px #b8888930}
+.manual-pour:has(.manual-pour-verdict.grade-perfect) .manual-pour-hold:not(:disabled){background:#28794d}
+.manual-pour:has(.manual-pour-verdict.grade-close) .manual-pour-vessel{border-color:#e6a54d}
+
+/* Readable release prompt without requiring a new React render path. */
+.manual-pour:has(.manual-pour-vessel.pouring):has(.manual-pour-verdict.grade-perfect) .manual-pour-hold::after{content:'✓ ĐÚNG MỐC — THẢ TAY';display:block;margin-top:3px;font-size:12px;letter-spacing:.04em}
