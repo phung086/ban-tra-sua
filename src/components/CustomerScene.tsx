@@ -5,7 +5,7 @@ import type { GameState } from "../game/types";
 import {
   canGreetRememberedCustomer, greetRememberedCustomer,
   canKeepRememberedPreferencePrivate, keepRememberedPreferencePrivate,
-  getRememberedGreetingChoice, hasRememberedLowSugar,
+  getRememberedGreetingChoice, hasRememberedLowSugar, shouldMentionLowSugar,
   getPreviousRememberedServiceFeedback, getUnresolvedRememberedComplaint,
   canAskRememberedCustomerAboutComplaint, askRememberedCustomerAboutComplaint,
   hasAskedRememberedCustomerAboutComplaint,
@@ -27,6 +27,7 @@ export function CustomerScene({ game, onGame }: {
     ? "neutral"
     : getCustomerServiceFeedback(game, customer, game.currentOrderQueuedAt, now).mood;
   const remembered = hasRememberedLowSugar(game, order.customerId);
+  const remembersSugar = remembered && shouldMentionLowSugar(game, order.customerId, order.sugar);
   const greetingChoice = remembered ? getRememberedGreetingChoice(game) : null;
   const previousServiceFeedback = remembered ? getPreviousRememberedServiceFeedback(game) : null;
   const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
@@ -34,8 +35,8 @@ export function CustomerScene({ game, onGame }: {
   return <div className="customer-service">
     <div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
-    {remembered && <aside className="life-review-care life-remembered-order" aria-label="Sở thích khách quen">
-      <strong>💗 Nhớ khách thích ít ngọt</strong>
+    {remembered && <aside className="life-review-care life-remembered-order" aria-label="Góp ý khách quen">
+      <strong>{remembersSugar ? '💗 Nhớ khách thích ít ngọt' : '💗 Nhớ góp ý của khách quen'}</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
@@ -52,10 +53,12 @@ export function CustomerScene({ game, onGame }: {
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
-          <small>✓ Đã chào khách theo sở thích.</small>
-          <p>“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt {order.sugar}% đường nhé.”</p>
+          <small>{remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
+          <p>{remembersSugar
+            ? `“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt ${order.sugar}% đường nhé.”`
+            : '“Ồ, tiệm vẫn nhớ góp ý lần trước! Mình mong ly hôm nay đúng đơn nhé.”'}</p>
         </> : <>
-          <small>✓ Đã chọn giữ riêng sở thích của khách.</small>
+          <small>✓ Đã chọn giữ riêng góp ý của khách.</small>
           <p>Chủ tiệm mỉm cười và chuẩn bị đúng đơn, không nhắc lại góp ý cũ.</p>
         </>}
       </div> :
@@ -66,7 +69,7 @@ export function CustomerScene({ game, onGame }: {
           </button>
           <button type="button" disabled={!canKeepRememberedPreferencePrivate(game)}
             onClick={() => onGame(current => keepRememberedPreferencePrivate(current))}>
-            Giữ riêng sở thích · miễn phí
+            Giữ riêng góp ý · miễn phí
           </button>
         </div>}
       {!greetingChoice && !canGreetRememberedCustomer(game) && <small role="status">Không đủ năng lượng hoặc đã muộn để chào thêm; bạn vẫn có thể giữ riêng sở thích và pha trà bình thường.</small>}
