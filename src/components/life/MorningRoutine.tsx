@@ -2,6 +2,7 @@ import { SiblingAnCall } from './SiblingAnCall';
 import { BREAKFAST_OPTIONS, chooseBreakfast, wakeMorning, type BreakfastChoice } from '../../game/lifeSim/morning';
 import { formatMoney } from '../../game/engine';
 import type { GameState } from '../../game/types';
+import { BreakfastCookingPanel } from './BreakfastCookingPanel';
 
 const titleForWake = {
   'on-time': 'Dậy đúng giờ, phố đã lên đèn nắng!',
@@ -15,7 +16,6 @@ function timeLabel(minutes: number): string {
 }
 
 const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
-  {id:'cook',emoji:'🍳',hint:'Bữa cơm ấm bụng · 20 phút'},
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
 ];
@@ -40,6 +40,7 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       <button className="life-morning-wake" onClick={()=>onGame(wakeMorning(game))}>
         <span aria-hidden="true">☀️</span> Thức dậy bắt đầu ngày mới
       </button>}
+    <BreakfastCookingPanel game={game} onGame={onGame}/>
     {morning.step==='awake'&&<>
       <p className="life-morning-prompt">Sáng nay ăn gì?</p>
       <div className="life-morning-options">

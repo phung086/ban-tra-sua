@@ -1,5 +1,6 @@
 import { serveCurrentDrink } from "./engine";
 import { withRememberedDeliveryReaction } from "./lifeSim/rememberedDelivery";
+import { applyShiftFatigue } from "./lifeSim/shiftNeeds";
 import type { GameState, Order } from "./types";
 import { CITY_BOUNDS, outdoorsWalkable } from './cityMap';
 import {overlapsFootprint,SHOP_FURNITURE,PLAYER_RADIUS,type Footprint} from './collision';
@@ -160,5 +161,19 @@ export function deliverDrink(
       notice: `Mang ly đến ${destination.label.toLowerCase()} để giao đúng khách.`,
     };
   }
-  return withRememberedDeliveryReaction(state, serveCurrentDrink(state));
+  // Only a committed delivery costs stamina. A failed order is never charged.
+  const delivered = withRememberedDeliveryReaction(state, serveCurrentDrink(state));
+  if (delivered.served !== state.served + 1) return delivered;
+  // Calculate from the OPEN shift snapshot: the last order may already have
+  // transitioned to summary. Preserve every field written by the engine.
+  const fatigued = applyShiftFatigue(state);
+  if (fatigued === state) return delivered;
+  const satietyLost = state.morning.satiety - fatigued.morning.satiety;
+  const energyLost = state.city.energy - fatigued.city.energy;
+  return {
+    ...delivered,
+    morning: { ...delivered.morning, satiety: fatigued.morning.satiety },
+    city: { ...delivered.city, energy: fatigued.city.energy },
+    notice: `${delivered.notice} 🥣 -${satietyLost} độ no · ⚡ -${energyLost} sức.`,
+  };
 }
