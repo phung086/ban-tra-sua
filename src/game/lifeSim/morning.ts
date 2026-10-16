@@ -4,6 +4,7 @@ import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanne
 export type BreakfastChoice = 'cook' | 'street' | 'skip';
 export type MorningStep = 'asleep' | 'awake' | 'finished';
 export type DayEpisodeChoice = 'help' | 'focus';
+export type FatherCallChoice = 'listen' | 'promise';
 
 export interface MorningRoutineState {
   day: number;
@@ -15,6 +16,7 @@ export interface MorningRoutineState {
   shiftBreakOrder?: number;
   /** Optional for legacy v3 saves; reset when a new day begins. */
   episodeChoice?: DayEpisodeChoice | null;
+  fatherCall: FatherCallChoice | null;
 }
 
 export const BREAKFAST_OPTIONS = {
@@ -37,6 +39,7 @@ export function createMorning(snapshot: LifeDaySnapshot, worldSeed: string): Mor
     breakfast: null,
     satiety: 30,
     episodeChoice: null,
+    fatherCall: null,
   };
 }
 
@@ -64,7 +67,9 @@ export function hydrateMorning(
     value.satiety >= 0 && value.satiety <= 100 &&
     (!('episodeChoice' in value) || value.episodeChoice === null ||
       value.episodeChoice === 'help' || value.episodeChoice === 'focus')) {
-    return value as unknown as MorningRoutineState;
+    // Older v3 mornings lack fatherCall; keep the resolved breakfast and migrate safely.
+    const fatherCall = value.fatherCall === 'listen' || value.fatherCall === 'promise' ? value.fatherCall : null;
+    return { ...(value as unknown as MorningRoutineState), fatherCall };
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -108,5 +113,33 @@ export function chooseBreakfast(game: GameState, choice: BreakfastChoice): GameS
     },
     morning: { ...morning, step: 'finished', breakfast: choice, satiety: option.satiety },
     notice: `${option.label}. Giờ có thể mở cửa tiệm và đón khách!`,
+  };
+}
+
+/** Optional after-breakfast family moment, once per day. No hidden charges. */
+export function callFather(game: GameState, choice: FatherCallChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.fatherCall !== null) return game;
+  if (choice !== 'listen' && choice !== 'promise') return game;
+  const minutes = choice === 'listen' ? 5 : 8;
+  const bond = choice === 'listen' ? 1 : 2;
+  const promised = game.relationshipRewardIds.includes('family-father-quang-sign');
+  const reply = choice === 'listen'
+    ? promised ? 'Bố Quang: Bố nhớ lời con hứa. Đừng lo, hôm nào rảnh mình sửa biển hiệu cùng nhau.'
+      : 'Bố Quang: Cứ từ từ mà làm, tiệm mới rồi sẽ đông khách thôi.'
+    : 'Bố Quang: Vậy cuối tuần hai bố con cùng xem lại biển hiệu nhé!';
+  return {
+    ...game,
+    city: {
+      ...game.city,
+      minutes: Math.min(1260, game.city.minutes + minutes),
+      journal: [`Ngày ${game.day} · Gọi bố Quang: ${choice === 'listen' ? 'nghe bố tâm sự' : 'hẹn sửa biển hiệu'}.`, ...game.city.journal].slice(0, 24),
+    },
+    morning: { ...morning, fatherCall: choice },
+    customerBond: { ...game.customerBond, 'family-father-quang': (game.customerBond['family-father-quang'] ?? 0) + bond },
+    relationshipRewardIds: choice === 'promise' && !promised
+      ? [...game.relationshipRewardIds, 'family-father-quang-sign']
+      : game.relationshipRewardIds,
+    notice: reply,
   };
 }
