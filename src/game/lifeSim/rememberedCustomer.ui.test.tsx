@@ -99,6 +99,26 @@ describe('remembered customer at the real tea counter', () => {
     expect(render(loadGame())).toContain('Topping chưa đúng đơn');
   });
 
+  it('treats tea with too little sugar as a complaint, not a low-sugar preference, after reload', () => {
+    const original = returningCustomer();
+    const state = { ...original, reviews: [{ ...complaint, text: 'Trà ít đường quá' }] };
+    expect(render(state)).toContain('Nhớ góp ý của khách quen');
+    expect(render(state)).not.toContain('Nhớ khách thích ít ngọt');
+    const greeted = greetRememberedCustomer(state);
+    expect(greeted.notice).toContain('Bạn nhớ góp ý trước đây');
+    expect(greeted.currentOrder).toEqual(state.currentOrder);
+    const data = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => { data.set(key, value); },
+      removeItem: (key: string) => { data.delete(key); },
+    });
+    saveGame(greeted);
+    const restored = loadGame();
+    expect(render(restored)).toContain('Nhớ góp ý của khách quen');
+    expect(render(restored)).not.toContain('Nhớ khách thích ít ngọt');
+  });
+
   it('survives save/reload and never blocks normal service when tired', () => {
     const data = new Map<string, string>();
     vi.stubGlobal('localStorage', {
