@@ -12,7 +12,7 @@ export const REVIEW_CARE_OPTIONS = OPTIONS;
 
 /** A complaint about toppings or insufficient sweetness is not a low-sugar preference. */
 export function isLowSugarFeedback(review: Review): boolean {
-  if (review.stars > 3 || /không đủ ngọt|thiếu đường|nhạt quá|not sweet enough/i.test(review.text)) return false;
+  if (review.stars > 3 || /không đủ ngọt|thiếu đường|nhạt quá|not sweet enough|(?:ít đường|ít ngọt|bớt đường|giảm đường) quá|không (?:thích|muốn) ít (?:đường|ngọt)|đừng (?:bớt|giảm) đường/i.test(review.text)) return false;
   return /quá ngọt|hơi ngọt|ngọt quá|trà ngọt|ít đường|ít ngọt|bớt đường|giảm đường|too sweet|less sugar|low sugar/i.test(review.text);
 }
 
