@@ -93,3 +93,11 @@
 .life-lunch-result{margin:8px 0;padding:10px;border-radius:12px;background:#f2fff4;color:#35644a;font-size:12px;font-weight:700}
 .life-lunch-note{display:block;margin-top:8px;color:#88617a;font-size:11px}
 @media(max-width:580px){.life-lunch-options{grid-template-columns:1fr}}
+.life-plant-care{margin-top:14px;padding:12px;border:1px solid #b4d9ba;border-radius:14px;background:#f5fff6;color:#315e42}
+.life-plant-care>strong{display:block;font-size:14px}
+.life-plant-care>p{margin:8px 0;font-size:12px;line-height:1.5}
+.life-plant-care-actions{display:flex;flex-wrap:wrap;gap:8px}
+.life-plant-care-actions button{min-height:44px;padding:9px 12px;border:1px solid #83b992;border-radius:12px;background:#fff;color:#315e42;cursor:pointer}
+.life-plant-care-actions button:disabled{opacity:.55;cursor:not-allowed}
+.life-plant-care-actions button:focus-visible{outline:3px solid #428e5b;outline-offset:2px}
+@media(max-width:580px){.life-plant-care-actions{flex-direction:column}.life-plant-care-actions button{width:100%}}

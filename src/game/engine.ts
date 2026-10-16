@@ -981,7 +981,7 @@ export function nextDay(state: GameState): GameState {
   const day = state.day + 1;
   const event = getEventForDay(day);
   const city = newCityDay(state.city, day);
-  const morning = createMorning({ day, city }, state.morning.worldSeed);
+  const morning = { ...createMorning({ day, city }, state.morning.worldSeed), lastPlantCare: state.morning.plantCare ?? null };
   const decayed = decayInventory(state);
   const base = syncProgression({
     ...state,

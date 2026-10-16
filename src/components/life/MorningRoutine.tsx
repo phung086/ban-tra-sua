@@ -1,5 +1,5 @@
-import { SiblingAnCall } from './SiblingAnCall';
-import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, LAN_MEAL_OPTIONS, LUNCH_PREP_OPTIONS, callFather, chooseBreakfast, chooseMotherCall, chooseLanMeal, prepareLunch, lanMealDialogue, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice, type LanMealChoice, type LunchPrepChoice } from '../../game/lifeSim/morning';
+import { SiblingAnCall } from "./SiblingAnCall";
+import { BREAKFAST_OPTIONS, MOTHER_CALL_OPTIONS, LAN_MEAL_OPTIONS, LUNCH_PREP_OPTIONS, callFather, chooseBreakfast, chooseMotherCall, chooseLanMeal, prepareLunch, lanMealDialogue, motherCallDecision, motherCallDialogue, motherCallMemory, motherCallPrompt, shouldOfferMotherCall, wakeMorning, type BreakfastChoice, type MotherCallChoice, type LanMealChoice, type LunchPrepChoice, choosePlantCare, PLANT_CARE_OPTIONS, type PlantCareChoice } from "../../game/lifeSim/morning";
 import { formatMoney } from '../../game/engine';
 import { chooseDayEpisode, getDayEpisode, getEpisodeCallback } from '../../game/lifeSim/dayEpisodes';
 import type { GameState } from '../../game/types';
@@ -127,6 +127,25 @@ export function MorningRoutine({ game, onGame }:{game:GameState;onGame:(state:Ga
       </> : <p className="life-lan-reply" aria-live="polite">
         {lanMealDialogue(morning.lanMeal,game.city.stories.bonds.lan ?? 0)}
       </p>}
+    </section>}
+    {finished&&game.phase==='prep'&&<section className="life-plant-care" aria-label="Chăm cây trước tiệm">
+      <strong>🌿 Góc cây trước tiệm</strong>
+      <p>{morning.lastPlantCare==='water'
+        ? 'Bác Bình: “Hôm qua cháu tưới cây khéo đấy, lá trông tươi hơn rồi!”'
+        : morning.lastPlantCare==='ask-binh'
+          ? 'Bác Bình: “Nhớ lời bác dặn hôm qua nhé, đất khô rồi mới tưới.”'
+          : 'Bác Bình để lại một chậu cây nhỏ. Mình chăm cây hay hỏi bác một chút?'}</p>
+      {morning.plantCare == null ? <div className="life-plant-care-actions">
+        {(['water','ask-binh'] as PlantCareChoice[]).map(choice=>{
+          const option=PLANT_CARE_OPTIONS[choice];
+          return <button key={choice} disabled={game.city.energy<option.energy}
+            onClick={()=>onGame(choosePlantCare(game,choice))}>
+            {option.label} · {option.minutes} phút · +{option.goodwill} thiện cảm
+          </button>;
+        })}
+      </div> : <p role="status">{morning.plantCare==='water'
+        ? 'Đã tưới cây hôm nay. Bác Bình sẽ nhớ vào sáng mai.'
+        : 'Đã hỏi bác Bình hôm nay. Mai bác sẽ nhắc lại mẹo chăm cây.'}</p>}
     </section>}
     {finished&&<div className="life-morning-done" aria-live="polite">
       <span aria-hidden="true">✓</span>

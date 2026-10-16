@@ -27,6 +27,8 @@ fatherCall: FatherCallChoice | null;
 motherCall?: MotherCallChoice | null;
 lanMeal?: LanMealChoice | null;
 lunchPrep: LunchPrepChoice | null;
+plantCare?: PlantCareChoice | null;
+lastPlantCare?: PlantCareChoice | null;
 }
 
 export const MOTHER_CALL_OPTIONS = {listen: { label: 'Nghe mẹ kể chuyện', minutes: 10, bond: 2 },
@@ -103,7 +105,9 @@ episodeChoice: null,
 fatherCall: null,
 motherCall: null,
 lanMeal: null,
-lunchPrep: null};
+lunchPrep: null,
+plantCare: null,
+lastPlantCare: null};
 }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -138,7 +142,9 @@ export function hydrateMorning(
 fatherCall,
 motherCall: call === 'listen' || call === 'promise' || call === 'later' || call === 'photo' ? call : null,
 lanMeal: meal === 'split' || meal === 'treat' || meal === 'walk' || meal === 'decline' ? meal : null,
-lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null};
+lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null,
+plantCare: value.plantCare==="water"||value.plantCare==="ask-binh" ? value.plantCare : null,
+lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null};
   }
   // Existing saves have no morning session. A currently-open shift must never
   // be interrupted by a new waking screen after an update.
@@ -304,5 +310,30 @@ export function prepareLunch(game: GameState, choice: LunchPrepChoice): GameStat
       satiety: Math.min(100, morning.satiety + option.satiety),
     },
     notice: `${option.label}. Đã sẵn sàng cho ca bán!`,
+  };
+}
+
+export type PlantCareChoice = 'water' | 'ask-binh';
+
+export const PLANT_CARE_OPTIONS = {
+  water: { label: 'Tưới cây trước hiên', minutes: 6, energy: 3, goodwill: 1 },
+  'ask-binh': { label: 'Nhắn bác Bình hỏi cách chăm cây', minutes: 4, energy: 0, goodwill: 1 },
+} as const;
+
+export function choosePlantCare(game: GameState, choice: PlantCareChoice): GameState {
+  const morning = game.morning;
+  if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' || morning.plantCare != null) return game;
+  const option = PLANT_CARE_OPTIONS[choice];
+  if (!option) return game;
+  if (game.city.energy < option.energy) return { ...game, notice: 'Hôm nay hơi mệt. Mình có thể nhắn bác Bình thay vì tưới cây.' };
+  return {
+    ...game,
+    city: { ...game.city,
+      minutes: Math.min(1260, game.city.minutes + option.minutes),
+      energy: Math.max(0, game.city.energy - option.energy),
+      goodwill: Math.min(100000, game.city.goodwill + option.goodwill),
+      journal: [`Ngày ${game.day} · ${option.label} (+${option.goodwill} thiện cảm).`, ...game.city.journal].slice(0, 24) },
+    morning: { ...morning, plantCare: choice },
+    notice: choice === 'water' ? 'Cây trước hiên đã được tưới. Bác Bình đi qua gật đầu khen chăm chỉ.' : 'Bác Bình nhắn: “Tưới sáng sớm, nhớ nhìn đất trước khi thêm nước nhé.”',
   };
 }
