@@ -4,6 +4,9 @@ on:
     branches: [main, 'codex/**']
     paths:
       - 'src/styles-responsive-play.css'
+      - 'src/styles-life-morning.css'
+      - 'src/components/life/MorningRoutine.tsx'
+      - 'src/game/lifeSim/morning.ts'
       - 'src/main.tsx'
       - 'src/App.tsx'
       - 'src/game/lifeSim/morning.ts'
