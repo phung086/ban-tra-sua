@@ -5,6 +5,8 @@ import type { Dispatch, SetStateAction } from "react";
 import type { GameState, Screen } from "../../game/types";
 import {GameIcon} from '../GameIcon';
 import {MorningRoutine} from '../life/MorningRoutine';
+import {StreetMomentPanel} from '../life/StreetMomentPanel';
+import {SocialMorningPanel} from '../life/SocialMorningPanel';
 
 
 interface Props {
@@ -25,6 +27,8 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
   return <section className="prep-foundation">
     <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
     <MorningRoutine game={game} onGame={onGame}/>
+    <StreetMomentPanel game={game} onGame={onGame}/>
+    <SocialMorningPanel game={game} onGame={onGame}/>
     <RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate} />
     <div className="prep-service-plan"><GameIcon name="cup"/><div><h3>Ca bán hôm nay</h3><p>{game.targetOrders} khách hẹn ghé tiệm</p></div></div>
     {getCounterPatienceAdjustment(game) !== 0 && <p className="prep-counter-condition" role="status">{game.counterCondition === "fresh" ? "✨ Quầy sạch thơm từ tối qua: khách hôm nay kiên nhẫn thêm 10 giây." : "🧽 Quầy chưa gọn: khách hôm nay sốt ruột sớm hơn 10 giây."}</p>}
