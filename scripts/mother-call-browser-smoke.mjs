@@ -7,7 +7,9 @@ async function newPage(viewport) {
   const page = await browser.newPage({viewport, isMobile: viewport.width < 1000, hasTouch: viewport.width < 1000});
   page.setDefaultTimeout(90000);
   page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({renderEngine:'three',graphics:'light',coachCompleted:false,motion:false,sound:false,music:false})));
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('tiem-tra-chibi-ui-v1')) localStorage.setItem('tiem-tra-chibi-ui-v1', JSON.stringify({renderEngine:'three',graphics:'light',coachCompleted:false,motion:false,sound:false,music:false}));
+  });
   return page;
 }
 
