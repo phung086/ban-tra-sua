@@ -166,9 +166,19 @@ export function validateEpisode(input: unknown): EpisodeValidation {
   const predicates = (value: unknown, path: string) => {
     if (!Array.isArray(value)) { fail(path, 'expected predicate array'); return; }
     if (value.length > 128) { fail(path, 'exceeds 128 entries'); return; }
+    let earliestDay = 1;
+    let latestDay = Number.MAX_SAFE_INTEGER;
     value.forEach((item: unknown, i: number) => {
       const at = `${path}[${i}]`;
       if (!record(item) || !validEnum(OPS, item.op)) { fail(at, 'unknown predicate'); return; }
+      const day = item.value;
+      if (integer(day, 1, Number.MAX_SAFE_INTEGER)) {
+        if (item.op === 'day-eq') {
+          earliestDay = Math.max(earliestDay, day);
+          latestDay = Math.min(latestDay, day);
+        } else if (item.op === 'day-at-least') earliestDay = Math.max(earliestDay, day);
+        else if (item.op === 'day-at-most') latestDay = Math.min(latestDay, day);
+      }
       if (['day-eq', 'day-at-least', 'day-at-most'].includes(String(item.op)) &&
           !integer(item.value, 1, Number.MAX_SAFE_INTEGER)) fail(at, 'day must be positive integer');
       if (item.op === 'min-cash' && !integer(item.value, 0, 1_000_000_000)) fail(at, 'invalid VND threshold');
@@ -179,6 +189,8 @@ export function validateEpisode(input: unknown): EpisodeValidation {
       if (item.op === 'trust-at-least' && (!stableId(item.key) || !integer(item.value, -100, 100)))
         fail(at, 'trust requires key and bounded value');
     });
+    // A contradictory window can never produce a playable beat/choice/day.
+    if (earliestDay > latestDay) fail(path, 'contradictory day predicates');
   };
   const idArray = (value: unknown, path: string, allowEmpty = false) => {
     if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
@@ -207,8 +219,12 @@ export function validateEpisode(input: unknown): EpisodeValidation {
       if (!stableId(item.ledgerKey)) fail(at, 'invalid ledgerKey');
       else if (ledgerKeys.has(item.ledgerKey)) fail(at, `duplicate ledgerKey ${item.ledgerKey}`);
       else ledgerKeys.add(item.ledgerKey);
+      // Keep content effects within the simulated resource scale, while
+      // retaining integer-VND rewards and costs under the existing money cap.
+      const maxDelta = item.type === 'money' ? 1_000_000_000 :
+        item.type === 'inventory' ? 100_000 : 100;
       if (['money', 'inventory', 'need', 'mood', 'health', 'trust'].includes(String(item.type)) &&
-          !integer(item.delta, -1_000_000_000, 1_000_000_000)) fail(at, 'delta must be bounded integer');
+          !integer(item.delta, -maxDelta, maxDelta)) fail(at, 'delta must be bounded integer');
       if (item.type === 'money' && item.key !== 'cash') fail(at, 'money must target cash ledger');
       if (item.type === 'need' && !validEnum(NEEDS, item.key)) fail(at, 'unknown need');
       if (['flag', 'schedule', 'bill', 'unlock'].includes(String(item.type)) && typeof item.value !== 'boolean')

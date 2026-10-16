@@ -116,16 +116,18 @@
       "track": "core",
       "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": "codex/life-t1-03-content-validator-20261009",
+      "branch": "codex/life-t1-03-predicate-windows-20261010",
       "pr": null,
       "evidence": {
-        "headSha": "f7a23de84c7f9b87c925d112b2b20dd76d1a036a",
-        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37947537946",
-        "ciTests": "92/92 passed across 21 files; typecheck and production build passed",
-        "scope": "Pure content validator, no runtime day or 3D change",
-        "pr": "pending: connector safety check blocked draft PR creation",
-        "device": "not tested",
-        "note": "Do not mark accepted until review/PR and exact-head CI"
+        "headSha": "dbdfa4aaf748a9cde15fad3102d744b47bb3e0dc",
+        "ci": "https://github.com/phung086/ban-tra-sua/actions/runs/37977336057",
+        "ciTests": "pending on code SHA dbdfa4a; previous 120/120 PASS on 4bf5762",
+        "scope": "Reject contradictory day predicates for episode/beat/choice; 5 Vitest regressions; no runtime/render/save changes",
+        "pr": "pending: draft PR creation blocked by safety checks",
+        "device": "not tested; pure validator",
+        "note": "No acceptance until CI on final branch head + review. Main unchanged.",
+        "mainSha": "a4aeec3746a1fec7c9cf7222530280f6f820cc83",
+        "mainCi": "https://github.com/phung086/ban-tra-sua/actions/runs/37964739574"
       }
     },
     {
