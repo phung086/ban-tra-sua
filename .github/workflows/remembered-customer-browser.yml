@@ -47,10 +47,13 @@ jobs:
           done
           curl -fsS http://127.0.0.1:5193/ >/dev/null
           node scripts/remembered-customer-browser-smoke.mjs
+          node scripts/remembered-thanks-browser-smoke.mjs
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: remembered-customer-${{ github.sha }}
-          path: artifacts/remembered-customer/
+          path: |
+            artifacts/remembered-customer/
+            artifacts/remembered-thanks/
           retention-days: 14
