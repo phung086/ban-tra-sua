@@ -83,10 +83,26 @@ try {
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
         .relationshipRewardIds?.includes('remembered-service:sample-e2e-day4'), KEY);
       const delivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      // The ordinary sale awards bond for its stars and customer patience.
+      // A correctly delivered sample adds exactly one *extra* trust point.
+      const saleBond = delivered.lastScore >= 93 ? 3
+        : delivered.lastScore >= 80 ? 2
+        : delivered.lastScore >= 65 ? 1 : 0;
+      const patiencePenalty = delivered.lastService?.mood === 'upset' ? 2
+        : delivered.lastService?.mood === 'restless' ? 1 : 0;
+      const expectedBondGain = Math.max(0, saleBond - patiencePenalty) + 1;
+      const actualBondGain = delivered.customerBond.miu - offered.customerBond.miu;
       if (delivered.city.goodwill !== offered.city.goodwill + 1 ||
-          delivered.customerBond.miu !== offered.customerBond.miu + 1 ||
+          actualBondGain !== expectedBondGain ||
+          !delivered.storyLog[0]?.text.includes('trà mẫu') ||
           delivered.cash < offered.cash)
-        throw new Error('Real delivery failed to earn trust');
+        throw new Error('Sample delivery reward mismatch: ' + JSON.stringify({
+          score: delivered.lastScore, mood: delivered.lastService?.mood,
+          expectedBondGain, actualBondGain,
+          goodwillGain: delivered.city.goodwill - offered.city.goodwill,
+          cashGain: delivered.cash - offered.cash,
+          callback: delivered.storyLog[0]?.text,
+        }));
       await page.reload({ waitUntil: 'domcontentloaded' });
       const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (saved.city.goodwill !== delivered.city.goodwill ||
