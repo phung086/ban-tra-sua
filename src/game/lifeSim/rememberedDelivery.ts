@@ -35,7 +35,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
     ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
       ? name + (repeatedMistakes
-        ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Mình sẽ thử tin tiệm thêm lần nữa.”'
+        ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Lần trước mình có góp ý, cảm ơn tiệm đã sửa.”'
         : apologized
         ? ': “Cảm ơn tiệm đã xin lỗi. Hôm nay ly đúng đơn rồi, mình yên tâm hơn.”'
         : asked
