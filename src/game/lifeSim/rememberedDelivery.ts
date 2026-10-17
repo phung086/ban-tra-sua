@@ -1,16 +1,10 @@
 import type { GameState, Order } from '../types';
+import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
-  if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
-  if (draft.size !== order.size) return 'Kích cỡ ly chưa đúng đơn.';
-  if (draft.topping !== order.topping) return 'Topping chưa đúng đơn.';
-  if (draft.sugar !== order.sugar) return 'Độ ngọt chưa đúng đơn.';
-  if (draft.ice !== order.ice) return 'Mức đá chưa đúng đơn.';
-  if (Math.abs(draft.fill - order.targetFill) >= 15) return 'Lượng trà trong ly chưa đúng yêu cầu.';
-  if (Math.abs(draft.shake - order.targetShake) >= 15) return 'Độ lắc chưa đúng yêu cầu.';
-  if (score < 80) return 'Lần sau bạn pha kỹ hơn nhé.';
-  return '';
+  return getRememberedCupMismatch(order, draft) ??
+    (score < 80 ? 'Lần sau bạn pha kỹ hơn nhé.' : '');
 }
 
 /** One saved NPC callback per actual delivery; no additional rewards. */

@@ -12,7 +12,9 @@ import {
   canPromiseRememberedCorrection, promiseRememberedCorrection, hasPromisedRememberedCorrection,
   getBrokenRememberedPromise, canApologizeForBrokenPromise,
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
+  canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
 } from "../game/lifeSim/rememberedCustomer";
+import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
 import "./life/review-care.css";
@@ -37,6 +39,8 @@ export function CustomerScene({ game, onGame }: {
   const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
+  const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
+  const currentMismatch = getRememberedCupMismatch(order, game.draft);
   return <div className="customer-service">
     <div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
@@ -73,6 +77,19 @@ export function CustomerScene({ game, onGame }: {
               onClick={() => onGame(current => promiseRememberedCorrection(current))}>
               Hứa kiểm tra kỹ · 1 phút · giữ lời tăng tin tưởng
             </button>)}
+        {hasPromisedRememberedCorrection(game) && <div className="life-remembered-reply" aria-label="Soát ly trước khi giao">
+          {cupCheck
+            ? <p role="status" aria-live="polite">{currentMismatch
+              ? `⚠ Ly hiện còn lỗi: ${currentMismatch} Hãy sửa trước khi giao.`
+              : cupCheck === 'ready'
+                ? '✓ Đã soát đúng công thức. Dập nắp và giao để giữ lời.'
+                : '✓ Đã chỉnh đúng công thức sau lần soát. Dập nắp và giao để giữ lời.'}</p>
+            : <button type="button" disabled={!canCheckRememberedPromiseCup(game)}
+                onClick={() => onGame(current => checkRememberedPromiseCup(current))}>
+                Soát ly trước khi dập nắp · 2 phút · 1 năng lượng
+              </button>}
+          {!cupCheck && game.draft.fill < 15 && <small>Pha ly trước, rồi mới có thể soát công thức.</small>}
+        </div>}
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>

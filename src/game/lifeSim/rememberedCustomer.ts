@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
 import { getReviewCareDecision, getReviewFollowupChoice, isLowSugarFeedback } from './reviewCare';
+import { getRememberedCupMismatch } from './rememberedCupCheck';
 
 /** Latest consented review wins even if imported save arrays are unordered. */
 export function getLatestRememberedReview(game: GameState, customerId: string): GameState['reviews'][number] | null {
@@ -218,6 +219,47 @@ export function promiseRememberedCorrection(game: GameState): GameState {
   };
 }
 
+
+const cupCheckId = (orderId: string) => 'remembered-cup-check:' + encodeURIComponent(orderId);
+
+/** Persisted one-time quality check for a promise, without adding save fields. */
+export function getRememberedPromiseCupCheck(game: GameState): 'ready' | 'fix' | null {
+  if (!game.currentOrder) return null;
+  const id = cupCheckId(game.currentOrder.id);
+  if (game.relationshipRewardIds.includes(id + ':ready')) return 'ready';
+  if (game.relationshipRewardIds.includes(id + ':fix')) return 'fix';
+  return null;
+}
+
+export function canCheckRememberedPromiseCup(game: GameState): boolean {
+  return Boolean(game.phase === 'open' && game.currentOrder &&
+    hasPromisedRememberedCorrection(game) &&
+    !getRememberedPromiseCupCheck(game) &&
+    !game.draft.sealed && game.draft.fill >= 15 &&
+    game.city.energy >= 1 && game.city.minutes + 2 <= 1260);
+}
+
+/** Optional, paid-in-time cup check before sealing. It never silently edits a drink. */
+export function checkRememberedPromiseCup(game: GameState): GameState {
+  if (!canCheckRememberedPromiseCup(game)) return game;
+  const order = game.currentOrder!;
+  const mismatch = getRememberedCupMismatch(order, game.draft);
+  const result = mismatch ? 'fix' : 'ready';
+  const notice = mismatch
+    ? 'Soát ly trước khi giao: ' + mismatch + ' Hãy sửa trước khi dập nắp.'
+    : 'Soát ly trước khi giao: đúng công thức. Dập nắp rồi giao để giữ lời.';
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, cupCheckId(order.id) + ':' + result],
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 2,
+      energy: game.city.energy - 1,
+      journal: [`Ngày ${game.day} · ${notice}`, ...game.city.journal].slice(0, 24),
+    },
+    notice,
+  };
+}
 
 export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boolean {
   return Boolean(game.currentOrder &&
