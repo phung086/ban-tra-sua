@@ -15,6 +15,7 @@ import {
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
+import { keptPromiseOnReturn, canThankAfterPromise, hasThankedAfterPromise, thankAfterPromise } from "../game/lifeSim/rememberedThanks";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
 import "./life/review-care.css";
@@ -39,6 +40,7 @@ export function CustomerScene({ game, onGame }: {
   const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
+  const keptPromise = remembered ? keptPromiseOnReturn(game) : null;
   const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
   const currentMismatch = getRememberedCupMismatch(order, game.draft);
   return <div className="customer-service">
@@ -60,6 +62,15 @@ export function CustomerScene({ game, onGame }: {
           : <button type="button" disabled={!canApologizeForBrokenPromise(game)}
               onClick={() => onGame(current => apologizeForBrokenPromise(current))}>
               Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · +1 thân thiết
+            </button>}
+      </div>}
+      {keptPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Hỏi thăm sau khi giữ lời">
+        <p>Khách quay lại sau ly trà được soát kỹ ngày {keptPromise.day}. Bạn có thể hỏi thăm; không bắt buộc.</p>
+        {hasThankedAfterPromise(game)
+          ? <p role="status" aria-live="polite">✓ Đã hỏi thăm. Khách ghi nhận tiệm đã giữ lời.</p>
+          : <button type="button" disabled={!canThankAfterPromise(game)}
+              onClick={() => onGame(current => thankAfterPromise(current))}>
+              Hỏi thăm sau lần giữ lời · 2 phút · 1 năng lượng · +1 thân thiết
             </button>}
       </div>}
       {clarificationSource && greetingChoice === 'greet' && <div className="life-remembered-reply">
