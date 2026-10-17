@@ -150,6 +150,22 @@ export function getRememberedTrustStage(game: GameState): 'open' | 'guarded' | '
   return needsRepair ? (correctStreak === 0 ? 'guarded' : 'recovering') : 'open';
 }
 
+/** A delivered cup without optional conversation still becomes a visible
+ * memory on the next visit; never synthesize an unsolicited NPC callback.
+ */
+export function getRememberedSilentDelivery(game: GameState): { day: number; correct: boolean } | null {
+  const order = game.currentOrder;
+  if (!order || !hasRememberedLowSugar(game, order.customerId)) return null;
+  const deliveries = rememberedDeliveryHistory(game, order.customerId);
+  const latest = deliveries[deliveries.length - 1];
+  if (!latest) return null;
+  const hasCallback = game.storyLog.some(moment =>
+    moment.customerId === order.customerId &&
+    moment.id.startsWith('remembered-service:') &&
+    encodeURIComponent(moment.id.slice('remembered-service:'.length)) === latest.orderId);
+  return hasCallback ? null : { day: latest.day, correct: latest.correct };
+}
+
 export function hasRepeatedRememberedComplaint(game: GameState): boolean {
   return getRememberedTrustStage(game) === 'guarded';
 }
@@ -160,6 +176,9 @@ export function isRememberedTrustRestricted(game: GameState): boolean {
 
 export function getUnresolvedRememberedComplaint(game: GameState): GameState['storyLog'][number] | null {
   const latest = getPreviousRememberedServiceFeedback(game);
+  const silent = getRememberedSilentDelivery(game);
+  // A newer quiet delivery supersedes an old spoken complaint.
+  if (silent && (!latest || silent.day >= latest.day)) return null;
   return latest?.title === 'Khách quen góp ý thêm' ? latest : null;
 }
 
@@ -221,6 +240,15 @@ export function getRememberedClarificationSource(game: GameState): { text: strin
   const order = game.currentOrder;
   if (!order) return null;
   const previous = getPreviousRememberedServiceFeedback(game);
+  const silent = getRememberedSilentDelivery(game);
+  if (silent && (!previous || silent.day >= previous.day)) {
+    if (silent.correct) return null; // Never reopen an older complaint.
+    return {
+      day: silent.day,
+      customerName: getLatestRememberedReview(game, order.customerId)?.customerName ?? 'Khách quen',
+      text: 'Ly lần trước chưa đúng đơn. Mình mong tiệm kiểm tra kỹ hơn hôm nay.',
+    };
+  }
   if (previous) return previous.title === 'Khách quen góp ý thêm' ? previous : null;
   return getLatestRememberedReview(game, order.customerId);
 }

@@ -9,6 +9,7 @@ import type { GameState } from '../types';
 import {
   askRememberedCustomerAboutComplaint, canPromiseRememberedCorrection,
   greetRememberedCustomer, keepRememberedPreferencePrivate, hasRepeatedRememberedComplaint, getRememberedTrustStage,
+  getRememberedSilentDelivery, getRememberedClarificationSource, getUnresolvedRememberedComplaint,
 } from './rememberedCustomer';
 import { canOfferRememberedSample } from './rememberedSample';
 
@@ -245,6 +246,41 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     const dayNine = visit(loadGame(), 9, 'long-memory-day9');
     expect(getRememberedTrustStage(dayNine)).toBe('open');
     expect(render(dayNine)).toContain('data-trust="open"');
+  });
+
+  it('recalls a silent cup on return without reopening an older complaint', () => {
+    const silentGood = serve(returning(['Khách quen góp ý thêm']), true);
+    expect(silentGood.storyLog[0].day).toBe(4);
+    const revisit = (saved: GameState): GameState => ({
+      ...saved, day: 6, phase: 'open',
+      city: { ...saved.city, day: 6, minutes: 850, energy: 50 },
+      currentOrder: { ...returning([]).currentOrder!, id: 'quiet-return-day6' },
+    });
+    const goodReturn = revisit(silentGood);
+    expect(getRememberedSilentDelivery(goodReturn)).toEqual({ day: 5, correct: true });
+    expect(getRememberedClarificationSource(goodReturn)).toBeNull();
+    expect(getUnresolvedRememberedComplaint(goodReturn)).toBeNull();
+    expect(render(goodReturn)).toContain('Ly đã đúng đơn');
+    expect(render(goodReturn)).not.toContain('Lần giao trước (ngày 4)');
+
+    const badReturn = revisit(serve(returning([]), false));
+    expect(getRememberedSilentDelivery(badReturn)).toEqual({ day: 5, correct: false });
+    expect(render(badReturn)).toContain('Ly chưa đúng đơn');
+    expect(getRememberedClarificationSource(badReturn)?.text).toContain('Ly lần trước chưa đúng đơn');
+    const asked = askRememberedCustomerAboutComplaint(greetRememberedCustomer(badReturn));
+    expect(asked.storyLog[0].text).toContain('Ly lần trước chưa đúng đơn');
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(goodReturn);
+    const reloaded = loadGame();
+    expect(getRememberedSilentDelivery(reloaded)).toEqual({ day: 5, correct: true });
+    expect(render(reloaded)).toContain('Ly đã đúng đơn');
+    expect(getRememberedClarificationSource(reloaded)).toBeNull();
   });
 
 });

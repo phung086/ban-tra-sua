@@ -14,6 +14,7 @@ import {
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
   getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint, getRememberedTrustStage,
+  getRememberedSilentDelivery,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
 import { canOfferRememberedSample, hasOfferedRememberedSample, offerRememberedSample } from "../game/lifeSim/rememberedSample";
@@ -37,7 +38,8 @@ export function CustomerScene({ game, onGame }: {
   const remembered = hasRememberedLowSugar(game, order.customerId);
   const remembersSugar = remembered && shouldMentionLowSugar(game, order.customerId, order.sugar);
   const greetingChoice = remembered ? getRememberedGreetingChoice(game) : null;
-  const previousServiceFeedback = remembered ? getPreviousRememberedServiceFeedback(game) : null;
+  const silentDelivery = remembered ? getRememberedSilentDelivery(game) : null;
+  const previousServiceFeedback = remembered && !silentDelivery ? getPreviousRememberedServiceFeedback(game) : null;
   const savedReview = remembered ? getLatestRememberedReview(game, order.customerId) : null;
   const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
@@ -64,7 +66,12 @@ export function CustomerScene({ game, onGame }: {
       {!restrictedTrust && previousServiceFeedback?.title === 'Khách quen hài lòng' && <p className="life-remembered-history" role="status" data-trust="reassured">
         😊 Khách nhớ lần giao đúng trước đó và yên tâm hơn khi quay lại.
       </p>}
-      {!previousServiceFeedback && savedReview && <p className="life-remembered-history" role="note">
+      {silentDelivery && <p className="life-remembered-history" role="note" data-memory="quiet-delivery">
+        <b>Lần giao trước (ngày {silentDelivery.day}):</b> {silentDelivery.correct
+          ? 'Ly đã đúng đơn. Khách ghi nhận chất lượng ở lần giao trước.'
+          : 'Ly chưa đúng đơn. Khách nhớ lần giao sai và chờ tiệm sửa ở lần này.'}
+      </p>}
+      {!silentDelivery && !previousServiceFeedback && savedReview && <p className="life-remembered-history" role="note">
         <b>Góp ý đã lưu (ngày {savedReview.day}):</b> {savedReview.text}
       </p>}
       {previousServiceFeedback && <p className="life-remembered-history" role="note">

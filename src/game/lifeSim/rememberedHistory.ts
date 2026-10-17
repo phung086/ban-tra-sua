@@ -16,7 +16,7 @@ export function rememberedOutcomeId(
 
 export function rememberedDeliveryHistory(
   game: GameState, customerId: string,
-): { day: number; correct: boolean }[] {
+): { day: number; correct: boolean; orderId: string }[] {
   type Entry = { day: number; correct: boolean; orderId: string; source: number; index: number };
   const marked = new Set<string>();
   const persisted: Entry[] = [];
@@ -47,11 +47,11 @@ export function rememberedDeliveryHistory(
     if (!orderId || marked.has(orderId) || legacySeen.has(orderId)) continue;
     legacySeen.add(orderId);
     legacy.push({ day: moment.day, correct: moment.title === 'Khách quen hài lòng',
-      orderId, source: 0, index });
+      orderId: encodeURIComponent(orderId), source: 0, index });
   }
 
   // On a migration day, legacy callbacks precede new persistent markers.
   return [...legacy, ...persisted]
     .sort((a, b) => a.day - b.day || a.source - b.source || a.index - b.index)
-    .map(({ day, correct }) => ({ day, correct }));
+    .map(({ day, correct, orderId }) => ({ day, correct, orderId }));
 }
