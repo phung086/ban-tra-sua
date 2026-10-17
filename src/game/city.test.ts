@@ -233,3 +233,74 @@ describe('QG-07 day 11 supplier favor', () => {
     expect(cityAction(day12, help, CITY_PLACES.market)).toBe(day12);
   });
 });
+describe('QG-08 day 12 rainy school tea delivery', () => {
+  const dayTwelve = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 12; day++) game = nextDay(game);
+    return { ...game,
+      inventory: { ...game.inventory, peachTea: 6, cupsM: 6, sugar: 6, ice: 6 },
+      freshness: { ...game.freshness, peachTea: 100, cupsM: 100, sugar: 100, ice: 100 },
+    };
+  };
+
+  it('gifts two real teas, saves the decision and earns a larger day-13 school order', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); } });
+    const before = dayTwelve();
+    const gifted = cityAction(before, { type: 'school', choice: 'gift' }, CITY_PLACES.school);
+    expect(gifted.inventory.peachTea).toBe(before.inventory.peachTea - 2);
+    expect(gifted.inventory.cupsM).toBe(before.inventory.cupsM - 2);
+    expect(gifted.inventory.sugar).toBe(before.inventory.sugar - 1);
+    expect(gifted.inventory.ice).toBe(before.inventory.ice - 2);
+    expect(gifted.cash).toBe(before.cash);
+    expect(gifted.city.goodwill).toBe(before.city.goodwill + 4);
+    expect(gifted.fans).toBe(before.fans + 3);
+    expect(gifted.city.minutes).toBe(before.city.minutes + 20);
+    expect(gifted.relationshipRewardIds).toContain('school.day12.gift');
+    expect(cityAction(gifted, { type: 'school', choice: 'sell' }, CITY_PLACES.school)).toBe(gifted);
+    saveGame(gifted);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('school.day12.gift');
+    expect(cityAction(resumed, { type: 'school', choice: 'gift' }, CITY_PLACES.school)).toBe(resumed);
+    const tomorrow = nextDay(resumed);
+    expect(cityContracts(tomorrow).find(contract => contract.destination === 'school')?.reward).toBe(94000);
+    expect(cityContracts(nextDay(tomorrow)).find(contract => contract.destination === 'school')?.reward).toBe(82000);
+  });
+
+  it('sells at a friendly price and earns a smaller day-13 referral, without replay', () => {
+    const before = dayTwelve();
+    const sold = cityAction(before, { type: 'school', choice: 'sell' }, CITY_PLACES.school);
+    expect(sold.cash).toBe(before.cash + 38000);
+    expect(sold.city.income).toBe(before.city.income + 38000);
+    expect(sold.inventory.peachTea).toBe(before.inventory.peachTea - 2);
+    expect(sold.city.energy).toBe(before.city.energy - 6);
+    expect(sold.fans).toBe(before.fans + 2);
+    expect(sold.relationshipRewardIds).toContain('school.day12.sell');
+    expect(cityAction(sold, { type: 'school', choice: 'gift' }, CITY_PLACES.school)).toBe(sold);
+    expect(cityContracts(nextDay(sold)).find(contract => contract.destination === 'school')?.reward).toBe(88000);
+  });
+
+  it('offers a no-stock fallback and enforces day, shift, location, freshness, time and energy', () => {
+    const before = dayTwelve();
+    const gift = { type: 'school' as const, choice: 'gift' as const };
+    const firstDay = createInitialState();
+    expect(cityAction(firstDay, gift, CITY_PLACES.school)).toBe(firstDay);
+    expect(cityAction(before, gift, CITY_PLACES.shop).relationshipRewardIds).toEqual(before.relationshipRewardIds);
+    expect(cityAction({ ...before, phase: 'open' }, gift, CITY_PLACES.school).relationshipRewardIds).toEqual(before.relationshipRewardIds);
+    const empty = { ...before, inventory: { ...before.inventory, peachTea: 0 } };
+    expect(cityAction(empty, gift, CITY_PLACES.school).relationshipRewardIds).toEqual(empty.relationshipRewardIds);
+    const stale = { ...before, freshness: { ...before.freshness, peachTea: 0 } };
+    expect(cityAction(stale, gift, CITY_PLACES.school).inventory).toEqual(stale.inventory);
+    const tired = { ...before, city: { ...before.city, energy: 9 } };
+    expect(cityAction(tired, gift, CITY_PLACES.school).relationshipRewardIds).toEqual(before.relationshipRewardIds);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.school.hours[1] - 10 } };
+    expect(cityAction(late, gift, CITY_PLACES.school).relationshipRewardIds).toEqual(before.relationshipRewardIds);
+    const postponed = cityAction(empty, { type: 'school', choice: 'reschedule' }, CITY_PLACES.school);
+    expect(postponed.inventory).toEqual(empty.inventory);
+    expect(postponed.cash).toBe(empty.cash);
+    expect(postponed.relationshipRewardIds).toContain('school.day12.reschedule');
+    expect(cityAction(postponed, gift, CITY_PLACES.school)).toBe(postponed);
+    expect(cityContracts(nextDay(postponed)).find(contract => contract.destination === 'school')?.reward).toBe(82000);
+  });
+});
