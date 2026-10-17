@@ -58,10 +58,10 @@ export function CustomerScene({ game, onGame }: {
       {brokenPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Giữ lời với khách quen">
         <p>Khách còn nhớ lời hứa chưa được giữ ở ngày {brokenPromise.day}. Bạn có thể nhận lỗi trước khi pha ly mới.</p>
         {hasApologizedForBrokenPromise(game)
-          ? <p role="status" aria-live="polite">✓ Đã xin lỗi vì thất hứa. Hãy giao đúng ly hôm nay để lấy lại lòng tin.</p>
+          ? <p role="status" aria-live="polite">✓ Đã xin lỗi vì thất hứa. Lòng tin chỉ phục hồi sau khi giao đúng ly hôm nay.</p>
           : <button type="button" disabled={!canApologizeForBrokenPromise(game)}
               onClick={() => onGame(current => apologizeForBrokenPromise(current))}>
-              Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · +1 thân thiết
+              Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · cần giao đúng để lấy lại tin tưởng
             </button>}
       </div>}
       {keptPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Hỏi thăm sau khi giữ lời">

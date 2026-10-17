@@ -146,7 +146,7 @@ export function canApologizeForBrokenPromise(game: GameState): boolean {
     game.city.energy >= 1 && game.city.minutes + 2 <= 1260);
 }
 
-/** Voluntary, one-time trust repair; never changes money or today's recipe. */
+/** An apology records accountability; trust returns only after a correct real delivery. */
 export function apologizeForBrokenPromise(game: GameState): GameState {
   if (!canApologizeForBrokenPromise(game)) return game;
   const broken = getBrokenRememberedPromise(game)!;
@@ -157,10 +157,6 @@ export function apologizeForBrokenPromise(game: GameState): GameState {
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, id],
-    customerBond: {
-      ...game.customerBond,
-      [customerId]: (game.customerBond[customerId] ?? 0) + 1,
-    },
     storyLog: [{
       id, customerId, customerName: broken.customerName,
       title: 'Xin lỗi vì thất hứa', text, day: game.day, rewardFans: 0,
@@ -169,7 +165,6 @@ export function apologizeForBrokenPromise(game: GameState): GameState {
       ...game.city,
       minutes: game.city.minutes + 2,
       energy: game.city.energy - 1,
-      goodwill: game.city.goodwill + 1,
       journal: ['Ngày ' + game.day + ' · Xin lỗi khách vì lời hứa chưa giữ được.', ...game.city.journal].slice(0, 24),
     },
     notice: text,

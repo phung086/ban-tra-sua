@@ -41,7 +41,13 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
   // A correct cup is not proof that the promised quality check happened.
   const skippedCheck = promised && !checked && !correction;
-  const promiseDelta = promised ? (correction ? -1 : checked ? 1 : 0) : 0;
+  // Saying sorry alone cannot restore trust. A later correct *delivered* cup can.
+  // If the player makes another explicit check promise, that promise must be kept.
+  const recoveredAfterApology = previousComplaint && apologized && !correction &&
+    (!promised || checked);
+  const promiseDelta = promised
+    ? (correction ? -1 : checked ? 1 : 0)
+    : recoveredAfterApology ? 1 : 0;
   const response = message + (apologized && correction
     ? ' Mình đã nghe lời xin lỗi, nhưng ly vẫn chưa đúng.'
     : '') + (promised

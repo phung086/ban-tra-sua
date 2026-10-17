@@ -73,7 +73,7 @@ const render = (game: GameState) =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe('NPC remembers a broken promise and allows a one-time apology', () => {
-  it('repairs trust at the real counter, persists once, and changes the next delivery dialogue', () => {
+  it('records an apology and restores trust only after a correct delivery', () => {
     const returned = brokenPromise();
     expect(getBrokenRememberedPromise(returned)?.day).toBe(3);
     expect(canApologizeForBrokenPromise(returned)).toBe(false);
@@ -83,8 +83,8 @@ describe('NPC remembers a broken promise and allows a one-time apology', () => {
     const repaired = apologizeForBrokenPromise(greeted);
     expect(repaired.city.minutes).toBe(greeted.city.minutes + 2);
     expect(repaired.city.energy).toBe(greeted.city.energy - 1);
-    expect(repaired.city.goodwill).toBe(greeted.city.goodwill + 1);
-    expect(repaired.customerBond.miu).toBe((greeted.customerBond.miu ?? 0) + 1);
+    expect(repaired.city.goodwill).toBe(greeted.city.goodwill);
+    expect(repaired.customerBond.miu).toBe(greeted.customerBond.miu);
     expect(repaired.cash).toBe(greeted.cash);
     expect(repaired.currentOrder).toEqual(greeted.currentOrder);
     expect(hasApologizedForBrokenPromise(repaired)).toBe(true);
@@ -102,7 +102,11 @@ describe('NPC remembers a broken promise and allows a one-time apology', () => {
     expect(restored.relationshipRewardIds.filter(id => id === 'remembered-apology:promise-broken-day-3')).toHaveLength(1);
     expect(restored.storyLog.filter(moment => moment.id === 'remembered-apology:promise-broken-day-3')).toHaveLength(1);
     expect(apologizeForBrokenPromise(restored)).toBe(restored);
+    const baseline = deliver(prepared(greeted, true));
     const served = deliver(prepared(restored, true));
+    expect(served.customerBond.miu).toBe((baseline.customerBond.miu ?? 0) + 1);
+    expect(served.city.goodwill).toBe(baseline.city.goodwill + 1);
+    expect(served.cash).toBe(baseline.cash);
     expect(served.storyLog[0].title).toBe('Khách quen hài lòng');
     expect(served.storyLog[0].text).toContain('Cảm ơn tiệm đã xin lỗi');
     expect(getBrokenRememberedPromise(nextDay(served))).toBeNull();
@@ -125,7 +129,10 @@ describe('NPC remembers a broken promise and allows a one-time apology', () => {
 
   it('keeps the complaint open if the next tea is still wrong', () => {
     const greeted = greetRememberedCustomer(brokenPromise());
+    const baseline = deliver(prepared(greeted, false));
     const wrong = deliver(prepared(apologizeForBrokenPromise(greeted), false));
+    expect(wrong.customerBond.miu).toBe(baseline.customerBond.miu);
+    expect(wrong.city.goodwill).toBe(baseline.city.goodwill);
     expect(wrong.storyLog[0].title).toBe('Khách quen góp ý thêm');
     expect(wrong.storyLog[0].text).toContain('Mình đã nghe lời xin lỗi, nhưng ly vẫn chưa đúng');
     expect(wrong.cash).toBeGreaterThanOrEqual(0);
