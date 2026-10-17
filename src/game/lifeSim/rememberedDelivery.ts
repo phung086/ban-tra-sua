@@ -1,5 +1,5 @@
 import type { GameState, Order } from '../types';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
@@ -32,16 +32,21 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
   const promised = hasPromisedRememberedCorrection(before);
+  const apologized = hasApologizedForBrokenPromise(before);
   const message = correction
     ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
-      ? name + (asked
+      ? name + (apologized
+        ? ': “Cảm ơn tiệm đã xin lỗi. Hôm nay ly đúng đơn rồi, mình yên tâm hơn.”'
+        : asked
         ? ': “Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!”'
         : ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”')
       : asked ? name + ': “Cảm ơn tiệm đã hỏi kỹ góp ý cũ. Ly hôm nay vừa miệng mình!”'
       : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
-  const response = message + (promised
+  const response = message + (apologized && correction
+    ? ' Mình đã nghe lời xin lỗi, nhưng ly vẫn chưa đúng.'
+    : '') + (promised
     ? (correction
       ? ' Tiệm đã hứa kiểm tra kỹ nhưng vẫn làm sai; mình thất vọng.'
       : ' Tiệm đã giữ lời kiểm tra kỹ. Lần sau mình sẽ yên tâm hơn.')

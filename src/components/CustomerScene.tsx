@@ -10,6 +10,8 @@ import {
   canAskRememberedCustomerAboutComplaint, askRememberedCustomerAboutComplaint,
   hasAskedRememberedCustomerAboutComplaint,
   canPromiseRememberedCorrection, promiseRememberedCorrection, hasPromisedRememberedCorrection,
+  getBrokenRememberedPromise, canApologizeForBrokenPromise,
+  apologizeForBrokenPromise, hasApologizedForBrokenPromise,
 } from "../game/lifeSim/rememberedCustomer";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
@@ -34,6 +36,7 @@ export function CustomerScene({ game, onGame }: {
   const savedReview = remembered ? getLatestRememberedReview(game, order.customerId) : null;
   const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
+  const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
   return <div className="customer-service">
     <div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
@@ -46,6 +49,15 @@ export function CustomerScene({ game, onGame }: {
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
       </p>}
+      {brokenPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Giữ lời với khách quen">
+        <p>Khách còn nhớ lời hứa chưa được giữ ở ngày {brokenPromise.day}. Bạn có thể nhận lỗi trước khi pha ly mới.</p>
+        {hasApologizedForBrokenPromise(game)
+          ? <p role="status" aria-live="polite">✓ Đã xin lỗi vì thất hứa. Hãy giao đúng ly hôm nay để lấy lại lòng tin.</p>
+          : <button type="button" disabled={!canApologizeForBrokenPromise(game)}
+              onClick={() => onGame(current => apologizeForBrokenPromise(current))}>
+              Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · +1 thân thiết
+            </button>}
+      </div>}
       {clarificationSource && greetingChoice === 'greet' && <div className="life-remembered-reply">
         {askedAboutComplaint ? <p role="status">✓ Đã hỏi kỹ góp ý cũ; hãy pha đúng đơn để khách thấy sự thay đổi.</p> :
           <button type="button" disabled={!canAskRememberedCustomerAboutComplaint(game)}

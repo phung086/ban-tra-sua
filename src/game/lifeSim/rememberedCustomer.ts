@@ -119,6 +119,62 @@ export function getUnresolvedRememberedComplaint(game: GameState): GameState['st
   return latest?.title === 'Khách quen góp ý thêm' ? latest : null;
 }
 
+/** A broken promise is linked to the previous delivery, not a translated dialogue string. */
+export function getBrokenRememberedPromise(game: GameState): GameState['storyLog'][number] | null {
+  const complaint = getUnresolvedRememberedComplaint(game);
+  if (!complaint) return null;
+  const previousOrderId = complaint.id.slice('remembered-service:'.length);
+  return game.relationshipRewardIds.includes('remembered-promise:' + previousOrderId) ? complaint : null;
+}
+
+function apologyId(game: GameState): string | null {
+  const broken = getBrokenRememberedPromise(game);
+  return broken ? 'remembered-apology:' + broken.id.slice('remembered-service:'.length) : null;
+}
+
+export function hasApologizedForBrokenPromise(game: GameState): boolean {
+  const id = apologyId(game);
+  return id !== null && game.relationshipRewardIds.includes(id);
+}
+
+export function canApologizeForBrokenPromise(game: GameState): boolean {
+  return Boolean(game.phase === 'open' && game.currentOrder &&
+    getRememberedGreetingChoice(game) === 'greet' &&
+    getBrokenRememberedPromise(game) &&
+    !hasApologizedForBrokenPromise(game) &&
+    game.city.energy >= 1 && game.city.minutes + 2 <= 1260);
+}
+
+/** Voluntary, one-time trust repair; never changes money or today's recipe. */
+export function apologizeForBrokenPromise(game: GameState): GameState {
+  if (!canApologizeForBrokenPromise(game)) return game;
+  const broken = getBrokenRememberedPromise(game)!;
+  const id = apologyId(game)!;
+  const customerId = game.currentOrder!.customerId;
+  const text = 'Bạn xin lỗi vì đã hứa kiểm tra ly trà nhưng giao sai. ' +
+    broken.customerName + ': “Mình ghi nhận lời xin lỗi. Mong ly hôm nay đúng đơn nhé.”';
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, id],
+    customerBond: {
+      ...game.customerBond,
+      [customerId]: (game.customerBond[customerId] ?? 0) + 1,
+    },
+    storyLog: [{
+      id, customerId, customerName: broken.customerName,
+      title: 'Xin lỗi vì thất hứa', text, day: game.day, rewardFans: 0,
+    }, ...game.storyLog].slice(0, 24),
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 2,
+      energy: game.city.energy - 1,
+      goodwill: game.city.goodwill + 1,
+      journal: ['Ngày ' + game.day + ' · Xin lỗi khách vì lời hứa chưa giữ được.', ...game.city.journal].slice(0, 24),
+    },
+    notice: text,
+  };
+}
+
 /** First return: ask about a consented review; later visits: use the latest real delivery.
  * A satisfied delivery closes the issue, so an older review cannot reopen it.
  */
