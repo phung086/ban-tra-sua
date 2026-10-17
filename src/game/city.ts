@@ -42,7 +42,9 @@ const DAY10_FULL_ID = 'market.day10.full';
 const DAY11_HELP_ID = 'market.day11.help';
 const DAY11_HURRY_ID = 'market.day11.hurry';
 const DAY12_SCHOOL_PREFIX = 'school.day12.';
+const DAY13_FAIR_PREFIX = 'school.day13.';
 export type SchoolChoice = 'gift' | 'sell' | 'reschedule';
+export type SchoolFairChoice = 'paint' | 'share';
 
 /** Day 10 price shock with two real stock/cash outcomes. A full basket
  * earns one next-day supplier discount, persisted in the existing v3 ledger.
@@ -99,8 +101,10 @@ export function cityWeather(day: number) {
 export function cityContracts(state: GameState): TeaContract[] {
   const lanReferral = state.day === 13 && state.relationshipRewardIds.includes('school.day12.gift')
     ? 12000 : state.day === 13 && state.relationshipRewardIds.includes('school.day12.sell') ? 6000 : 0;
+  const fairReferral = state.day === 14 && state.relationshipRewardIds.includes('school.day13.paint')
+    ? 8000 : state.day === 14 && state.relationshipRewardIds.includes('school.day13.share') ? 3000 : 0;
   return [
-    { id: `${state.day}-school`, destination: 'school', base: 'peach-tea', sugar: 50, count: 3, reward: 82000 + lanReferral, deadline: 120, packed: false },
+    { id: `${state.day}-school`, destination: 'school', base: 'peach-tea', sugar: 50, count: 3, reward: 82000 + lanReferral + fairReferral, deadline: 120, packed: false },
     { id: `${state.day}-apartments`, destination: 'apartments', base: 'classic-milk-tea', sugar: 75, count: 4, reward: 108000, deadline: 150, packed: false },
     { id: `${state.day}-library`, destination: 'library', base: 'oolong-milk-tea', sugar: 25, count: 3, reward: 96000, deadline: 150, packed: false },
   ].filter(c => state.unlockedBaseIds.includes(c.base as BaseId)) as TeaContract[];
@@ -111,7 +115,7 @@ export type CityAction =
   | { type: 'pack'; base: BaseId; sugar: number; timing: number }
   | { type: 'deliver' } | { type: 'cancel' }
   | { type: 'market'; basket?: MarketBasket } | { type: 'supplier'; choice: 'help' | 'hurry' }
-  | { type: 'school'; choice: SchoolChoice } | { type: 'talk'; place: CityPlace }
+  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'talk'; place: CityPlace }
   | { type: 'garden' } | { type: 'rest'; place?:CityPlace }
   | { type: 'bus' }
   | { type: 'project'; id: CityProject };
@@ -135,7 +139,7 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
     return result(state, { ...city, contract: { ...contract, deadline: city.minutes + contract.deadline } }, 'Đã nhận đơn. Về quầy pha đúng trà, đường và đóng túi.');
   }
   if (action.type === 'cancel') return result(state, { ...city, contract: null }, 'Đã hủy chuyến. Nguyên liệu đã pha không hoàn lại.');
-  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : action.type === 'school' ? 'school' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
+  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
   if (!nearCityPlace(position, place)) return { ...state, notice: `Đi đến ${CITY_PLACES[place].name} để thực hiện.` };
   if (city.minutes < CITY_PLACES[place].hours[0] || city.minutes > CITY_PLACES[place].hours[1]) return { ...state, notice: 'Địa điểm đã đóng cửa. Quay lại vào ngày mai.' };
   if (action.type === 'bus') {
@@ -205,6 +209,27 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
       inventory, cash: state.cash + revenue, fans: state.fans + fans,
       relationshipRewardIds: [...state.relationshipRewardIds, `${DAY12_SCHOOL_PREFIX}${action.choice}`],
     });
+  }
+  if (action.type === 'schoolFair') {
+    // QG-09: Lan's Day-13 class-fair sign. A modest cash/time tradeoff
+    // changes only Day-14 school demand; the existing v3 ledger prevents replay.
+    if (state.day !== 13 || state.relationshipRewardIds.some(id => id.startsWith(DAY13_FAIR_PREFIX))) return state;
+    if (city.contract) return { ...state, notice: 'Hoàn tất chuyến giao đang nhận rồi hãy giúp Lan.' };
+    const paint = action.choice === 'paint';
+    const minutes = paint ? 20 : 5;
+    const energy = paint ? 12 : 2;
+    const cost = paint ? 8000 : 0;
+    if (city.energy < energy || city.minutes + minutes > Math.min(1260, CITY_PLACES.school.hours[1]) || state.cash < cost) {
+      return { ...state, notice: 'Chưa đủ thời gian, sức hoặc tiền mua màu vẽ. Có thể chia sẻ thực đơn thay vì vẽ bảng.' };
+    }
+    return result(state, {
+      ...city, minutes: city.minutes + minutes, energy: city.energy - energy,
+      goodwill: city.goodwill + (paint ? 4 : 1),
+    }, paint
+      ? 'Bạn ở lại vẽ bảng cho hội chợ lớp Lan, mua màu 8.000 ₫. Thêm 4 thiện cảm và 2 fan; ngày 14 nhóm đặt trà nhiều hơn.'
+      : 'Bạn đưa Lan thực đơn của tiệm để nhóm tự chia sẻ. Thêm 1 thiện cảm và 1 fan; ngày 14 có đơn nhỏ hơn.',
+    { cash: state.cash - cost, fans: state.fans + (paint ? 2 : 1),
+      relationshipRewardIds: [...state.relationshipRewardIds, `${DAY13_FAIR_PREFIX}${action.choice}`] });
   }
   if (city.energy < 8) return { ...state, notice: 'Bạn mệt rồi. Ghé hồ nghỉ chân để hồi sức.' };
   if (action.type === 'pack') {
