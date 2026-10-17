@@ -140,8 +140,14 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(hasRepeatedRememberedComplaint(later)).toBe(true);
     expect(canOfferRememberedSample(greetRememberedCustomer(later))).toBe(false);
 
-    const recovered = returning([
+    // One bad cup followed by a good cup never enters the guarded state.
+    const singleComplaint = returning([
       'Khách quen hài lòng', 'Khách quen góp ý thêm',
+    ]);
+    expect(getRememberedTrustStage(singleComplaint)).toBe('open');
+    // Two bad cups followed by one good cup remain in recovery.
+    const recovered = returning([
+      'Khách quen hài lòng', 'Khách quen góp ý thêm', 'Khách quen góp ý thêm',
     ]);
     expect(hasRepeatedRememberedComplaint(recovered)).toBe(false);
     expect(getRememberedTrustStage(recovered)).toBe('recovering');

@@ -116,8 +116,8 @@ try {
         fullPage: true, animations: 'disabled' });
       report.passed.push(`${width}x${height}: sample → cost → reload → real delivery → trust`);
 
-      // A second real scenario: two consecutive bad deliveries change the NPC's
-      // available choices. A correct delivery must close the distrust after reload.
+      // A second real scenario: two consecutive bad deliveries change NPC choices.
+      // Recovery takes TWO actual correct deliveries on successive visits, not a greeting.
       const repeatedFixture = {
         ...fixture, day: 5, city: { ...fixture.city, day: 5 },
         morning: { ...fixture.morning, day: 5,
@@ -179,17 +179,94 @@ try {
       if (repeatDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
           !repeatDelivered.storyLog[0]?.text.includes('Hai lần trước ly đều sai') ||
           (repeatDelivered.customerBond.miu ?? 0) <= (guardedAsked.customerBond.miu ?? 0))
-        throw new Error('Correct delivery did not resolve repeated complaints');
+        throw new Error('First correct delivery did not begin recovery');
       await page.reload({ waitUntil: 'domcontentloaded' });
       const repeatSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (repeatSaved.storyLog[0]?.id !== 'remembered-service:sample-repeat-day5' ||
           repeatSaved.relationshipRewardIds.filter(id =>
             id === 'remembered-service:sample-repeat-day5').length !== 1)
         throw new Error('Repeat-complaint resolution did not survive reload');
-      if (errors.length) throw new Error('Console: ' + errors.join(' | '));
-      await page.screenshot({ path: `${output}/repeated-resolved-${width}x${height}.png`,
+      await page.screenshot({ path: `${output}/repeated-first-correct-${width}x${height}.png`,
         fullPage: true, animations: 'disabled' });
-      report.passed.push(`${width}x${height}: two wrong cups → refuses empty promises → correct delivery → reload`);
+
+      // The day transition is a deterministic saved-state fixture, NOT a UI sleep test.
+      // Each drink, greeting, and delivery below is performed through the actual UI.
+      const nextVisit = (saved, day, id) => ({
+        ...saved, day, phase: 'open', served: 0, targetOrders: 1,
+        city: { ...saved.city, day, minutes: 850, energy: 50 },
+        morning: { ...saved.morning, day, step: 'finished',
+          plan: { ...saved.morning.plan, day } },
+        currentOrder: { ...repeatedFixture.currentOrder, id },
+        currentOrderQueuedAt: Date.now(), customerQueue: [],
+        draft: { ...repeatedFixture.draft, sealed: false },
+      });
+      const nextDay = async (saved, day, id) => {
+        const value = nextVisit(saved, day, id);
+        await page.addInitScript(({ key, value, day }) => {
+          if (sessionStorage.getItem('sample-day-' + day)) return;
+          localStorage.setItem(key, JSON.stringify(value));
+          sessionStorage.setItem('sample-day-' + day, '1');
+        }, { key: KEY, value, day });
+        await page.reload({ waitUntil: 'domcontentloaded' });
+      };
+
+      await nextDay(repeatSaved, 6, 'sample-repeat-day6');
+      await page.getByText(/Khách ghi nhận ly đúng đầu tiên/).waitFor();
+      if (await page.locator('.customer-heading').getAttribute('data-trust') !== 'recovering')
+        throw new Error('First correct cup prematurely unlocked trust');
+      const recoveringBefore = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      await page.getByRole('button', { name: /Chào khách quen.*chưa tăng thân thiết/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-greeting:sample-repeat-day6'), KEY);
+      const recoveringGreet = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (recoveringGreet.city.goodwill !== recoveringBefore.city.goodwill ||
+          (recoveringGreet.customerBond.miu ?? 0) !== (recoveringBefore.customerBond.miu ?? 0))
+        throw new Error('Recovery greeting gave unearned trust');
+      if (await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).count())
+        throw new Error('Recovery prematurely unlocked sample offer');
+      await page.screenshot({ path: `${output}/recovering-day6-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled' });
+      await page.locator('.craft-stations button').nth(3).click();
+      await page.locator('.seal-button').click();
+      await page.locator('.serve-button').click();
+      await page.locator('.place-buttons button.destination').click();
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      await page.locator('.delivery-tag button.primary-button').click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-service:sample-repeat-day6'), KEY);
+      const secondDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (secondDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
+          !secondDelivered.storyLog[0]?.text.includes('Ly thứ hai đúng rồi'))
+        throw new Error('Second correct delivery failed to rebuild NPC trust');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const secondSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (secondSaved.relationshipRewardIds.filter(id =>
+            id === 'remembered-service:sample-repeat-day6').length !== 1 ||
+          secondSaved.customerBond.miu !== secondDelivered.customerBond.miu)
+        throw new Error('Second delivery was lost or duplicated after reload');
+      await nextDay(secondSaved, 7, 'sample-repeat-day7');
+      if (await page.locator('.customer-heading').getAttribute('data-trust') !== 'open')
+        throw new Error('Two correct deliveries failed to reopen trust');
+      const reopenedBefore = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      await page.getByRole('button', { name: /Chào khách quen.*\\+1 thân thiết/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-greeting:sample-repeat-day7'), KEY);
+      const reopened = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (reopened.city.goodwill !== reopenedBefore.city.goodwill + 1 ||
+          (reopened.customerBond.miu ?? 0) !== (reopenedBefore.customerBond.miu ?? 0) + 1)
+        throw new Error('Reopened trust did not restore ordinary greeting reward');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const reopenedSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (reopenedSaved.city.goodwill !== reopened.city.goodwill ||
+          reopenedSaved.relationshipRewardIds.filter(id =>
+            id === 'remembered-greeting:sample-repeat-day7').length !== 1)
+        throw new Error('Reopened greeting duplicated or vanished after reload');
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
+        throw new Error('Horizontal overflow during trust recovery');
+      if (errors.length) throw new Error('Console: ' + errors.join(' | '));
+      await page.screenshot({ path: `${output}/reopened-day7-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled' });
+      report.passed.push(`${width}x${height}: two wrong cups → two real correct deliveries → trust reopens → reload (fixture day changes)`);
     } catch (e) {
       report.errors.push(`${width}x${height}: ${String(e.stack || e)}`);
       await page.screenshot({ path: `${output}/FAIL-${width}x${height}.png`,
