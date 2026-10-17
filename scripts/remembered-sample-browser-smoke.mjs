@@ -1,0 +1,113 @@
+// Browser E2E: voluntary sample costs cash immediately; trust follows real delivery only.
+import { mkdir, writeFile } from 'node:fs/promises';
+import { chromium } from 'playwright';
+
+const KEY = 'tiem-tra-chibi-save-v3';
+const url = process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193';
+const output = 'artifacts/remembered-sample';
+await mkdir(output, { recursive: true });
+const report = { passed: [], errors: [], environment: 'Chromium SwiftShader; not physical devices' };
+const browser = await chromium.launch({ headless: true, args: [
+  '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+] });
+try {
+  for (const [width, height] of [[390, 844], [1280, 800]]) {
+    const page = await browser.newPage({ viewport: { width, height },
+      isMobile: width < 1000, hasTouch: width < 1000 });
+    page.setDefaultTimeout(90000);
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    try {
+      await page.addInitScript(() => localStorage.setItem('tiem-tra-chibi-ui-v1',
+        JSON.stringify({ renderEngine: 'three', graphics: 'light',
+          coachCompleted: true, motion: false, sound: false, music: false })));
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(key => Boolean(localStorage.getItem(key)), KEY);
+      const fixture = await page.evaluate(key => {
+        const s = JSON.parse(localStorage.getItem(key));
+        s.day = 4; s.city.day = 4; s.city.minutes = 850; s.city.energy = 50;
+        s.phase = 'open'; s.targetOrders = 1; s.cash = 210000;
+        s.morning.day = 4; s.morning.plan.day = 4; s.morning.step = 'finished';
+        s.reviews = [{ id: 'sample-e2e-review', customerId: 'miu',
+          customerName: 'Miu', day: 1, stars: 2, score: 45,
+          text: 'Topping chưa đúng đơn', replyStyle: 'sweet', replyText: 'Xin lỗi nhé' }];
+        s.relationshipRewardIds = [
+          'review-care:sample-e2e-review:1:message',
+          'review-followup:sample-e2e-review:remember',
+          'remembered-service:sample-e2e-prior',
+        ];
+        s.storyLog = [{ id: 'remembered-service:sample-e2e-prior',
+          customerId: 'miu', customerName: 'Miu', title: 'Khách quen góp ý thêm',
+          text: 'Miu: Topping chưa đúng đơn.', day: 3, rewardFans: 0 }];
+        s.currentOrder = { id: 'sample-e2e-day4', customerId: 'miu',
+          size: 'M', base: 'classic-milk-tea', sugar: 25, ice: 50,
+          topping: 'none', targetFill: 80, targetShake: 60, price: 20000 };
+        s.draft = { ...s.draft, base: 'classic-milk-tea', size: 'M',
+          topping: 'none', sugar: 25, ice: 50, fill: 80, shake: 60, sealed: false };
+        s.currentOrderQueuedAt = Date.now(); s.customerQueue = [];
+        return s;
+      }, KEY);
+      await page.addInitScript(({ key, fixture }) => {
+        if (sessionStorage.getItem('sample-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(fixture));
+        sessionStorage.setItem('sample-seeded', '1');
+      }, { key: KEY, fixture });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: /Chào khách quen/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-greeting:sample-e2e-day4'), KEY);
+      const before = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-sample:sample-e2e-day4'), KEY);
+      const offered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (offered.cash !== before.cash - 3000 ||
+          offered.city.minutes !== before.city.minutes + 3 ||
+          offered.city.energy !== before.city.energy - 1 ||
+          offered.city.goodwill !== before.city.goodwill ||
+          offered.customerBond.miu !== before.customerBond.miu)
+        throw new Error('Sample cost or premature reward incorrect');
+      await page.screenshot({ path: `${output}/offered-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled' });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByText(/Đã mời thử trà mẫu/).waitFor();
+      if (await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).count())
+        throw new Error('Sample repeat after reload');
+      await page.locator('.craft-stations button').nth(3).click();
+      await page.locator('.seal-button').click();
+      await page.locator('.serve-button').click();
+      await page.locator('.place-buttons button.destination').click();
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      await page.locator('.delivery-tag button.primary-button').click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-service:sample-e2e-day4'), KEY);
+      const delivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (delivered.city.goodwill !== offered.city.goodwill + 1 ||
+          delivered.customerBond.miu !== offered.customerBond.miu + 1 ||
+          delivered.cash < offered.cash)
+        throw new Error('Real delivery failed to earn trust');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (saved.city.goodwill !== delivered.city.goodwill ||
+          saved.customerBond.miu !== delivered.customerBond.miu ||
+          saved.cash !== delivered.cash)
+        throw new Error('Reload lost trust or cash');
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
+        throw new Error('Horizontal overflow');
+      if (errors.length) throw new Error('Console: ' + errors.join(' | '));
+      await page.screenshot({ path: `${output}/delivered-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled' });
+      report.passed.push(`${width}x${height}: sample → cost → reload → real delivery → trust`);
+    } catch (e) {
+      report.errors.push(`${width}x${height}: ${String(e.stack || e)}`);
+      await page.screenshot({ path: `${output}/FAIL-${width}x${height}.png`,
+        fullPage: true }).catch(() => {});
+    } finally { await page.close(); }
+  }
+} finally {
+  await writeFile(`${output}/results.json`, JSON.stringify(report, null, 2));
+  await browser.close();
+}
+console.log('REMEMBERED_SAMPLE_BROWSER_REPORT ' + JSON.stringify(report));
+if (report.errors.length) process.exitCode = 1;
