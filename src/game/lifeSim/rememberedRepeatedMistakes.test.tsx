@@ -48,10 +48,19 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('NPC remembers repeated incorrect cups across days', () => {
   it('refuses another sample or empty promise after two bad deliveries, but permits a real sale', () => {
-    const greeted = greetRememberedCustomer(returning([
+    const initial = returning([
       'Khách quen góp ý thêm', 'Khách quen góp ý thêm',
-    ]));
+    ]);
+    expect(render(initial)).toContain('Chào khách quen · 2 phút · 1 năng lượng · chưa tăng thân thiết');
+    const greeted = greetRememberedCustomer(initial);
     expect(hasRepeatedRememberedComplaint(greeted)).toBe(true);
+    expect(greeted.customerBond).toEqual(initial.customerBond);
+    expect(greeted.city.goodwill).toBe(initial.city.goodwill);
+    expect(greeted.city.minutes).toBe(initial.city.minutes + 2);
+    expect(greeted.city.energy).toBe(initial.city.energy - 1);
+    expect(greetRememberedCustomer(greeted)).toBe(greeted);
+    expect(render(greeted)).toContain('Cần giao đúng để lấy lại lòng tin');
+    expect(render(greeted)).toContain('Hỏi kỹ lỗi lần trước · 3 phút · 1 năng lượng · chưa tăng thân thiết');
     expect(canOfferRememberedSample(greeted)).toBe(false);
     expect(render(greeted)).toContain('hai ly sai liên tiếp');
     expect(render(greeted)).toContain('Khách còn dè chừng');
@@ -59,6 +68,11 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(render(greeted)).toContain('data-trust="guarded"');
     expect(render(greeted)).not.toContain('Mời khách thử trà mẫu · 3.000đ');
     const asked = askRememberedCustomerAboutComplaint(greeted);
+    expect(asked.customerBond).toEqual(initial.customerBond);
+    expect(asked.city.goodwill).toBe(initial.city.goodwill);
+    expect(asked.city.minutes).toBe(greeted.city.minutes + 3);
+    expect(asked.city.energy).toBe(greeted.city.energy - 1);
+    expect(askRememberedCustomerAboutComplaint(asked)).toBe(asked);
     expect(canPromiseRememberedCorrection(asked)).toBe(false);
     expect(render(asked)).toContain('chưa muốn nghe lời hứa kiểm tra mới');
     const beforeCash = asked.cash;
@@ -76,6 +90,12 @@ describe('NPC remembers repeated incorrect cups across days', () => {
       setItem: (key: string, value: string) => { store.set(key, value); },
       removeItem: (key: string) => { store.delete(key); },
     });
+    saveGame(asked);
+    const guardedReload = loadGame();
+    expect(guardedReload.customerBond).toEqual(initial.customerBond);
+    expect(guardedReload.city.goodwill).toBe(initial.city.goodwill);
+    expect(guardedReload.relationshipRewardIds).toContain('remembered-greeting:repeat-day-five');
+    expect(guardedReload.relationshipRewardIds).toContain('remembered-clarify:repeat-day-five');
     saveGame(corrected);
     const reloaded = loadGame();
     const daySix = { ...reloaded, day: 6, phase: 'open' as const,
@@ -86,6 +106,9 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(render(daySix)).not.toContain('hai ly sai liên tiếp');
     expect(render(daySix)).toContain('yên tâm hơn khi quay lại');
     expect(render(daySix)).toContain('data-trust="reassured"');
+    const nextGreeting = greetRememberedCustomer(daySix);
+    expect(nextGreeting.customerBond.miu).toBe((daySix.customerBond.miu ?? 0) + 1);
+    expect(nextGreeting.city.goodwill).toBe(daySix.city.goodwill + 1);
   });
 
   it('a third incorrect cup keeps the consequence; one satisfied delivery breaks the streak', () => {

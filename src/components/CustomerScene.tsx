@@ -102,7 +102,7 @@ export function CustomerScene({ game, onGame }: {
         {askedAboutComplaint ? <p role="status">✓ Đã hỏi kỹ góp ý cũ; hãy pha đúng đơn để khách thấy sự thay đổi.</p> :
           <button type="button" disabled={!canAskRememberedCustomerAboutComplaint(game)}
             onClick={() => onGame(current => askRememberedCustomerAboutComplaint(current))}>
-            {previousServiceFeedback ? 'Hỏi kỹ lỗi lần trước' : 'Hỏi kỹ góp ý đã lưu'} · 3 phút · 1 năng lượng · +1 thân thiết
+            {previousServiceFeedback ? 'Hỏi kỹ lỗi lần trước' : 'Hỏi kỹ góp ý đã lưu'} · 3 phút · 1 năng lượng · {repeatedMistakes ? 'chưa tăng thân thiết' : '+1 thân thiết'}
           </button>}
         {askedAboutComplaint && <p className="life-remembered-history" role="note">
           Khách nhắc: {clarificationSource.text}
@@ -134,7 +134,7 @@ export function CustomerScene({ game, onGame }: {
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
-          <small>{remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
+          <small>{repeatedMistakes ? '✓ Đã chào khách. Cần giao đúng để lấy lại lòng tin.' : remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
           <p>{repeatedMistakes
             ? '“Mình vẫn nhớ hai ly trước đều sai. Hôm nay cứ làm đúng đơn nhé.”'
             : remembersSugar
@@ -148,7 +148,7 @@ export function CustomerScene({ game, onGame }: {
         <div className="life-review-followup-actions life-remembered-actions">
           <button type="button" disabled={!canGreetRememberedCustomer(game)}
             onClick={() => onGame(current => greetRememberedCustomer(current))}>
-            Chào khách quen · 2 phút · 1 năng lượng · +1 thân thiết
+            Chào khách quen · 2 phút · 1 năng lượng · {repeatedMistakes ? 'chưa tăng thân thiết' : '+1 thân thiết'}
           </button>
           <button type="button" disabled={!canKeepRememberedPreferencePrivate(game)}
             onClick={() => onGame(current => keepRememberedPreferencePrivate(current))}>

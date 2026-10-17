@@ -145,12 +145,25 @@ try {
       }, { key: KEY, value: repeatedFixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.getByText(/Khách còn dè chừng/).waitFor();
-      await page.getByRole('button', { name: /Chào khách quen/ }).click();
+      const guardedBefore = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      await page.getByRole('button', { name: /Chào khách quen.*chưa tăng thân thiết/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-greeting:sample-repeat-day5'), KEY);
+      const guardedGreet = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (guardedGreet.city.goodwill !== guardedBefore.city.goodwill ||
+          (guardedGreet.customerBond.miu ?? 0) !== (guardedBefore.customerBond.miu ?? 0))
+        throw new Error('Guarded greeting awarded trust without a real delivery');
       await page.getByText(/Mình vẫn nhớ hai ly trước đều sai/).waitFor();
       await page.getByText(/hai ly sai liên tiếp/).first().waitFor();
       if (await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).count())
         throw new Error('NPC still accepted samples after two bad deliveries');
-      await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).click();
+      await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước.*chưa tăng thân thiết/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-clarify:sample-repeat-day5'), KEY);
+      const guardedAsked = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (guardedAsked.city.goodwill !== guardedBefore.city.goodwill ||
+          (guardedAsked.customerBond.miu ?? 0) !== (guardedBefore.customerBond.miu ?? 0))
+        throw new Error('Guarded clarification awarded trust without a real delivery');
       await page.getByText(/chưa muốn nghe lời hứa kiểm tra mới/).waitFor();
       if (await page.getByRole('button', { name: /Hứa kiểm tra kỹ/ }).count())
         throw new Error('NPC still accepted a third verbal promise');
@@ -164,7 +177,8 @@ try {
         .relationshipRewardIds?.includes('remembered-service:sample-repeat-day5'), KEY);
       const repeatDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (repeatDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
-          !repeatDelivered.storyLog[0]?.text.includes('Hai lần trước ly đều sai'))
+          !repeatDelivered.storyLog[0]?.text.includes('Hai lần trước ly đều sai') ||
+          (repeatDelivered.customerBond.miu ?? 0) <= (guardedAsked.customerBond.miu ?? 0))
         throw new Error('Correct delivery did not resolve repeated complaints');
       await page.reload({ waitUntil: 'domcontentloaded' });
       const repeatSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);

@@ -79,13 +79,17 @@ export function greetRememberedCustomer(game: GameState): GameState {
   const order = game.currentOrder!;
   const id = greetingId(order.id);
   const sweetness = shouldMentionLowSugar(game, order.customerId, order.sugar);
-  const notice = sweetness
-    ? 'Bạn nhớ khách thích ít ngọt. Hãy pha đúng mức đường khách đặt hôm nay nhé!'
-    : 'Bạn nhớ góp ý trước đây của khách. Hãy pha đúng đơn hôm nay nhé!';
+  // A polite greeting is not enough to repair trust after two wrong cups.
+  const guarded = hasRepeatedRememberedComplaint(game);
+  const notice = guarded
+    ? 'Khách vẫn dè chừng sau hai lần giao sai. Chỉ ly trà giao đúng mới giúp lấy lại lòng tin.'
+    : sweetness
+      ? 'Bạn nhớ khách thích ít ngọt. Hãy pha đúng mức đường khách đặt hôm nay nhé!'
+      : 'Bạn nhớ góp ý trước đây của khách. Hãy pha đúng đơn hôm nay nhé!';
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, id],
-    customerBond: {
+    customerBond: guarded ? game.customerBond : {
       ...game.customerBond,
       [order.customerId]: (game.customerBond[order.customerId] ?? 0) + 1,
     },
@@ -93,7 +97,7 @@ export function greetRememberedCustomer(game: GameState): GameState {
       ...game.city,
       minutes: game.city.minutes + 2,
       energy: game.city.energy - 1,
-      goodwill: game.city.goodwill + 1,
+      goodwill: game.city.goodwill + (guarded ? 0 : 1),
       journal: [`Ngày ${game.day} · ${sweetness ? 'Chào khách quen và nhớ sở thích ít ngọt.' : 'Chào khách quen và ghi nhận góp ý cũ.'}`, ...game.city.journal].slice(0, 24),
     },
     notice,
@@ -284,7 +288,7 @@ export function hasAskedRememberedCustomerAboutComplaint(game: GameState): boole
     game.relationshipRewardIds.includes(clarificationId(game.currentOrder.id)));
 }
 
-/** A voluntary counter conversation: costs time/energy, earns trust, never changes the order. */
+/** A voluntary counter conversation: costs time/energy; distrust needs a real delivery. */
 export function canAskRememberedCustomerAboutComplaint(game: GameState): boolean {
   return Boolean(game.phase === 'open' && game.currentOrder &&
     getRememberedGreetingChoice(game) === 'greet' &&
@@ -297,7 +301,9 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
   if (!canAskRememberedCustomerAboutComplaint(game)) return game;
   const order = game.currentOrder!;
   const complaint = getRememberedClarificationSource(game)!;
-  const notice = 'Bạn hỏi lại để hiểu rõ góp ý: ' + complaint.text;
+  const guarded = hasRepeatedRememberedComplaint(game);
+  const notice = 'Bạn hỏi lại để hiểu rõ góp ý: ' + complaint.text +
+    (guarded ? ' Khách vẫn chờ một ly giao đúng trước khi tin tưởng trở lại.' : '');
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, clarificationId(order.id)],
@@ -310,7 +316,7 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
       day: game.day,
       rewardFans: 0,
     }, ...game.storyLog].slice(0, 24),
-    customerBond: {
+    customerBond: guarded ? game.customerBond : {
       ...game.customerBond,
       [order.customerId]: (game.customerBond[order.customerId] ?? 0) + 1,
     },
@@ -318,7 +324,7 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
       ...game.city,
       minutes: game.city.minutes + 3,
       energy: game.city.energy - 1,
-      goodwill: game.city.goodwill + 1,
+      goodwill: game.city.goodwill + (guarded ? 0 : 1),
       journal: ['Ngày ' + game.day + ' · Đã hỏi thêm về góp ý cũ trước khi pha trà.', ...game.city.journal].slice(0, 24),
     },
     notice,
