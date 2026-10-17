@@ -6,7 +6,7 @@ import { createInitialState } from '../engine';
 import { loadGame, saveGame } from '../storage';
 import { deliverDrink, deliveryFor, PLACES } from '../service';
 import type { GameState, Review } from '../types';
-import { canGreetRememberedCustomer, greetRememberedCustomer, hasRememberedLowSugar } from './rememberedCustomer';
+import { askRememberedCustomerAboutComplaint, canAskRememberedCustomerAboutComplaint, canGreetRememberedCustomer, getLatestRememberedReview, greetRememberedCustomer, hasRememberedLowSugar, shouldMentionLowSugar } from './rememberedCustomer';
 
 const complaint: Review = {
   id: 'return-1', customerId: 'miu', customerName: 'Miu',
@@ -97,6 +97,102 @@ describe('remembered customer at the real tea counter', () => {
     });
     saveGame(later);
     expect(render(loadGame())).toContain('Topping chưa đúng đơn');
+  });
+
+  it('treats tea with too little sugar as a complaint, not a low-sugar preference, after reload', () => {
+    const original = returningCustomer();
+    const state = { ...original, reviews: [{ ...complaint, text: 'Trà ít đường quá' }] };
+    expect(render(state)).toContain('Nhớ góp ý của khách quen');
+    expect(render(state)).not.toContain('Nhớ khách thích ít ngọt');
+    const greeted = greetRememberedCustomer(state);
+    expect(greeted.notice).toContain('Bạn nhớ góp ý trước đây');
+    expect(greeted.currentOrder).toEqual(state.currentOrder);
+    const data = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => { data.set(key, value); },
+      removeItem: (key: string) => { data.delete(key); },
+    });
+    saveGame(greeted);
+    const restored = loadGame();
+    expect(render(restored)).toContain('Nhớ góp ý của khách quen');
+    expect(render(restored)).not.toContain('Nhớ khách thích ít ngọt');
+  });
+
+  it('shows consented feedback on the first return before any new delivery', () => {
+    const original = returningCustomer();
+    const game = { ...original, reviews: [{ ...complaint, text: 'Topping chưa đúng đơn' }] };
+    const html = render(game);
+    expect(html).toContain('Góp ý đã lưu (ngày 1)');
+    expect(html).toContain('Topping chưa đúng đơn');
+    expect(html).not.toContain('Nhớ khách thích ít ngọt');
+    expect(game.currentOrder?.sugar).toBe(25);
+    const greeted = greetRememberedCustomer(game);
+    expect(greeted.city.minutes).toBe(game.city.minutes + 2);
+    expect(greeted.currentOrder).toEqual(game.currentOrder);
+  });
+
+  it('lets a first-return customer clarify saved feedback at the live counter, then reacts to a corrected tea', () => {
+    const original = returningCustomer();
+    const game = { ...original, reviews: [{ ...complaint, text: 'Topping chưa đúng đơn' }] };
+    expect(render(game)).not.toContain('Hỏi kỹ góp ý đã lưu');
+    const greeted = greetRememberedCustomer(game);
+    expect(canAskRememberedCustomerAboutComplaint(greeted)).toBe(true);
+    expect(render(greeted)).toContain('Hỏi kỹ góp ý đã lưu');
+    const asked = askRememberedCustomerAboutComplaint(greeted);
+    expect(render(asked)).toContain('Đã hỏi kỹ góp ý cũ');
+    expect(asked.currentOrder).toEqual(game.currentOrder);
+    const prepared = {
+      ...asked,
+      draft: { ...asked.draft, base: 'classic-milk-tea' as const, size: 'M' as const,
+        topping: 'none' as const, sugar: 25, ice: 50, fill: 80, shake: 60, sealed: true },
+    };
+    const order = prepared.currentOrder!;
+    const delivered = deliverDrink(prepared, true, PLACES[deliveryFor(order)], order.id);
+    expect(delivered.storyLog[0].title).toBe('Khách quen hài lòng');
+    expect(delivered.notice).toContain('Cảm ơn tiệm đã hỏi kỹ góp ý cũ');
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(asked);
+    expect(render(loadGame())).toContain('Đã hỏi kỹ góp ý cũ');
+  });
+
+  it('prioritizes the latest consented review over an older sugar complaint in shuffled saves', () => {
+    const original = returningCustomer();
+    const newer = { ...complaint, id: 'return-2', day: 2, text: 'Topping chưa đúng đơn' };
+    const game: GameState = {
+      ...original, day: 3, city: { ...original.city, day: 3 },
+      reviews: [complaint, newer],
+      relationshipRewardIds: [
+        ...original.relationshipRewardIds,
+        'review-care:return-2:2:message', 'review-followup:return-2:remember',
+      ],
+    };
+    expect(getLatestRememberedReview(game, 'miu')?.id).toBe('return-2');
+    expect(shouldMentionLowSugar(game, 'miu', 25)).toBe(false);
+    expect(render(game)).toContain('Góp ý đã lưu (ngày 2)');
+    expect(render(game)).not.toContain('Nhớ khách thích ít ngọt');
+    expect(getLatestRememberedReview({ ...game, reviews: [newer, complaint] }, 'miu')?.id).toBe('return-2');
+  });
+
+  it('hides unconsented feedback and restores consented first-return note from save', () => {
+    const game = { ...returningCustomer(), reviews: [{ ...complaint, text: 'Topping chưa đúng đơn' }] };
+    const withoutConsent = { ...game, relationshipRewardIds: ['review-care:return-1:1:message'] };
+    expect(getLatestRememberedReview(withoutConsent, 'miu')).toBeNull();
+    expect(render(withoutConsent)).not.toContain('Góp ý đã lưu');
+    expect(render({ ...game, reviews: [{ ...game.reviews[0], day: game.day }] })).not.toContain('Góp ý đã lưu');
+    const data = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => { data.set(key, value); },
+      removeItem: (key: string) => { data.delete(key); },
+    });
+    saveGame(game);
+    expect(render(loadGame())).toContain('Góp ý đã lưu (ngày 1)');
   });
 
   it('survives save/reload and never blocks normal service when tired', () => {
