@@ -10,6 +10,7 @@ import {
   askRememberedCustomerAboutComplaint, canPromiseRememberedCorrection,
   greetRememberedCustomer, keepRememberedPreferencePrivate, hasRepeatedRememberedComplaint, getRememberedTrustStage,
   getRememberedSilentDelivery, getRememberedClarificationSource, getUnresolvedRememberedComplaint,
+  getPreviousRememberedServiceFeedback,
 } from './rememberedCustomer';
 import { canOfferRememberedSample } from './rememberedSample';
 
@@ -281,6 +282,41 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(getRememberedSilentDelivery(reloaded)).toEqual({ day: 5, correct: true });
     expect(render(reloaded)).toContain('Ly đã đúng đơn');
     expect(getRememberedClarificationSource(reloaded)).toBeNull();
+  });
+
+  it('remembers earlier deliveries on the same day and preserves distrust after reload', () => {
+    const first = serve(returning([]), false);
+    const revisit = (previous: GameState, id: string): GameState => ({
+      ...previous, day: 5, phase: 'open',
+      city: { ...previous.city, day: 5, minutes: 850, energy: 50 },
+      currentOrder: { ...returning([]).currentOrder!, id },
+    });
+    const secondVisit = revisit(first, 'same-day-second');
+    expect(getRememberedSilentDelivery(secondVisit)).toEqual({ day: 5, correct: false });
+    expect(getRememberedClarificationSource(secondVisit)?.text).toContain('Ly lần trước chưa đúng đơn');
+    expect(render(secondVisit)).toContain('Lần giao trước (ngày 5)');
+
+    const second = serve(secondVisit, false);
+    const thirdVisit = revisit(second, 'same-day-third');
+    expect(getRememberedTrustStage(thirdVisit)).toBe('guarded');
+    expect(render(thirdVisit)).toContain('data-trust="guarded"');
+    const guardedGreeting = greetRememberedCustomer(thirdVisit);
+    expect(guardedGreeting.customerBond).toEqual(thirdVisit.customerBond);
+    expect(guardedGreeting.city.goodwill).toBe(thirdVisit.city.goodwill);
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(thirdVisit);
+    expect(getRememberedTrustStage(loadGame())).toBe('guarded');
+    expect(getRememberedSilentDelivery(loadGame())).toEqual({ day: 5, correct: false });
+
+    const spoken = serve(greetRememberedCustomer(returning([])), false);
+    const spokenReturn = revisit(spoken, 'same-day-spoken-return');
+    expect(getPreviousRememberedServiceFeedback(spokenReturn)?.title).toBe('Khách quen góp ý thêm');
   });
 
 });

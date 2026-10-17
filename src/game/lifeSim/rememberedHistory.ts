@@ -29,7 +29,7 @@ export function rememberedDeliveryHistory(
     if (parts.length !== 4 || parts[0] !== customerKey || !parts[1] ||
         !/^\d+$/.test(parts[2]) || (parts[3] !== 'good' && parts[3] !== 'bad')) continue;
     const day = Number(parts[2]);
-    if (!Number.isSafeInteger(day) || day < 1 || day >= game.day ||
+    if (!Number.isSafeInteger(day) || day < 1 || day > game.day ||
         marked.has(parts[1])) continue;
     marked.add(parts[1]);
     persisted.push({ day, correct: parts[3] === 'good', orderId: parts[1], source: 1, index });
@@ -40,7 +40,7 @@ export function rememberedDeliveryHistory(
   // storyLog is newest-first; reverse before replaying same-day visits.
   for (const [index, moment] of [...game.storyLog].reverse().entries()) {
     if (moment.customerId !== customerId || !Number.isSafeInteger(moment.day) ||
-        moment.day < 1 || moment.day >= game.day ||
+        moment.day < 1 || moment.day > game.day ||
         !moment.id.startsWith('remembered-service:') ||
         (moment.title !== 'Khách quen góp ý thêm' && moment.title !== 'Khách quen hài lòng')) continue;
     const orderId = moment.id.slice('remembered-service:'.length);

@@ -108,15 +108,15 @@ export function greetRememberedCustomer(game: GameState): GameState {
   };
 }
 
-/** The most recent earlier delivery is the source of truth, not an old review. */
+/** Most recent completed delivery, including an earlier visit today, wins over an old review. */
 export function getPreviousRememberedServiceFeedback(game: GameState): GameState['storyLog'][number] | null {
   const order = game.currentOrder;
   if (!order || !hasRememberedLowSugar(game, order.customerId)) return null;
   // Save migrations and imported journals may not preserve newest-first order.
-  // The latest earlier *day* wins; ties keep the first (newest in normal saves).
+  // The latest completed *day* wins; ties keep the first (newest in normal saves).
   return game.storyLog
     .filter(moment =>
-      moment.customerId === order.customerId && moment.day < game.day &&
+      moment.customerId === order.customerId && moment.day <= game.day &&
       moment.id.startsWith('remembered-service:') &&
       (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng'))
     .reduce<GameState['storyLog'][number] | null>(
