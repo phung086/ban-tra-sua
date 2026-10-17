@@ -8,7 +8,7 @@ import { loadGame, saveGame } from '../storage';
 import type { GameState } from '../types';
 import {
   askRememberedCustomerAboutComplaint, canPromiseRememberedCorrection,
-  greetRememberedCustomer, hasRepeatedRememberedComplaint, getRememberedTrustStage,
+  greetRememberedCustomer, keepRememberedPreferencePrivate, hasRepeatedRememberedComplaint, getRememberedTrustStage,
 } from './rememberedCustomer';
 import { canOfferRememberedSample } from './rememberedSample';
 
@@ -168,6 +168,47 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(canPromiseRememberedCorrection(
       askRememberedCustomerAboutComplaint(single))).toBe(true);
   });
+  it('remembers delivered cups without optional greeting and keeps quiet choice private', () => {
+    const initial = returning([]);
+    expect(render(initial)).toContain('Chào khách quen');
+    const silentBad = serve(initial, false);
+    expect(silentBad.relationshipRewardIds).toContain('remembered-service:repeat-day-five');
+    expect(silentBad.relationshipRewardIds).toContain('remembered-outcome:miu:repeat-day-five:5:bad');
+    expect(silentBad.relationshipRewardIds).not.toContain('remembered-greeting:repeat-day-five');
+    expect(silentBad.storyLog[0].title).toBe('Khách quen góp ý thêm');
+
+    const nextVisit: GameState = {
+      ...silentBad, day: 6, phase: 'open',
+      city: { ...silentBad.city, day: 6, minutes: 850, energy: 50 },
+      currentOrder: { ...initial.currentOrder!, id: 'silent-day-six' },
+    };
+    const quiet = keepRememberedPreferencePrivate(nextVisit);
+    expect(quiet.relationshipRewardIds).toContain('remembered-quiet:silent-day-six');
+    expect(quiet.customerBond).toEqual(nextVisit.customerBond);
+    const secondBad = serve(quiet, false);
+    expect(secondBad.relationshipRewardIds).toContain('remembered-outcome:miu:silent-day-six:6:bad');
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(secondBad);
+    const restored = loadGame();
+    const daySeven: GameState = {
+      ...restored, day: 7, phase: 'open',
+      city: { ...restored.city, day: 7 },
+      storyLog: [],
+      currentOrder: { ...initial.currentOrder!, id: 'silent-day-seven' },
+    };
+    expect(getRememberedTrustStage(daySeven)).toBe('guarded');
+    expect(render(daySeven)).toContain('data-trust="guarded"');
+    expect(render(daySeven)).toContain('hai lần giao sai');
+    expect(daySeven.relationshipRewardIds.filter(id =>
+      id === 'remembered-outcome:miu:silent-day-six:6:bad')).toHaveLength(1);
+  });
+
   it('keeps NPC distrust and partial repair after old story entries are pruned', () => {
     const first = serve(greetRememberedCustomer(returning([])), false);
     expect(first.relationshipRewardIds).toContain('remembered-outcome:miu:repeat-day-five:5:bad');

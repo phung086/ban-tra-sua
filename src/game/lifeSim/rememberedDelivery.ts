@@ -17,7 +17,9 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       !hasRememberedLowSugar(before, order.customerId)) return after;
   const choice = getRememberedGreetingChoice(before);
   const id = 'remembered-service:' + encodeURIComponent(order.id);
-  if (!choice || after.relationshipRewardIds.includes(id)) return after;
+  // A customer remembers the actual cup even if the player skips optional chat.
+  // Never gate durable delivery history on a greeting or a private preference choice.
+  if (after.relationshipRewardIds.includes(id)) return after;
   const name = before.reviews.find(r => r.customerId === order.customerId)?.customerName ?? 'Khách quen';
   const correction = feedback(order, before.draft, after.lastScore);
   // A previous real delivery matters on the next visit, not just a generic

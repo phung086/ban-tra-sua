@@ -193,6 +193,47 @@ try {
           persisted.relationshipRewardIds.filter(id => id === 'remembered-service:return-e2e').length !== 1) {
         throw new Error('NPC delivery callback was lost or duplicated on reload');
       }
+      // Silent-service regression: skip both optional dialogue buttons. The
+      // actual delivered cup must still be remembered after save/reload.
+      const silentFixture = {
+        ...fixture, day: 3, city: { ...fixture.city, day: 3 },
+        morning: { ...fixture.morning, day: 3,
+          plan: { ...fixture.morning.plan, day: 3 } },
+        currentOrder: { ...fixture.currentOrder, id: 'silent-e2e-day3' },
+        relationshipRewardIds: [...fixture.relationshipRewardIds],
+        storyLog: [...fixture.storyLog], currentOrderQueuedAt: Date.now(),
+      };
+      await page.addInitScript(({ key, value }) => {
+        if (sessionStorage.getItem('remember-silent-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(value));
+        sessionStorage.setItem('remember-silent-seeded', '1');
+      }, { key: KEY, value: silentFixture });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: /Chào khách quen/ }).waitFor();
+      await page.locator('.craft-stations button').nth(3).click();
+      await page.locator('.seal-button').click();
+      await page.locator('.serve-button').click();
+      await page.locator('.place-buttons button.destination').click();
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      await page.locator('.delivery-tag button.primary-button').click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-service:silent-e2e-day3'), KEY);
+      const silentDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (!silentDelivered.relationshipRewardIds.includes('remembered-outcome:miu:silent-e2e-day3:3:good') ||
+          silentDelivered.relationshipRewardIds.includes('remembered-greeting:silent-e2e-day3') ||
+          silentDelivered.relationshipRewardIds.includes('remembered-quiet:silent-e2e-day3') ||
+          silentDelivered.storyLog[0]?.title !== 'Khách quen hài lòng')
+        throw new Error('Skipped dialogue lost a real NPC delivery memory');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const silentSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (silentSaved.relationshipRewardIds.filter(id =>
+          id === 'remembered-outcome:miu:silent-e2e-day3:3:good').length !== 1 ||
+          silentSaved.storyLog[0]?.id !== 'remembered-service:silent-e2e-day3')
+        throw new Error('Silent NPC delivery memory duplicated or vanished after reload');
+      await page.screenshot({
+        path: `${output}/silent-delivery-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled',
+      });
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2)) {
         throw new Error('Horizontal overflow');
       }
