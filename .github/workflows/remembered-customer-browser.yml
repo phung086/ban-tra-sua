@@ -11,6 +11,7 @@ on:
       - 'scripts/remembered-thanks-browser-smoke.mjs'
       - 'scripts/remembered-recovery-browser-smoke.mjs'
       - 'scripts/remembered-sample-browser-smoke.mjs'
+      - 'scripts/remembered-quiet-return-browser-smoke.mjs'
       - '.github/workflows/remembered-customer-browser.yml'
   pull_request:
     branches: [main]
@@ -35,6 +36,8 @@ jobs:
             script: scripts/remembered-recovery-browser-smoke.mjs
           - suite: remembered-sample
             script: scripts/remembered-sample-browser-smoke.mjs
+          - suite: remembered-quiet-return
+            script: scripts/remembered-quiet-return-browser-smoke.mjs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
