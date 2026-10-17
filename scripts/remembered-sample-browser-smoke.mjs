@@ -144,7 +144,9 @@ try {
         sessionStorage.setItem('sample-repeat-seeded', '1');
       }, { key: KEY, value: repeatedFixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByText(/Khách còn dè chừng/).waitFor();
       await page.getByRole('button', { name: /Chào khách quen/ }).click();
+      await page.getByText(/Mình vẫn nhớ hai ly trước đều sai/).waitFor();
       await page.getByText(/hai ly sai liên tiếp/).first().waitFor();
       if (await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).count())
         throw new Error('NPC still accepted samples after two bad deliveries');

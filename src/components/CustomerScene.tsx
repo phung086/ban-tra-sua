@@ -48,11 +48,17 @@ export function CustomerScene({ game, onGame }: {
   const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
   const currentMismatch = getRememberedCupMismatch(order, game.draft);
   return <div className="customer-service">
-    <div className="customer-heading" key={order.id} data-mood={mood}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
+    <div className="customer-heading" key={order.id} data-mood={mood} data-trust={repeatedMistakes ? 'guarded' : 'open'}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
     {remembered && <aside className="life-review-care life-remembered-order" aria-label="Góp ý khách quen">
       <strong>{remembersSugar ? '💗 Nhớ khách thích ít ngọt' : '💗 Nhớ góp ý của khách quen'}</strong>
       <p>Khách đặt {order.sugar}% đường hôm nay — ưu tiên đúng đơn, không tự đổi công thức.</p>
+      {repeatedMistakes && <p className="life-remembered-history" role="status" data-trust="guarded">
+        😟 Khách còn dè chừng sau hai lần giao sai. Hãy giao đúng ly thật để lấy lại lòng tin.
+      </p>}
+      {!repeatedMistakes && previousServiceFeedback?.title === 'Khách quen hài lòng' && <p className="life-remembered-history" role="status" data-trust="reassured">
+        😊 Khách nhớ lần giao đúng trước đó và yên tâm hơn khi quay lại.
+      </p>}
       {!previousServiceFeedback && savedReview && <p className="life-remembered-history" role="note">
         <b>Góp ý đã lưu (ngày {savedReview.day}):</b> {savedReview.text}
       </p>}
@@ -129,9 +135,11 @@ export function CustomerScene({ game, onGame }: {
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
           <small>{remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
-          <p>{remembersSugar
-            ? `“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt ${order.sugar}% đường nhé.”`
-            : '“Ồ, tiệm vẫn nhớ góp ý lần trước! Mình mong ly hôm nay đúng đơn nhé.”'}</p>
+          <p>{repeatedMistakes
+            ? '“Mình vẫn nhớ hai ly trước đều sai. Hôm nay cứ làm đúng đơn nhé.”'
+            : remembersSugar
+              ? `“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt ${order.sugar}% đường nhé.”`
+              : '“Ồ, tiệm vẫn nhớ góp ý lần trước! Mình mong ly hôm nay đúng đơn nhé.”'}</p>
         </> : <>
           <small>✓ Đã chọn giữ riêng góp ý của khách.</small>
           <p>Chủ tiệm mỉm cười và chuẩn bị đúng đơn, không nhắc lại góp ý cũ.</p>

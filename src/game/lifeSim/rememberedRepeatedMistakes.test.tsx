@@ -54,6 +54,9 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(hasRepeatedRememberedComplaint(greeted)).toBe(true);
     expect(canOfferRememberedSample(greeted)).toBe(false);
     expect(render(greeted)).toContain('hai ly sai liên tiếp');
+    expect(render(greeted)).toContain('Khách còn dè chừng');
+    expect(render(greeted)).toContain('Mình vẫn nhớ hai ly trước đều sai');
+    expect(render(greeted)).toContain('data-trust="guarded"');
     expect(render(greeted)).not.toContain('Mời khách thử trà mẫu · 3.000đ');
     const asked = askRememberedCustomerAboutComplaint(greeted);
     expect(canPromiseRememberedCorrection(asked)).toBe(false);
@@ -81,6 +84,8 @@ describe('NPC remembers repeated incorrect cups across days', () => {
       } };
     expect(hasRepeatedRememberedComplaint(daySix)).toBe(false);
     expect(render(daySix)).not.toContain('hai ly sai liên tiếp');
+    expect(render(daySix)).toContain('yên tâm hơn khi quay lại');
+    expect(render(daySix)).toContain('data-trust="reassured"');
   });
 
   it('a third incorrect cup keeps the consequence; one satisfied delivery breaks the streak', () => {
