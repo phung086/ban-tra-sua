@@ -72,7 +72,7 @@ export function CustomerScene({ game, onGame }: {
           Khách nhắc: {clarificationSource.text}
         </p>}
         {askedAboutComplaint && (hasPromisedRememberedCorrection(game)
-          ? <p role="status" aria-live="polite">✓ Đã hứa kiểm tra kỹ. Giao đúng đơn để giữ lời với khách.</p>
+          ? <p role="status" aria-live="polite">✓ Đã hứa kiểm tra kỹ. Soát ly trước khi dập nắp rồi giao đúng đơn để giữ lời.</p>
           : <button type="button" disabled={!canPromiseRememberedCorrection(game)}
               onClick={() => onGame(current => promiseRememberedCorrection(current))}>
               Hứa kiểm tra kỹ · 1 phút · giữ lời tăng tin tưởng
@@ -89,6 +89,7 @@ export function CustomerScene({ game, onGame }: {
                 Soát ly trước khi dập nắp · 2 phút · 1 năng lượng
               </button>}
           {!cupCheck && game.draft.fill < 15 && <small>Pha ly trước, rồi mới có thể soát công thức.</small>}
+          {!cupCheck && game.draft.sealed && <small role="alert">⚠ Đã dập nắp khi chưa soát ly. Có thể làm lại ly để kiểm tra; nếu giao ngay sẽ không được thưởng uy tín giữ lời.</small>}
         </div>}
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">

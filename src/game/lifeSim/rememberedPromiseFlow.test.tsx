@@ -9,7 +9,7 @@ import type { GameState } from '../types';
 import {
   askRememberedCustomerAboutComplaint, canPromiseRememberedCorrection,
   getUnresolvedRememberedComplaint, greetRememberedCustomer,
-  hasPromisedRememberedCorrection, promiseRememberedCorrection,
+  hasPromisedRememberedCorrection, promiseRememberedCorrection, checkRememberedPromiseCup,
 } from './rememberedCustomer';
 
 function returning(): GameState {
@@ -88,7 +88,9 @@ describe('remembered customer: optional promise with consequences', () => {
   it('rewards keeping the promise on real delivery, without modifying the order or money', () => {
     const discussed = asked();
     const baseline = serve(prepare(discussed, true));
-    const promised = prepare(promiseRememberedCorrection(discussed), true);
+    const unsealed = prepare(promiseRememberedCorrection(discussed), true);
+    const checked = checkRememberedPromiseCup({ ...unsealed, draft: { ...unsealed.draft, sealed: false } });
+    const promised = { ...checked, draft: { ...checked.draft, sealed: true } };
     const delivered = serve(promised);
     expect(delivered.served).toBe(promised.served + 1);
     expect(delivered.storyLog[0].title).toBe('Khách quen hài lòng');
