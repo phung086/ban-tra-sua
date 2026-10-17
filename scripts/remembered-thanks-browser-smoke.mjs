@@ -6,7 +6,9 @@ import { chromium } from 'playwright';
 const KEY = 'tiem-tra-chibi-save-v3';
 const url = process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193';
 const output = process.env.REMEMBERED_THANKS_OUTPUT ?? 'artifacts/remembered-thanks';
-const sizes = [[360, 800], [390, 844], [844, 390], [1280, 800]];
+// Four viewport greeting/delivery coverage is in remembered-customer-browser-smoke.mjs.
+// Keep the longer sleep/wake/return regression to portrait mobile and desktop within CI timeout.
+const sizes = [[390, 844], [1280, 800]];
 await mkdir(output, { recursive: true });
 const report = { environment: 'Chromium SwiftShader; not physical Android/iPhone', passed: [], errors: [] };
 const browser = await chromium.launch({ headless: true, args: [
@@ -21,6 +23,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     try {
+      console.log(`REMEMBERED_THANKS_START ${width}x${height}`);
       await page.addInitScript(() => localStorage.setItem('tiem-tra-chibi-ui-v1',
         JSON.stringify({ renderEngine: 'three', graphics: 'light', coachCompleted: true,
           motion: false, sound: false, music: false })));
@@ -94,7 +97,7 @@ try {
         const state = JSON.parse(raw);
         return state.day === 3 && state.city?.day === 3 && state.phase === 'open';
       }, KEY, { timeout: 15000 });
-      const before = await page.evaluate(key => {
+      const { dayThreeFixture, before } = await page.evaluate(key => {
         const s = JSON.parse(localStorage.getItem(key) || '{}');
         if (s.day !== 3 || s.city.day !== 3 || s.phase !== 'open')
           throw new Error('Actual sleep/wake did not reach day 3');
@@ -103,10 +106,17 @@ try {
           targetFill: 80, targetShake: 60, price: 20000 };
         s.currentOrderQueuedAt = Date.now();
         s.customerQueue = [];
-        localStorage.setItem(key, JSON.stringify(s));
-        return { cash: s.cash, minutes: s.city.minutes, energy: s.city.energy,
-          bond: s.customerBond.miu ?? 0, goodwill: s.city.goodwill };
+        return { dayThreeFixture: s, before: {
+          cash: s.cash, minutes: s.city.minutes, energy: s.city.energy,
+          bond: s.customerBond.miu ?? 0, goodwill: s.city.goodwill,
+        } };
       }, KEY);
+      // pagehide persists old React state; seed after unload, before hydration.
+      await page.addInitScript(({ key, fixture }) => {
+        if (sessionStorage.getItem('thanks-e2e-return-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(fixture));
+        sessionStorage.setItem('thanks-e2e-return-seeded', '1');
+      }, { key: KEY, fixture: dayThreeFixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.getByRole('note').filter({ hasText: 'Lần giao trước (ngày 2)' }).waitFor();
       if (await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).count())
@@ -137,6 +147,7 @@ try {
         throw new Error('Horizontal overflow');
       if (errors.length) throw new Error('Browser console: ' + errors.join(' | '));
       report.passed.push(`${width}x${height}: deliver → sleep → wake → remembered NPC → reload`);
+      console.log(`REMEMBERED_THANKS_PASS ${width}x${height}`);
     } catch (error) {
       report.errors.push(`${width}x${height}: ${String(error.stack || error)}`);
       await page.screenshot({ path: `${output}/FAIL-${width}x${height}.png`,
