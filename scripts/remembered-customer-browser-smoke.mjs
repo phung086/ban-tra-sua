@@ -164,6 +164,8 @@ try {
           checkedReload.relationshipRewardIds.filter(id => id.startsWith('remembered-cup-check:return-e2e:')).length !== 1) {
         throw new Error('Cup check ledger or cost changed after reload');
       }
+      // Station tabs are transient UI state and reset to step 1 on reload.
+      await page.locator('.craft-stations button').nth(3).click({ timeout: 20000 });
       await page.locator('.seal-button').click({ timeout: 20000 });
       await page.locator('.serve-button').click({ timeout: 15000 });
       await page.locator('.place-buttons button.destination').click({ timeout: 20000 });
