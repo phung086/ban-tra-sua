@@ -19,7 +19,15 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const id = 'remembered-service:' + encodeURIComponent(order.id);
   // A customer remembers the actual cup even if the player skips optional chat.
   // Never gate durable delivery history on a greeting or a private preference choice.
-  if (after.relationshipRewardIds.includes(id)) return after;
+  const outcomeId = rememberedOutcomeId(order.customerId, order.id, before.day,
+    !feedback(order, before.draft, after.lastScore));
+  if (after.relationshipRewardIds.includes(id) ||
+      after.relationshipRewardIds.includes(outcomeId)) return after;
+  // Skipping dialogue does not erase a real cup from the customer's memory.
+  // Keep that outcome private: do not create an unsolicited NPC callback.
+  if (!choice) return {
+    ...after, relationshipRewardIds: [...after.relationshipRewardIds, outcomeId],
+  };
   const name = before.reviews.find(r => r.customerId === order.customerId)?.customerName ?? 'Khách quen';
   const correction = feedback(order, before.draft, after.lastScore);
   // A previous real delivery matters on the next visit, not just a generic
@@ -81,7 +89,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   return {
     ...after,
     relationshipRewardIds: [...after.relationshipRewardIds, id,
-      rememberedOutcomeId(order.customerId, order.id, before.day, !correction)],
+      outcomeId],
     customerBond: totalDelta !== 0 ? {
       ...after.customerBond,
       [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + totalDelta),

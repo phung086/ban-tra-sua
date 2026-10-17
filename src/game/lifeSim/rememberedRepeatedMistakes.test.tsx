@@ -172,10 +172,10 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     const initial = returning([]);
     expect(render(initial)).toContain('Chào khách quen');
     const silentBad = serve(initial, false);
-    expect(silentBad.relationshipRewardIds).toContain('remembered-service:repeat-day-five');
+    expect(silentBad.relationshipRewardIds).not.toContain('remembered-service:repeat-day-five');
     expect(silentBad.relationshipRewardIds).toContain('remembered-outcome:miu:repeat-day-five:5:bad');
     expect(silentBad.relationshipRewardIds).not.toContain('remembered-greeting:repeat-day-five');
-    expect(silentBad.storyLog[0].title).toBe('Khách quen góp ý thêm');
+    expect(silentBad.storyLog).toEqual(initial.storyLog); // No unsolicited callback.
 
     const nextVisit: GameState = {
       ...silentBad, day: 6, phase: 'open',

@@ -217,18 +217,18 @@ try {
       await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
       await page.locator('.delivery-tag button.primary-button').click();
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
-        .relationshipRewardIds?.includes('remembered-service:silent-e2e-day3'), KEY);
+        .relationshipRewardIds?.includes('remembered-outcome:miu:silent-e2e-day3:3:good'), KEY);
       const silentDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (!silentDelivered.relationshipRewardIds.includes('remembered-outcome:miu:silent-e2e-day3:3:good') ||
           silentDelivered.relationshipRewardIds.includes('remembered-greeting:silent-e2e-day3') ||
           silentDelivered.relationshipRewardIds.includes('remembered-quiet:silent-e2e-day3') ||
-          silentDelivered.storyLog[0]?.title !== 'Khách quen hài lòng')
+          silentDelivered.storyLog.some(entry => entry.id === 'remembered-service:silent-e2e-day3'))
         throw new Error('Skipped dialogue lost a real NPC delivery memory');
       await page.reload({ waitUntil: 'domcontentloaded' });
       const silentSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (silentSaved.relationshipRewardIds.filter(id =>
           id === 'remembered-outcome:miu:silent-e2e-day3:3:good').length !== 1 ||
-          silentSaved.storyLog[0]?.id !== 'remembered-service:silent-e2e-day3')
+          silentSaved.storyLog.some(entry => entry.id === 'remembered-service:silent-e2e-day3'))
         throw new Error('Silent NPC delivery memory duplicated or vanished after reload');
       await page.screenshot({
         path: `${output}/silent-delivery-${width}x${height}.png`,
