@@ -115,6 +115,25 @@ export function getPreviousRememberedServiceFeedback(game: GameState): GameState
       (latest, moment) => !latest || moment.day > latest.day ? moment : latest, null);
 }
 
+/** Two consecutive wrong deliveries make this customer distrust verbal promises and samples.
+ * Read only real saved delivery callbacks, never reviews, and keep the latest outcome decisive.
+ * Older failures stop counting as soon as a correct cup is actually delivered.
+ */
+export function hasRepeatedRememberedComplaint(game: GameState): boolean {
+  const order = game.currentOrder;
+  if (!order || !hasRememberedLowSugar(game, order.customerId)) return false;
+  const seen = new Set<string>();
+  const deliveries = game.storyLog
+    .filter(moment => moment.customerId === order.customerId &&
+      moment.day < game.day && moment.id.startsWith('remembered-service:') &&
+      (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng') &&
+      !seen.has(moment.id) && (seen.add(moment.id), true))
+    .sort((a, b) => b.day - a.day);
+  return deliveries.length >= 2 &&
+    deliveries[0].title === 'Khách quen góp ý thêm' &&
+    deliveries[1].title === 'Khách quen góp ý thêm';
+}
+
 export function getUnresolvedRememberedComplaint(game: GameState): GameState['storyLog'][number] | null {
   const latest = getPreviousRememberedServiceFeedback(game);
   return latest?.title === 'Khách quen góp ý thêm' ? latest : null;
@@ -195,6 +214,7 @@ export function canPromiseRememberedCorrection(game: GameState): boolean {
   return Boolean(game.phase === 'open' && game.currentOrder &&
     hasAskedRememberedCustomerAboutComplaint(game) &&
     getRememberedClarificationSource(game) &&
+    !hasRepeatedRememberedComplaint(game) &&
     !hasPromisedRememberedCorrection(game) &&
     !game.draft.sealed &&
     game.city.energy >= 1 &&

@@ -1,5 +1,5 @@
 import type { GameState } from '../types';
-import { getRememberedGreetingChoice, getUnresolvedRememberedComplaint } from './rememberedCustomer';
+import { getRememberedGreetingChoice, getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint } from './rememberedCustomer';
 
 export const REMEMBERED_SAMPLE_COST = 3000;
 const sampleId = (orderId: string) => 'remembered-sample:' + encodeURIComponent(orderId);
@@ -14,6 +14,7 @@ export function canOfferRememberedSample(game: GameState): boolean {
   return Boolean(game.phase === 'open' && game.currentOrder &&
     getRememberedGreetingChoice(game) === 'greet' &&
     getUnresolvedRememberedComplaint(game) &&
+    !hasRepeatedRememberedComplaint(game) &&
     !hasOfferedRememberedSample(game) && !game.draft.sealed &&
     game.cash >= REMEMBERED_SAMPLE_COST &&
     game.city.energy >= 1 && game.city.minutes + 3 <= 1260);

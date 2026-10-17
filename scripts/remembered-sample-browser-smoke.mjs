@@ -99,6 +99,65 @@ try {
       await page.screenshot({ path: `${output}/delivered-${width}x${height}.png`,
         fullPage: true, animations: 'disabled' });
       report.passed.push(`${width}x${height}: sample → cost → reload → real delivery → trust`);
+
+      // A second real scenario: two consecutive bad deliveries change the NPC's
+      // available choices. A correct delivery must close the distrust after reload.
+      const repeatedFixture = {
+        ...fixture, day: 5, city: { ...fixture.city, day: 5 },
+        morning: { ...fixture.morning, day: 5,
+          plan: { ...fixture.morning.plan, day: 5 } },
+        currentOrder: { ...fixture.currentOrder, id: 'sample-repeat-day5' },
+        relationshipRewardIds: [
+          'review-care:sample-e2e-review:1:message',
+          'review-followup:sample-e2e-review:remember',
+          'remembered-service:repeat-day4',
+          'remembered-service:repeat-day3',
+        ],
+        storyLog: [
+          { id: 'remembered-service:repeat-day4', customerId: 'miu',
+            customerName: 'Miu', title: 'Khách quen góp ý thêm',
+            text: 'Ly hôm qua sai topping.', day: 4, rewardFans: 0 },
+          { id: 'remembered-service:repeat-day3', customerId: 'miu',
+            customerName: 'Miu', title: 'Khách quen góp ý thêm',
+            text: 'Ly hôm trước sai đá.', day: 3, rewardFans: 0 },
+        ],
+      };
+      await page.addInitScript(({ key, value }) => {
+        if (sessionStorage.getItem('sample-repeat-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(value));
+        sessionStorage.setItem('sample-repeat-seeded', '1');
+      }, { key: KEY, value: repeatedFixture });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: /Chào khách quen/ }).click();
+      await page.getByText(/hai ly sai liên tiếp/).first().waitFor();
+      if (await page.getByRole('button', { name: /Mời khách thử trà mẫu/ }).count())
+        throw new Error('NPC still accepted samples after two bad deliveries');
+      await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).click();
+      await page.getByText(/chưa muốn nghe lời hứa kiểm tra mới/).waitFor();
+      if (await page.getByRole('button', { name: /Hứa kiểm tra kỹ/ }).count())
+        throw new Error('NPC still accepted a third verbal promise');
+      await page.locator('.craft-stations button').nth(3).click();
+      await page.locator('.seal-button').click();
+      await page.locator('.serve-button').click();
+      await page.locator('.place-buttons button.destination').click();
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      await page.locator('.delivery-tag button.primary-button').click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-service:sample-repeat-day5'), KEY);
+      const repeatDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (repeatDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
+          !repeatDelivered.storyLog[0]?.text.includes('Hai lần trước ly đều sai'))
+        throw new Error('Correct delivery did not resolve repeated complaints');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const repeatSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (repeatSaved.storyLog[0]?.id !== 'remembered-service:sample-repeat-day5' ||
+          repeatSaved.relationshipRewardIds.filter(id =>
+            id === 'remembered-service:sample-repeat-day5').length !== 1)
+        throw new Error('Repeat-complaint resolution did not survive reload');
+      if (errors.length) throw new Error('Console: ' + errors.join(' | '));
+      await page.screenshot({ path: `${output}/repeated-resolved-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled' });
+      report.passed.push(`${width}x${height}: two wrong cups → refuses empty promises → correct delivery → reload`);
     } catch (e) {
       report.errors.push(`${width}x${height}: ${String(e.stack || e)}`);
       await page.screenshot({ path: `${output}/FAIL-${width}x${height}.png`,

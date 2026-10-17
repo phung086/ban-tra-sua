@@ -13,7 +13,7 @@ import {
   getBrokenRememberedPromise, canApologizeForBrokenPromise,
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
-  getUnresolvedRememberedComplaint,
+  getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
 import { canOfferRememberedSample, hasOfferedRememberedSample, offerRememberedSample } from "../game/lifeSim/rememberedSample";
@@ -43,6 +43,7 @@ export function CustomerScene({ game, onGame }: {
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
   const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
+  const repeatedMistakes = remembered && hasRepeatedRememberedComplaint(game);
   const keptPromise = remembered ? keptPromiseOnReturn(game) : null;
   const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
   const currentMismatch = getRememberedCupMismatch(order, game.draft);
@@ -67,15 +68,19 @@ export function CustomerScene({ game, onGame }: {
               Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · cần giao đúng để lấy lại tin tưởng
             </button>}
       </div>}
-      {unresolvedComplaint && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Mời khách thử trà mẫu">
-        <p>Khách còn băn khoăn về ly trước. Bạn có thể mời thử trà mẫu; chỉ khi giao đúng đơn mới phục hồi thêm lòng tin.</p>
-        {hasOfferedRememberedSample(game)
+      {unresolvedComplaint && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label={repeatedMistakes ? 'Khách từ chối trà mẫu' : 'Mời khách thử trà mẫu'}>
+        <p>{repeatedMistakes
+          ? 'Khách đã nhận hai ly sai liên tiếp, nên từ chối trà mẫu và lời hứa mới. Hãy giao đúng ly thật để lấy lại lòng tin.'
+          : 'Khách còn băn khoăn về ly trước. Bạn có thể mời thử trà mẫu; chỉ khi giao đúng đơn mới phục hồi thêm lòng tin.'}</p>
+        {repeatedMistakes
+          ? <p role="status" aria-live="polite">Khách muốn thấy việc sửa lỗi, không nhận thêm trà mẫu lúc này.</p>
+          : hasOfferedRememberedSample(game)
           ? <p role="status" aria-live="polite">✓ Đã mời thử trà mẫu. Khách chờ ly thật được giao đúng.</p>
           : <button type="button" disabled={!canOfferRememberedSample(game)}
               onClick={() => onGame(current => offerRememberedSample(current))}>
               Mời khách thử trà mẫu · 3.000đ nguyên liệu · 3 phút · 1 năng lượng
             </button>}
-        {!hasOfferedRememberedSample(game) && !canOfferRememberedSample(game) &&
+        {!repeatedMistakes && !hasOfferedRememberedSample(game) && !canOfferRememberedSample(game) &&
           <small role="status">Không thể mời trà mẫu lúc này (thiếu tiền, sức, thời gian hoặc ly đã dập nắp). Bạn vẫn có thể pha và giao đúng đơn.</small>}
       </div>}
       {keptPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Hỏi thăm sau khi giữ lời">
@@ -98,11 +103,13 @@ export function CustomerScene({ game, onGame }: {
         </p>}
         {askedAboutComplaint && (hasPromisedRememberedCorrection(game)
           ? <p role="status" aria-live="polite">✓ Đã hứa kiểm tra kỹ. Soát ly trước khi dập nắp rồi giao đúng đơn để giữ lời.</p>
+          : repeatedMistakes
+          ? <p role="status" aria-live="polite">Khách chưa muốn nghe lời hứa kiểm tra mới sau hai lần giao sai. Hãy pha và giao đúng đơn trước.</p>
           : <button type="button" disabled={!canPromiseRememberedCorrection(game)}
               onClick={() => onGame(current => promiseRememberedCorrection(current))}>
               Hứa kiểm tra kỹ · 1 phút · giữ lời tăng tin tưởng
             </button>)}
-        {askedAboutComplaint && !hasPromisedRememberedCorrection(game) && !canPromiseRememberedCorrection(game) &&
+        {askedAboutComplaint && !repeatedMistakes && !hasPromisedRememberedCorrection(game) && !canPromiseRememberedCorrection(game) &&
           <small role="status">Chưa thể hứa soát ly: cần 1 năng lượng, ít nhất 3 phút và ly chưa dập nắp. Bạn vẫn có thể giao đúng đơn.</small>}
         {hasPromisedRememberedCorrection(game) && <div className="life-remembered-reply" aria-label="Soát ly trước khi giao">
           {cupCheck

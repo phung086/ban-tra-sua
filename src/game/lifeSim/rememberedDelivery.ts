@@ -1,7 +1,7 @@
 import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { hasOfferedRememberedSample } from './rememberedSample';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   return getRememberedCupMismatch(order, draft) ??
@@ -25,15 +25,18 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   // unresolved. A later satisfied delivery closes an older complaint across reloads.
   const lastDelivery = getPreviousRememberedServiceFeedback(before);
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
+  const repeatedMistakes = hasRepeatedRememberedComplaint(before);
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
   const promised = hasPromisedRememberedCorrection(before);
   const checked = promised && getRememberedPromiseCupCheck(before) !== null;
   const apologized = hasApologizedForBrokenPromise(before);
   const sampled = hasOfferedRememberedSample(before);
   const message = correction
-    ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
-      ? name + (apologized
+      ? name + (repeatedMistakes
+        ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Mình sẽ thử tin tiệm thêm lần nữa.”'
+        : apologized
         ? ': “Cảm ơn tiệm đã xin lỗi. Hôm nay ly đúng đơn rồi, mình yên tâm hơn.”'
         : asked
         ? ': “Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!”'
