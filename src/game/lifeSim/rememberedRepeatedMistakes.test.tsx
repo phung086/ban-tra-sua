@@ -11,6 +11,7 @@ import {
   greetRememberedCustomer, keepRememberedPreferencePrivate, hasRepeatedRememberedComplaint, getRememberedTrustStage,
   getRememberedSilentDelivery, getRememberedClarificationSource, getUnresolvedRememberedComplaint,
   getPreviousRememberedServiceFeedback,
+  canApologizeForQuietDelivery, apologizeForQuietDelivery, hasApologizedForQuietDelivery,
 } from './rememberedCustomer';
 import { canOfferRememberedSample } from './rememberedSample';
 
@@ -282,6 +283,49 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(getRememberedSilentDelivery(reloaded)).toEqual({ day: 5, correct: true });
     expect(render(reloaded)).toContain('Ly đã đúng đơn');
     expect(getRememberedClarificationSource(reloaded)).toBeNull();
+  });
+
+  it('lets the player apologize for a silent wrong cup, without instant trust or duplicate cost', () => {
+    const first = serve(returning([]), false);
+    const revisit: GameState = {
+      ...first, day: 6, phase: 'open',
+      city: { ...first.city, day: 6, minutes: 850, energy: 50 },
+      currentOrder: { ...returning([]).currentOrder!, id: 'quiet-apology-day6' },
+    };
+    expect(canApologizeForQuietDelivery(revisit)).toBe(false); // First greet.
+    const greeted = greetRememberedCustomer(revisit);
+    expect(render(greeted)).toContain('Xin lỗi vì ly giao sai · 2 phút · 1 năng lượng');
+    expect(canApologizeForQuietDelivery(greeted)).toBe(true);
+    const apologized = apologizeForQuietDelivery(greeted);
+    expect(hasApologizedForQuietDelivery(apologized)).toBe(true);
+    expect(apologized.city.minutes).toBe(greeted.city.minutes + 2);
+    expect(apologized.city.energy).toBe(greeted.city.energy - 1);
+    expect(apologized.customerBond).toEqual(greeted.customerBond);
+    expect(apologized.city.goodwill).toBe(greeted.city.goodwill);
+    expect(apologizeForQuietDelivery(apologized)).toBe(apologized);
+    expect(render(apologized)).toContain('✓ Đã nhận lỗi.');
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(apologized);
+    const restored = loadGame();
+    expect(hasApologizedForQuietDelivery(restored)).toBe(true);
+    expect(canApologizeForQuietDelivery(restored)).toBe(false);
+    const corrected = serve(restored, true);
+    expect(corrected.storyLog[0].text).toContain('Khách ghi nhận lời xin lỗi và ly trà được sửa đúng đơn.');
+    expect(corrected.relationshipRewardIds).toContain('remembered-outcome:miu:quiet-apology-day6:6:good');
+    expect(corrected.relationshipRewardIds.filter(id =>
+      id === 'remembered-quiet-apology:quiet-apology-day6')).toHaveLength(1);
+    const nextVisit = {
+      ...corrected, day: 7, phase: 'open' as const,
+      city: { ...corrected.city, day: 7 },
+      currentOrder: { ...revisit.currentOrder!, id: 'quiet-apology-day7' },
+    };
+    expect(canApologizeForQuietDelivery(nextVisit)).toBe(false);
   });
 
   it('remembers earlier deliveries on the same day and preserves distrust after reload', () => {

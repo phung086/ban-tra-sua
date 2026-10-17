@@ -2,7 +2,7 @@ import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { hasOfferedRememberedSample } from './rememberedSample';
 import { rememberedOutcomeId } from './rememberedHistory';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage, hasApologizedForQuietDelivery } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   return getRememberedCupMismatch(order, draft) ??
@@ -43,6 +43,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const checked = promised && getRememberedPromiseCupCheck(before) !== null;
   const apologized = hasApologizedForBrokenPromise(before);
   const sampled = hasOfferedRememberedSample(before);
+  const acknowledgedQuietMistake = hasApologizedForQuietDelivery(before);
   const message = correction
     ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : recovering
@@ -69,7 +70,11 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
     : recoveredAfterApology ? 1 : 0;
   const sampleDelta = sampled && !correction ? 1 : 0;
   const totalDelta = promiseDelta + sampleDelta;
-  const response = message + (sampled
+  const response = message + (acknowledgedQuietMistake
+    ? correction
+      ? ' Khách đã nghe lời xin lỗi, nhưng ly giao vẫn sai. Cần sửa bằng hành động.'
+      : ' Khách ghi nhận lời xin lỗi và ly trà được sửa đúng đơn.'
+    : '') + (sampled
     ? correction
       ? ' Cảm ơn ly trà mẫu, nhưng ly giao vẫn sai; khách chưa thể yên tâm.'
       : ' Ly trà mẫu giúp khách thử vị; ly giao đúng mới khiến khách yên tâm hơn.'

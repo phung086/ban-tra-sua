@@ -166,6 +166,52 @@ export function getRememberedSilentDelivery(game: GameState): { day: number; cor
   return hasCallback ? null : { day: latest.day, correct: latest.correct };
 }
 
+/** A customer who received a silent wrong cup can hear an apology on return.
+ * The action costs real time/energy but never grants free trust or cash.
+ * Its once-only marker is persisted in the existing save-v3 reward ledger.
+ */
+const quietApologyId = (orderId: string) => 'remembered-quiet-apology:' + encodeURIComponent(orderId);
+
+export function hasApologizedForQuietDelivery(game: GameState): boolean {
+  return Boolean(game.currentOrder &&
+    game.relationshipRewardIds.includes(quietApologyId(game.currentOrder.id)));
+}
+
+export function canApologizeForQuietDelivery(game: GameState): boolean {
+  const previous = getRememberedSilentDelivery(game);
+  return Boolean(game.phase === 'open' && game.currentOrder &&
+    getRememberedGreetingChoice(game) === 'greet' &&
+    previous && !previous.correct &&
+    !hasApologizedForQuietDelivery(game) &&
+    !game.draft.sealed &&
+    game.city.energy >= 1 && game.city.minutes + 2 <= 1260);
+}
+
+export function apologizeForQuietDelivery(game: GameState): GameState {
+  if (!canApologizeForQuietDelivery(game)) return game;
+  const order = game.currentOrder!;
+  const previous = getRememberedSilentDelivery(game)!;
+  const id = quietApologyId(order.id);
+  const name = getLatestRememberedReview(game, order.customerId)?.customerName ?? 'Khách quen';
+  const text = name + ': “Mình ghi nhận lời xin lỗi. Hôm nay cứ giao đúng ly là được.”';
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds, id],
+    storyLog: [{
+      id, customerId: order.customerId, customerName: name,
+      title: 'Xin lỗi vì ly giao sai', text, day: game.day, rewardFans: 0,
+    }, ...game.storyLog].slice(0, 24),
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 2,
+      energy: game.city.energy - 1,
+      journal: ['Ngày ' + game.day + ' · Xin lỗi khách vì ly giao sai ngày ' +
+        previous.day + '.', ...game.city.journal].slice(0, 24),
+    },
+    notice: 'Bạn nhận lỗi với khách; chỉ ly trà giao đúng mới lấy lại lòng tin. ' + text,
+  };
+}
+
 export function hasRepeatedRememberedComplaint(game: GameState): boolean {
   return getRememberedTrustStage(game) === 'guarded';
 }

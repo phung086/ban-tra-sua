@@ -14,7 +14,8 @@ import {
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
   getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint, getRememberedTrustStage,
-  getRememberedSilentDelivery,
+  getRememberedSilentDelivery, canApologizeForQuietDelivery,
+  apologizeForQuietDelivery, hasApologizedForQuietDelivery,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
 import { canOfferRememberedSample, hasOfferedRememberedSample, offerRememberedSample } from "../game/lifeSim/rememberedSample";
@@ -77,6 +78,15 @@ export function CustomerScene({ game, onGame }: {
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
       </p>}
+      {silentDelivery && !silentDelivery.correct && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Nhận lỗi ly giao sai">
+        <p>Khách nhớ ly giao sai ngày {silentDelivery.day}. Bạn có thể nhận lỗi trước khi pha; xin lỗi không tự tăng thân thiết.</p>
+        {hasApologizedForQuietDelivery(game)
+          ? <p role="status" aria-live="polite">✓ Đã nhận lỗi. Hãy giao đúng ly thật để khách yên tâm.</p>
+          : <button type="button" disabled={!canApologizeForQuietDelivery(game)}
+              onClick={() => onGame(current => apologizeForQuietDelivery(current))}>
+              Xin lỗi vì ly giao sai · 2 phút · 1 năng lượng · chưa tăng thân thiết
+            </button>}
+      </div>}
       {brokenPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Giữ lời với khách quen">
         <p>Khách còn nhớ lời hứa chưa được giữ ở ngày {brokenPromise.day}. Bạn có thể nhận lỗi trước khi pha ly mới.</p>
         {hasApologizedForBrokenPromise(game)
