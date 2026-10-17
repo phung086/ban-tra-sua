@@ -13,8 +13,10 @@ import {
   getBrokenRememberedPromise, canApologizeForBrokenPromise,
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
+  getUnresolvedRememberedComplaint,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
+import { canOfferRememberedSample, hasOfferedRememberedSample, offerRememberedSample } from "../game/lifeSim/rememberedSample";
 import { keptPromiseOnReturn, canThankAfterPromise, hasThankedAfterPromise, thankAfterPromise } from "../game/lifeSim/rememberedThanks";
 import { CustomerQueueStatus } from "./CustomerQueueStatus";
 import { ChibiPortrait } from "./ChibiCustomer";
@@ -40,6 +42,7 @@ export function CustomerScene({ game, onGame }: {
   const clarificationSource = remembered ? getRememberedClarificationSource(game) : null;
   const askedAboutComplaint = remembered && hasAskedRememberedCustomerAboutComplaint(game);
   const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
+  const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
   const keptPromise = remembered ? keptPromiseOnReturn(game) : null;
   const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
   const currentMismatch = getRememberedCupMismatch(order, game.draft);
@@ -63,6 +66,17 @@ export function CustomerScene({ game, onGame }: {
               onClick={() => onGame(current => apologizeForBrokenPromise(current))}>
               Xin lỗi vì thất hứa · 2 phút · 1 năng lượng · cần giao đúng để lấy lại tin tưởng
             </button>}
+      </div>}
+      {unresolvedComplaint && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Mời khách thử trà mẫu">
+        <p>Khách còn băn khoăn về ly trước. Bạn có thể mời thử trà mẫu; chỉ khi giao đúng đơn mới phục hồi thêm lòng tin.</p>
+        {hasOfferedRememberedSample(game)
+          ? <p role="status" aria-live="polite">✓ Đã mời thử trà mẫu. Khách chờ ly thật được giao đúng.</p>
+          : <button type="button" disabled={!canOfferRememberedSample(game)}
+              onClick={() => onGame(current => offerRememberedSample(current))}>
+              Mời khách thử trà mẫu · 3.000đ nguyên liệu · 3 phút · 1 năng lượng
+            </button>}
+        {!hasOfferedRememberedSample(game) && !canOfferRememberedSample(game) &&
+          <small role="status">Không thể mời trà mẫu lúc này (thiếu tiền, sức, thời gian hoặc ly đã dập nắp). Bạn vẫn có thể pha và giao đúng đơn.</small>}
       </div>}
       {keptPromise && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Hỏi thăm sau khi giữ lời">
         <p>Khách quay lại sau ly trà được soát kỹ ngày {keptPromise.day}. Bạn có thể hỏi thăm; không bắt buộc.</p>

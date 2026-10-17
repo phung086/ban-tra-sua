@@ -1,5 +1,6 @@
 import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
+import { hasOfferedRememberedSample } from './rememberedSample';
 import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
@@ -28,6 +29,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const promised = hasPromisedRememberedCorrection(before);
   const checked = promised && getRememberedPromiseCupCheck(before) !== null;
   const apologized = hasApologizedForBrokenPromise(before);
+  const sampled = hasOfferedRememberedSample(before);
   const message = correction
     ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : previousComplaint
@@ -48,7 +50,13 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const promiseDelta = promised
     ? (correction ? -1 : checked ? 1 : 0)
     : recoveredAfterApology ? 1 : 0;
-  const response = message + (apologized && correction
+  const sampleDelta = sampled && !correction ? 1 : 0;
+  const totalDelta = promiseDelta + sampleDelta;
+  const response = message + (sampled
+    ? correction
+      ? ' Cảm ơn ly trà mẫu, nhưng ly giao vẫn sai; khách chưa thể yên tâm.'
+      : ' Ly trà mẫu giúp khách thử vị; ly giao đúng mới khiến khách yên tâm hơn.'
+    : '') + (apologized && correction
     ? ' Mình đã nghe lời xin lỗi, nhưng ly vẫn chưa đúng.'
     : '') + (promised
     ? (correction
@@ -60,9 +68,9 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   return {
     ...after,
     relationshipRewardIds: [...after.relationshipRewardIds, id],
-    customerBond: promiseDelta !== 0 ? {
+    customerBond: totalDelta !== 0 ? {
       ...after.customerBond,
-      [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + promiseDelta),
+      [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + totalDelta),
     } : after.customerBond,
     storyLog: [{
       id, customerId: order.customerId, customerName: name,
@@ -71,7 +79,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
     }, ...after.storyLog].slice(0, 24),
     city: {
       ...after.city,
-      goodwill: promiseDelta !== 0 ? Math.max(0, after.city.goodwill + promiseDelta) : after.city.goodwill,
+      goodwill: totalDelta !== 0 ? Math.max(0, after.city.goodwill + totalDelta) : after.city.goodwill,
       journal: ['Ngày ' + before.day + ' · ' + response, ...after.city.journal].slice(0, 24),
     },
     notice: after.notice + ' 💬 ' + response,
