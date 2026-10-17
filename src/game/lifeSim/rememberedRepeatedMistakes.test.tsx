@@ -77,7 +77,7 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     const reloaded = loadGame();
     const daySix = { ...reloaded, day: 6, phase: 'open' as const,
       city: { ...reloaded.city, day: 6 }, currentOrder: {
-        ...reloaded.currentOrder!, id: 'repeat-day-six',
+        ...returning([]).currentOrder!, id: 'repeat-day-six',
       } };
     expect(hasRepeatedRememberedComplaint(daySix)).toBe(false);
     expect(render(daySix)).not.toContain('hai ly sai liên tiếp');
@@ -92,7 +92,7 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(wrong.storyLog[0].text).toContain('hai ly sai liên tiếp');
     const later = { ...wrong, day: 6, phase: 'open' as const,
       city: { ...wrong.city, day: 6 },
-      currentOrder: { ...wrong.currentOrder!, id: 'repeat-day-six' } };
+      currentOrder: { ...returning([]).currentOrder!, id: 'repeat-day-six' } };
     expect(hasRepeatedRememberedComplaint(later)).toBe(true);
     expect(canOfferRememberedSample(greetRememberedCustomer(later))).toBe(false);
 
