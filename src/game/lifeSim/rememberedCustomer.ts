@@ -1,6 +1,7 @@
 import type { GameState } from '../types';
 import { getReviewCareDecision, getReviewFollowupChoice, isLowSugarFeedback } from './reviewCare';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
+import { rememberedDeliveryHistory } from './rememberedHistory';
 
 /** Latest consented review wins even if imported save arrays are unordered. */
 export function getLatestRememberedReview(game: GameState, customerId: string): GameState['reviews'][number] | null {
@@ -129,18 +130,12 @@ export function getPreviousRememberedServiceFeedback(game: GameState): GameState
 export function getRememberedTrustStage(game: GameState): 'open' | 'guarded' | 'recovering' {
   const order = game.currentOrder;
   if (!order || !hasRememberedLowSugar(game, order.customerId)) return 'open';
-  const seen = new Set<string>();
-  const deliveries = game.storyLog
-    .filter(moment => moment.customerId === order.customerId &&
-      moment.day < game.day && moment.id.startsWith('remembered-service:') &&
-      (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng') &&
-      !seen.has(moment.id) && (seen.add(moment.id), true))
-    .reverse().sort((a, b) => a.day - b.day);
+  const deliveries = rememberedDeliveryHistory(game, order.customerId);
   let wrongStreak = 0;
   let needsRepair = false;
   let correctStreak = 0;
   for (const delivery of deliveries) {
-    if (delivery.title === 'Khách quen góp ý thêm') {
+    if (!delivery.correct) {
       wrongStreak++;
       if (wrongStreak >= 2) needsRepair = true;
       if (needsRepair) correctStreak = 0;

@@ -128,6 +128,8 @@ try {
           'review-followup:sample-e2e-review:remember',
           'remembered-service:repeat-day4',
           'remembered-service:repeat-day3',
+          'remembered-outcome:miu:repeat-day3:3:bad',
+          'remembered-outcome:miu:repeat-day4:4:bad',
         ],
         storyLog: [
           { id: 'remembered-service:repeat-day4', customerId: 'miu',
@@ -176,6 +178,8 @@ try {
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
         .relationshipRewardIds?.includes('remembered-service:sample-repeat-day5'), KEY);
       const repeatDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (!repeatDelivered.relationshipRewardIds.includes('remembered-outcome:miu:sample-repeat-day5:5:good'))
+        throw new Error('First correct delivery did not persist a durable trust outcome');
       if (repeatDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
           !repeatDelivered.storyLog[0]?.text.includes('Hai lần trước ly đều sai') ||
           (repeatDelivered.customerBond.miu ?? 0) <= (guardedAsked.customerBond.miu ?? 0))
@@ -189,19 +193,35 @@ try {
       await page.screenshot({ path: `${output}/repeated-first-correct-${width}x${height}.png`,
         fullPage: true, animations: 'disabled' });
 
-      // The day transition is a deterministic saved-state fixture, NOT a UI sleep test.
-      // Each drink, greeting, and delivery below is performed through the actual UI.
-      const nextVisit = (saved, day, id) => ({
-        ...saved, day, phase: 'open', served: 0, targetOrders: 1,
-        city: { ...saved.city, day, minutes: 850, energy: 50 },
-        morning: { ...saved.morning, day, step: 'finished',
-          plan: { ...saved.morning.plan, day } },
-        currentOrder: { ...repeatedFixture.currentOrder, id },
-        currentOrderQueuedAt: Date.now(), customerQueue: [],
-        draft: { ...repeatedFixture.draft, sealed: false },
-      });
+      // Real UI journey: sleep -> saved new day -> wake -> breakfast -> open shop.
+      // Only the NPC/order is pinned to a fixture to make return visits deterministic.
       const nextDay = async (saved, day, id) => {
-        const value = nextVisit(saved, day, id);
+        if (saved.day !== day - 1) throw new Error('Unexpected day before sleep');
+        await page.getByRole('button', { name: new RegExp('Đi ngủ.*sang ngày ' + day) }).click();
+        await page.waitForFunction(({ key, day }) =>
+          JSON.parse(localStorage.getItem(key) || '{}').day === day, { key: KEY, day });
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        const slept = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+        if (slept.day !== day || slept.phase !== 'prep' || slept.morning.step !== 'asleep' ||
+            !slept.relationshipRewardIds.some(entry => entry.startsWith('remembered-outcome:miu:')))
+          throw new Error('Sleep/save/reload lost the new day or NPC memory');
+        await page.screenshot({ path: `${output}/slept-day${day}-${width}x${height}.png`,
+          fullPage: true, animations: 'disabled' });
+        await page.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click();
+        await page.getByRole('button', { name: /Đi làm luôn/ }).click();
+        await page.getByRole('button', { name: /Mở cửa tiệm/ }).click();
+        await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}').phase === 'open', KEY);
+        const live = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+        if (live.day !== day || live.morning.step !== 'finished')
+          throw new Error('Wake/breakfast/open did not run through UI');
+        // Emulate storyLog rolling over after unrelated NPC events: durable
+        // outcome markers must still drive guarded/recovering/open dialogue.
+        const value = {
+          ...live, targetOrders: 1, storyLog: [],
+          currentOrder: { ...repeatedFixture.currentOrder, id },
+          currentOrderQueuedAt: Date.now(), customerQueue: [],
+          draft: { ...repeatedFixture.draft, sealed: false },
+        };
         await page.addInitScript(({ key, value, day }) => {
           if (sessionStorage.getItem('sample-day-' + day)) return;
           localStorage.setItem(key, JSON.stringify(value));
@@ -235,6 +255,8 @@ try {
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
         .relationshipRewardIds?.includes('remembered-service:sample-repeat-day6'), KEY);
       const secondDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (!secondDelivered.relationshipRewardIds.includes('remembered-outcome:miu:sample-repeat-day6:6:good'))
+        throw new Error('Second correct delivery did not persist a durable trust outcome');
       if (secondDelivered.storyLog[0]?.title !== 'Khách quen hài lòng' ||
           !secondDelivered.storyLog[0]?.text.includes('Ly thứ hai đúng rồi'))
         throw new Error('Second correct delivery failed to rebuild NPC trust');
@@ -266,7 +288,7 @@ try {
       if (errors.length) throw new Error('Console: ' + errors.join(' | '));
       await page.screenshot({ path: `${output}/reopened-day7-${width}x${height}.png`,
         fullPage: true, animations: 'disabled' });
-      report.passed.push(`${width}x${height}: two wrong cups → two real correct deliveries → trust reopens → reload (fixture day changes)`);
+      report.passed.push(`${width}x${height}: two wrong cups → two real correct deliveries → trust reopens → reload (real sleep/wake/open; pinned NPC order)`);
     } catch (e) {
       report.errors.push(`${width}x${height}: ${String(e.stack || e)}`);
       await page.screenshot({ path: `${output}/FAIL-${width}x${height}.png`,

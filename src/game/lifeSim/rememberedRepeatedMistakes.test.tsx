@@ -168,4 +168,42 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(canPromiseRememberedCorrection(
       askRememberedCustomerAboutComplaint(single))).toBe(true);
   });
+  it('keeps NPC distrust and partial repair after old story entries are pruned', () => {
+    const first = serve(greetRememberedCustomer(returning([])), false);
+    expect(first.relationshipRewardIds).toContain('remembered-outcome:miu:repeat-day-five:5:bad');
+    const visit = (previous: GameState, day: number, id: string): GameState => ({
+      ...previous, day, phase: 'open', city: { ...previous.city, day, minutes: 850, energy: 50 },
+      currentOrder: { ...returning([]).currentOrder!, id },
+    });
+    const second = serve(greetRememberedCustomer(visit(first, 6, 'long-memory-day6')), false);
+    expect(second.relationshipRewardIds).toContain('remembered-outcome:miu:long-memory-day6:6:bad');
+
+    // The 24 visible journal entries may all belong to unrelated neighbors.
+    const pruned: GameState = { ...second, storyLog: [] };
+    const daySeven = visit(pruned, 7, 'long-memory-day7');
+    expect(getRememberedTrustStage(daySeven)).toBe('guarded');
+    expect(render(daySeven)).toContain('data-trust="guarded"');
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(daySeven);
+    const reloaded = loadGame();
+    expect(getRememberedTrustStage(reloaded)).toBe('guarded');
+    const firstCorrect = serve(greetRememberedCustomer(reloaded), true);
+    expect(firstCorrect.relationshipRewardIds).toContain('remembered-outcome:miu:long-memory-day7:7:good');
+    saveGame(firstCorrect);
+    const dayEight = visit(loadGame(), 8, 'long-memory-day8');
+    expect(getRememberedTrustStage(dayEight)).toBe('recovering');
+    expect(render(dayEight)).toContain('data-trust="recovering"');
+    const secondCorrect = serve(greetRememberedCustomer(dayEight), true);
+    saveGame(secondCorrect);
+    const dayNine = visit(loadGame(), 9, 'long-memory-day9');
+    expect(getRememberedTrustStage(dayNine)).toBe('open');
+    expect(render(dayNine)).toContain('data-trust="open"');
+  });
+
 });

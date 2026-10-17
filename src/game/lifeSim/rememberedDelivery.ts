@@ -1,6 +1,7 @@
 import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { hasOfferedRememberedSample } from './rememberedSample';
+import { rememberedOutcomeId } from './rememberedHistory';
 import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
@@ -77,7 +78,8 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       : '');
   return {
     ...after,
-    relationshipRewardIds: [...after.relationshipRewardIds, id],
+    relationshipRewardIds: [...after.relationshipRewardIds, id,
+      rememberedOutcomeId(order.customerId, order.id, before.day, !correction)],
     customerBond: totalDelta !== 0 ? {
       ...after.customerBond,
       [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + totalDelta),
