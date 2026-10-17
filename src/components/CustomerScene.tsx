@@ -13,7 +13,7 @@ import {
   getBrokenRememberedPromise, canApologizeForBrokenPromise,
   apologizeForBrokenPromise, hasApologizedForBrokenPromise,
   canCheckRememberedPromiseCup, checkRememberedPromiseCup, getRememberedPromiseCupCheck,
-  getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint,
+  getUnresolvedRememberedComplaint, hasRepeatedRememberedComplaint, getRememberedTrustStage,
 } from "../game/lifeSim/rememberedCustomer";
 import { getRememberedCupMismatch } from "../game/lifeSim/rememberedCupCheck";
 import { canOfferRememberedSample, hasOfferedRememberedSample, offerRememberedSample } from "../game/lifeSim/rememberedSample";
@@ -44,11 +44,13 @@ export function CustomerScene({ game, onGame }: {
   const brokenPromise = remembered ? getBrokenRememberedPromise(game) : null;
   const unresolvedComplaint = remembered ? getUnresolvedRememberedComplaint(game) : null;
   const repeatedMistakes = remembered && hasRepeatedRememberedComplaint(game);
+  const recoveringTrust = remembered && getRememberedTrustStage(game) === 'recovering';
+  const restrictedTrust = repeatedMistakes || recoveringTrust;
   const keptPromise = remembered ? keptPromiseOnReturn(game) : null;
   const cupCheck = remembered ? getRememberedPromiseCupCheck(game) : null;
   const currentMismatch = getRememberedCupMismatch(order, game.draft);
   return <div className="customer-service">
-    <div className="customer-heading" key={order.id} data-mood={mood} data-trust={repeatedMistakes ? 'guarded' : 'open'}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
+    <div className="customer-heading" key={order.id} data-mood={mood} data-trust={repeatedMistakes ? 'guarded' : recoveringTrust ? 'recovering' : 'open'}><ChibiPortrait customer={customer} mood={mood} /><div><small>ĐƠN {game.served + 1} / {game.targetOrders}</small><b>{customer.name}</b><span>{customer.archetype}</span></div></div>
     <CustomerQueueStatus game={game} now={now} />
     {remembered && <aside className="life-review-care life-remembered-order" aria-label="Góp ý khách quen">
       <strong>{remembersSugar ? '💗 Nhớ khách thích ít ngọt' : '💗 Nhớ góp ý của khách quen'}</strong>
@@ -56,7 +58,10 @@ export function CustomerScene({ game, onGame }: {
       {repeatedMistakes && <p className="life-remembered-history" role="status" data-trust="guarded">
         😟 Khách còn dè chừng sau hai lần giao sai. Hãy giao đúng ly thật để lấy lại lòng tin.
       </p>}
-      {!repeatedMistakes && previousServiceFeedback?.title === 'Khách quen hài lòng' && <p className="life-remembered-history" role="status" data-trust="reassured">
+      {recoveringTrust && <p className="life-remembered-history" role="status" data-trust="recovering">
+        🫖 Khách ghi nhận ly đúng đầu tiên, nhưng cần thêm một lần giao đúng ở lần ghé sau. Chào hỏi chưa tăng thân thiết.
+      </p>}
+      {!restrictedTrust && previousServiceFeedback?.title === 'Khách quen hài lòng' && <p className="life-remembered-history" role="status" data-trust="reassured">
         😊 Khách nhớ lần giao đúng trước đó và yên tâm hơn khi quay lại.
       </p>}
       {!previousServiceFeedback && savedReview && <p className="life-remembered-history" role="note">
@@ -102,7 +107,7 @@ export function CustomerScene({ game, onGame }: {
         {askedAboutComplaint ? <p role="status">✓ Đã hỏi kỹ góp ý cũ; hãy pha đúng đơn để khách thấy sự thay đổi.</p> :
           <button type="button" disabled={!canAskRememberedCustomerAboutComplaint(game)}
             onClick={() => onGame(current => askRememberedCustomerAboutComplaint(current))}>
-            {previousServiceFeedback ? 'Hỏi kỹ lỗi lần trước' : 'Hỏi kỹ góp ý đã lưu'} · 3 phút · 1 năng lượng · {repeatedMistakes ? 'chưa tăng thân thiết' : '+1 thân thiết'}
+            {previousServiceFeedback ? 'Hỏi kỹ lỗi lần trước' : 'Hỏi kỹ góp ý đã lưu'} · 3 phút · 1 năng lượng · {restrictedTrust ? 'chưa tăng thân thiết' : '+1 thân thiết'}
           </button>}
         {askedAboutComplaint && <p className="life-remembered-history" role="note">
           Khách nhắc: {clarificationSource.text}
@@ -134,9 +139,11 @@ export function CustomerScene({ game, onGame }: {
       </div>}
       {greetingChoice ? <div role="status" aria-live="polite" className="life-remembered-reply">
         {greetingChoice === 'greet' ? <>
-          <small>{repeatedMistakes ? '✓ Đã chào khách. Cần giao đúng để lấy lại lòng tin.' : remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
+          <small>{repeatedMistakes ? '✓ Đã chào khách. Cần giao đúng để lấy lại lòng tin.' : recoveringTrust ? '✓ Đã chào khách. Cần thêm một ly đúng để lấy lại lòng tin.' : remembersSugar ? '✓ Đã chào khách theo sở thích.' : '✓ Đã chào khách và ghi nhận góp ý.'}</small>
           <p>{repeatedMistakes
             ? '“Mình vẫn nhớ hai ly trước đều sai. Hôm nay cứ làm đúng đơn nhé.”'
+            : recoveringTrust
+            ? '“Ly trước đã đúng rồi. Hôm nay mình mong tiệm giữ phong độ nhé.”'
             : remembersSugar
               ? `“Ồ, tiệm còn nhớ mình! Hôm nay mình đặt ${order.sugar}% đường nhé.”`
               : '“Ồ, tiệm vẫn nhớ góp ý lần trước! Mình mong ly hôm nay đúng đơn nhé.”'}</p>
@@ -148,7 +155,7 @@ export function CustomerScene({ game, onGame }: {
         <div className="life-review-followup-actions life-remembered-actions">
           <button type="button" disabled={!canGreetRememberedCustomer(game)}
             onClick={() => onGame(current => greetRememberedCustomer(current))}>
-            Chào khách quen · 2 phút · 1 năng lượng · {repeatedMistakes ? 'chưa tăng thân thiết' : '+1 thân thiết'}
+            Chào khách quen · 2 phút · 1 năng lượng · {restrictedTrust ? 'chưa tăng thân thiết' : '+1 thân thiết'}
           </button>
           <button type="button" disabled={!canKeepRememberedPreferencePrivate(game)}
             onClick={() => onGame(current => keepRememberedPreferencePrivate(current))}>

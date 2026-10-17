@@ -80,9 +80,12 @@ export function greetRememberedCustomer(game: GameState): GameState {
   const id = greetingId(order.id);
   const sweetness = shouldMentionLowSugar(game, order.customerId, order.sugar);
   // A polite greeting is not enough to repair trust after two wrong cups.
-  const guarded = hasRepeatedRememberedComplaint(game);
-  const notice = guarded
+  const trustStage = getRememberedTrustStage(game);
+  const guarded = trustStage !== 'open';
+  const notice = trustStage === 'guarded'
     ? 'Khách vẫn dè chừng sau hai lần giao sai. Chỉ ly trà giao đúng mới giúp lấy lại lòng tin.'
+    : trustStage === 'recovering'
+    ? 'Khách ghi nhận ly đúng đầu tiên, nhưng cần thêm một lần giao đúng để thật sự yên tâm.'
     : sweetness
       ? 'Bạn nhớ khách thích ít ngọt. Hãy pha đúng mức đường khách đặt hôm nay nhé!'
       : 'Bạn nhớ góp ý trước đây của khách. Hãy pha đúng đơn hôm nay nhé!';
@@ -119,23 +122,45 @@ export function getPreviousRememberedServiceFeedback(game: GameState): GameState
       (latest, moment) => !latest || moment.day > latest.day ? moment : latest, null);
 }
 
-/** Two consecutive wrong deliveries make this customer distrust verbal promises and samples.
- * Read only real saved delivery callbacks, never reviews, and keep the latest outcome decisive.
- * Older failures stop counting as soon as a correct cup is actually delivered.
+/** Replay real saved deliveries, not dialogue/reviews. Two wrong cups require
+ * two later correct deliveries to restore conversational rewards. Another
+ * mistake during repair resets the correct-cup streak.
  */
-export function hasRepeatedRememberedComplaint(game: GameState): boolean {
+export function getRememberedTrustStage(game: GameState): 'open' | 'guarded' | 'recovering' {
   const order = game.currentOrder;
-  if (!order || !hasRememberedLowSugar(game, order.customerId)) return false;
+  if (!order || !hasRememberedLowSugar(game, order.customerId)) return 'open';
   const seen = new Set<string>();
   const deliveries = game.storyLog
     .filter(moment => moment.customerId === order.customerId &&
       moment.day < game.day && moment.id.startsWith('remembered-service:') &&
       (moment.title === 'Khách quen góp ý thêm' || moment.title === 'Khách quen hài lòng') &&
       !seen.has(moment.id) && (seen.add(moment.id), true))
-    .sort((a, b) => b.day - a.day);
-  return deliveries.length >= 2 &&
-    deliveries[0].title === 'Khách quen góp ý thêm' &&
-    deliveries[1].title === 'Khách quen góp ý thêm';
+    .reverse().sort((a, b) => a.day - b.day);
+  let wrongStreak = 0;
+  let needsRepair = false;
+  let correctStreak = 0;
+  for (const delivery of deliveries) {
+    if (delivery.title === 'Khách quen góp ý thêm') {
+      wrongStreak++;
+      if (wrongStreak >= 2) needsRepair = true;
+      if (needsRepair) correctStreak = 0;
+    } else {
+      wrongStreak = 0;
+      if (needsRepair && ++correctStreak >= 2) {
+        needsRepair = false;
+        correctStreak = 0;
+      }
+    }
+  }
+  return needsRepair ? (correctStreak === 0 ? 'guarded' : 'recovering') : 'open';
+}
+
+export function hasRepeatedRememberedComplaint(game: GameState): boolean {
+  return getRememberedTrustStage(game) === 'guarded';
+}
+
+export function isRememberedTrustRestricted(game: GameState): boolean {
+  return getRememberedTrustStage(game) !== 'open';
 }
 
 export function getUnresolvedRememberedComplaint(game: GameState): GameState['storyLog'][number] | null {
@@ -218,7 +243,7 @@ export function canPromiseRememberedCorrection(game: GameState): boolean {
   return Boolean(game.phase === 'open' && game.currentOrder &&
     hasAskedRememberedCustomerAboutComplaint(game) &&
     getRememberedClarificationSource(game) &&
-    !hasRepeatedRememberedComplaint(game) &&
+    !isRememberedTrustRestricted(game) &&
     !hasPromisedRememberedCorrection(game) &&
     !game.draft.sealed &&
     game.city.energy >= 1 &&
@@ -301,9 +326,9 @@ export function askRememberedCustomerAboutComplaint(game: GameState): GameState 
   if (!canAskRememberedCustomerAboutComplaint(game)) return game;
   const order = game.currentOrder!;
   const complaint = getRememberedClarificationSource(game)!;
-  const guarded = hasRepeatedRememberedComplaint(game);
+  const guarded = isRememberedTrustRestricted(game);
   const notice = 'Bạn hỏi lại để hiểu rõ góp ý: ' + complaint.text +
-    (guarded ? ' Khách vẫn chờ một ly giao đúng trước khi tin tưởng trở lại.' : '');
+    (guarded ? ' Khách vẫn chờ thêm một ly giao đúng trước khi tin tưởng trở lại.' : '');
   return {
     ...game,
     relationshipRewardIds: [...game.relationshipRewardIds, clarificationId(order.id)],

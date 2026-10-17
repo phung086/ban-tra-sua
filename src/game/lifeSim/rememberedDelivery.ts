@@ -1,7 +1,7 @@
 import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { hasOfferedRememberedSample } from './rememberedSample';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   return getRememberedCupMismatch(order, draft) ??
@@ -26,6 +26,7 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const lastDelivery = getPreviousRememberedServiceFeedback(before);
   const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
   const repeatedMistakes = hasRepeatedRememberedComplaint(before);
+  const recovering = getRememberedTrustStage(before) === 'recovering';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
   const promised = hasPromisedRememberedCorrection(before);
   const checked = promised && getRememberedPromiseCupCheck(before) !== null;
@@ -33,6 +34,8 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const sampled = hasOfferedRememberedSample(before);
   const message = correction
     ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    : recovering
+      ? name + ': “Ly thứ hai đúng rồi. Giờ mình tin tiệm hơn.”'
     : previousComplaint
       ? name + (repeatedMistakes
         ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Lần trước mình có góp ý, cảm ơn tiệm đã sửa.”'
@@ -67,6 +70,10 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       : checked ? ' Tiệm đã giữ lời kiểm tra kỹ. Lần sau mình sẽ yên tâm hơn.' : '')
     : '') + (skippedCheck
       ? ' Bạn giao đúng ly nhưng đã bỏ qua bước soát ly đã hứa; không nhận thưởng uy tín giữ lời.'
+      : '') + (recovering && correction
+      ? ' Ly trước đã đúng nhưng hôm nay lại sai. Khách cần thấy sự ổn định trước khi tin tưởng.'
+      : '') + (repeatedMistakes && !correction
+      ? ' Đây là ly đúng đầu tiên; khách cần thêm một lần giao đúng để thật sự yên tâm.'
       : '');
   return {
     ...after,

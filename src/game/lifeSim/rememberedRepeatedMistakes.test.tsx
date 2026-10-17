@@ -8,7 +8,7 @@ import { loadGame, saveGame } from '../storage';
 import type { GameState } from '../types';
 import {
   askRememberedCustomerAboutComplaint, canPromiseRememberedCorrection,
-  greetRememberedCustomer, hasRepeatedRememberedComplaint,
+  greetRememberedCustomer, hasRepeatedRememberedComplaint, getRememberedTrustStage,
 } from './rememberedCustomer';
 import { canOfferRememberedSample } from './rememberedSample';
 
@@ -103,12 +103,28 @@ describe('NPC remembers repeated incorrect cups across days', () => {
         ...returning([]).currentOrder!, id: 'repeat-day-six',
       } };
     expect(hasRepeatedRememberedComplaint(daySix)).toBe(false);
+    expect(getRememberedTrustStage(daySix)).toBe('recovering');
     expect(render(daySix)).not.toContain('hai ly sai liên tiếp');
-    expect(render(daySix)).toContain('yên tâm hơn khi quay lại');
-    expect(render(daySix)).toContain('data-trust="reassured"');
+    expect(render(daySix)).toContain('Khách ghi nhận ly đúng đầu tiên');
+    expect(render(daySix)).toContain('data-trust="recovering"');
     const nextGreeting = greetRememberedCustomer(daySix);
-    expect(nextGreeting.customerBond.miu).toBe((daySix.customerBond.miu ?? 0) + 1);
-    expect(nextGreeting.city.goodwill).toBe(daySix.city.goodwill + 1);
+    expect(nextGreeting.customerBond.miu).toBe(daySix.customerBond.miu ?? 0);
+    expect(nextGreeting.city.goodwill).toBe(daySix.city.goodwill);
+    expect(nextGreeting.city.minutes).toBe(daySix.city.minutes + 2);
+    expect(greetRememberedCustomer(nextGreeting)).toBe(nextGreeting);
+    const secondCorrect = serve(nextGreeting, true);
+    expect(secondCorrect.storyLog[0].text).toContain('Ly thứ hai đúng rồi');
+    saveGame(secondCorrect);
+    const secondReload = loadGame();
+    const daySeven = { ...secondReload, day: 7, phase: 'open' as const,
+      city: { ...secondReload.city, day: 7 }, currentOrder: {
+        ...returning([]).currentOrder!, id: 'repeat-day-seven',
+      } };
+    expect(getRememberedTrustStage(daySeven)).toBe('open');
+    expect(render(daySeven)).toContain('data-trust="reassured"');
+    const openGreeting = greetRememberedCustomer(daySeven);
+    expect(openGreeting.customerBond.miu).toBe((daySeven.customerBond.miu ?? 0) + 1);
+    expect(openGreeting.city.goodwill).toBe(daySeven.city.goodwill + 1);
   });
 
   it('a third incorrect cup keeps the consequence; one satisfied delivery breaks the streak', () => {
@@ -128,6 +144,19 @@ describe('NPC remembers repeated incorrect cups across days', () => {
       'Khách quen hài lòng', 'Khách quen góp ý thêm',
     ]);
     expect(hasRepeatedRememberedComplaint(recovered)).toBe(false);
+    expect(getRememberedTrustStage(recovered)).toBe('recovering');
+    const setback = returning([
+      'Khách quen góp ý thêm', 'Khách quen hài lòng',
+      'Khách quen góp ý thêm', 'Khách quen góp ý thêm',
+    ]);
+    expect(getRememberedTrustStage(setback)).toBe('guarded');
+    const fullyRepaired = returning([
+      'Khách quen hài lòng', 'Khách quen hài lòng',
+      'Khách quen góp ý thêm', 'Khách quen góp ý thêm',
+    ]);
+    expect(getRememberedTrustStage(fullyRepaired)).toBe('open');
+    const reordered = { ...fullyRepaired, storyLog: [...fullyRepaired.storyLog].reverse() };
+    expect(getRememberedTrustStage(reordered)).toBe('open');
     const single = greetRememberedCustomer(returning(['Khách quen góp ý thêm']));
     expect(canOfferRememberedSample(single)).toBe(true);
     expect(canPromiseRememberedCorrection(
