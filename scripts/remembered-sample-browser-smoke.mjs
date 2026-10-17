@@ -248,7 +248,7 @@ try {
       if (await page.locator('.customer-heading').getAttribute('data-trust') !== 'open')
         throw new Error('Two correct deliveries failed to reopen trust');
       const reopenedBefore = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
-      await page.getByRole('button', { name: /Chào khách quen.*\\+1 thân thiết/ }).click();
+      await page.getByRole('button', { name: /Chào khách quen.*[+]1 thân thiết/ }).click();
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
         .relationshipRewardIds?.includes('remembered-greeting:sample-repeat-day7'), KEY);
       const reopened = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
