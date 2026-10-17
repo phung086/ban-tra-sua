@@ -60,6 +60,23 @@ const render = (game: GameState) =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe('remembered customer: optional promise with consequences', () => {
+  it('does not offer a promise when the required real cup check would be impossible', () => {
+    const discussed = asked();
+    const noEnergy = { ...discussed, city: { ...discussed.city, energy: 0 } };
+    const tooLate = { ...discussed, city: { ...discussed.city, minutes: 1258 } };
+    const alreadySealed = { ...discussed, draft: { ...discussed.draft, sealed: true } };
+    for (const state of [noEnergy, tooLate, alreadySealed]) {
+      expect(canPromiseRememberedCorrection(state)).toBe(false);
+      expect(promiseRememberedCorrection(state)).toBe(state);
+      expect(render(state)).toContain('Chưa thể hứa soát ly');
+    }
+    const justEnough = { ...discussed, city: { ...discussed.city, minutes: 1257, energy: 1 } };
+    expect(canPromiseRememberedCorrection(justEnough)).toBe(true);
+    const promised = promiseRememberedCorrection(justEnough);
+    expect(promised.city.minutes).toBe(1258);
+    expect(promised.city.energy).toBe(1);
+  });
+
   it('offers the promise only after a real clarification, charges time once and survives reload', () => {
     const initial = returning();
     expect(canPromiseRememberedCorrection(initial)).toBe(false);

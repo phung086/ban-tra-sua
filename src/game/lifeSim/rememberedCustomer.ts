@@ -201,7 +201,10 @@ export function canPromiseRememberedCorrection(game: GameState): boolean {
     hasAskedRememberedCustomerAboutComplaint(game) &&
     getRememberedClarificationSource(game) &&
     !hasPromisedRememberedCorrection(game) &&
-    game.city.minutes + 1 <= 1260);
+    !game.draft.sealed &&
+    game.city.energy >= 1 &&
+    // A promise must leave enough time and energy for the actual cup check.
+    game.city.minutes + 3 <= 1260);
 }
 
 export function promiseRememberedCorrection(game: GameState): GameState {

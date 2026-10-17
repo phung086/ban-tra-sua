@@ -77,6 +77,8 @@ export function CustomerScene({ game, onGame }: {
               onClick={() => onGame(current => promiseRememberedCorrection(current))}>
               Hứa kiểm tra kỹ · 1 phút · giữ lời tăng tin tưởng
             </button>)}
+        {askedAboutComplaint && !hasPromisedRememberedCorrection(game) && !canPromiseRememberedCorrection(game) &&
+          <small role="status">Chưa thể hứa soát ly: cần 1 năng lượng, ít nhất 3 phút và ly chưa dập nắp. Bạn vẫn có thể giao đúng đơn.</small>}
         {hasPromisedRememberedCorrection(game) && <div className="life-remembered-reply" aria-label="Soát ly trước khi giao">
           {cupCheck
             ? <p role="status" aria-live="polite">{currentMismatch
