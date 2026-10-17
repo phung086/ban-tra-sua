@@ -87,6 +87,13 @@ try {
       await page.getByRole('button', { name: /Đi làm luôn/ }).click();
       await page.getByRole('button', { name: /Mở cửa tiệm/ }).click();
       await page.locator('.craft-stations').waitFor();
+      // The App saves 400ms after rendering; wait for the persisted next day.
+      await page.waitForFunction(key => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+        return state.day === 3 && state.city?.day === 3 && state.phase === 'open';
+      }, KEY, { timeout: 15000 });
       const before = await page.evaluate(key => {
         const s = JSON.parse(localStorage.getItem(key) || '{}');
         if (s.day !== 3 || s.city.day !== 3 || s.phase !== 'open')
@@ -140,4 +147,5 @@ try {
   await writeFile(`${output}/results.json`, JSON.stringify(report, null, 2));
   await browser.close();
 }
+console.log('REMEMBERED_THANKS_BROWSER_REPORT ' + JSON.stringify(report));
 if (report.errors.length) process.exitCode = 1;
