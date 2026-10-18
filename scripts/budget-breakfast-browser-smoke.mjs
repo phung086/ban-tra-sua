@@ -90,7 +90,8 @@ try {
       waterFixture.morning.packedWaterDrunk = false;
       delete waterFixture.morning.shiftBreakOrder;
       waterFixture.city.energy = 40;
-      const waterPage = await browser.newPage({
+      // Reuse the completed first-run tutorial preference across both UI sessions.
+      const waterPage = await page.context().newPage({
         viewport: { width, height }, isMobile: width < 1000, hasTouch: width < 1000,
       });
       try {
@@ -106,13 +107,11 @@ try {
         }, { key: KEY, fixture: waterFixture });
         await waterPage.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
           { waitUntil: 'domcontentloaded' });
-        // This is a fresh browser context: the real first-run coach is expected.
-        // Dismiss it through the visible UI before tapping the shift action.
-        const coach = waterPage.getByRole('dialog', { name: 'Hướng dẫn chơi' });
-        if (await coach.isVisible()) {
-          await coach.getByRole('button', { name: 'Bỏ qua' }).click();
-          await coach.waitFor({ state: 'hidden' });
-        }
+        // The first page dismissed the tutorial via its real Skip button.
+        // A second tab in the same context inherits that persisted preference,
+        // so a modal cannot intercept the packed-water action.
+        if (await waterPage.getByRole('dialog', { name: 'Hướng dẫn chơi' }).count())
+          throw new Error('Completed tutorial unexpectedly reopened');
         const drink = waterPage.getByRole('button', { name: /Uống nước lọc mang theo/ });
         await drink.click();
         await waterPage.waitForFunction(key =>
