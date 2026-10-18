@@ -285,6 +285,50 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(getRememberedClarificationSource(reloaded)).toBeNull();
   });
 
+  it('allows a direct apology without paid greeting, even with one energy, and saves the result', () => {
+    const first = serve(returning([]), false);
+    const revisit: GameState = {
+      ...first, day: 6, phase: 'open',
+      city: { ...first.city, day: 6, minutes: 850, energy: 1 },
+      currentOrder: { ...returning([]).currentOrder!, id: 'direct-apology-day6' },
+    };
+    expect(canApologizeForQuietDelivery(revisit)).toBe(true);
+    expect(render(revisit)).toContain('Xin lỗi vì ly giao sai · 2 phút · 1 năng lượng');
+    const apologized = apologizeForQuietDelivery(revisit);
+    expect(apologized.city.minutes).toBe(852);
+    expect(apologized.city.energy).toBe(0);
+    expect(apologized.customerBond).toEqual(revisit.customerBond);
+    expect(apologized.city.goodwill).toBe(revisit.city.goodwill);
+    expect(apologized.relationshipRewardIds).not.toContain('remembered-greeting:direct-apology-day6');
+    expect(apologizeForQuietDelivery(apologized)).toBe(apologized);
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(apologized);
+    const restored = loadGame();
+    expect(hasApologizedForQuietDelivery(restored)).toBe(true);
+    expect(canApologizeForQuietDelivery(restored)).toBe(false);
+    expect(render(restored)).toContain('✓ Đã nhận lỗi.');
+    const corrected = serve(restored, true);
+    expect(corrected.storyLog[0].text).toContain('Khách ghi nhận lời xin lỗi và ly trà được sửa đúng đơn.');
+    expect(corrected.relationshipRewardIds.filter(id =>
+      id === 'remembered-quiet-apology:direct-apology-day6')).toHaveLength(1);
+
+    const privateChoice = keepRememberedPreferencePrivate(revisit);
+    expect(canApologizeForQuietDelivery(privateChoice)).toBe(false);
+    expect(render(privateChoice)).not.toContain('Xin lỗi vì ly giao sai ·');
+    expect(canApologizeForQuietDelivery({
+      ...revisit, draft: { ...revisit.draft, sealed: true },
+    })).toBe(false);
+    expect(canApologizeForQuietDelivery({
+      ...revisit, city: { ...revisit.city, minutes: 1259 },
+    })).toBe(false);
+  });
+
   it('lets the player apologize for a silent wrong cup, without instant trust or duplicate cost', () => {
     const first = serve(returning([]), false);
     const revisit: GameState = {
@@ -292,7 +336,7 @@ describe('NPC remembers repeated incorrect cups across days', () => {
       city: { ...first.city, day: 6, minutes: 850, energy: 50 },
       currentOrder: { ...returning([]).currentOrder!, id: 'quiet-apology-day6' },
     };
-    expect(canApologizeForQuietDelivery(revisit)).toBe(false); // First greet.
+    expect(canApologizeForQuietDelivery(revisit)).toBe(true); // Greeting is optional.
     const greeted = greetRememberedCustomer(revisit);
     expect(render(greeted)).toContain('Xin lỗi vì ly giao sai · 2 phút · 1 năng lượng');
     expect(canApologizeForQuietDelivery(greeted)).toBe(true);

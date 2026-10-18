@@ -78,7 +78,7 @@ export function CustomerScene({ game, onGame }: {
       {previousServiceFeedback && <p className="life-remembered-history" role="note">
         <b>Lần giao trước (ngày {previousServiceFeedback.day}):</b> {previousServiceFeedback.text}
       </p>}
-      {silentDelivery && !silentDelivery.correct && greetingChoice === 'greet' && <div className="life-remembered-reply" aria-label="Nhận lỗi ly giao sai">
+      {silentDelivery && !silentDelivery.correct && greetingChoice !== 'quiet' && <div className="life-remembered-reply" aria-label="Nhận lỗi ly giao sai">
         <p>Khách nhớ ly giao sai ngày {silentDelivery.day}. Bạn có thể nhận lỗi trước khi pha; xin lỗi không tự tăng thân thiết.</p>
         {hasApologizedForQuietDelivery(game)
           ? <p role="status" aria-live="polite">✓ Đã nhận lỗi. Hãy giao đúng ly thật để khách yên tâm.</p>

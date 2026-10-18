@@ -180,7 +180,8 @@ export function hasApologizedForQuietDelivery(game: GameState): boolean {
 export function canApologizeForQuietDelivery(game: GameState): boolean {
   const previous = getRememberedSilentDelivery(game);
   return Boolean(game.phase === 'open' && game.currentOrder &&
-    getRememberedGreetingChoice(game) === 'greet' &&
+    // Direct apology does not require a paid greeting; respect quiet choice.
+    getRememberedGreetingChoice(game) !== 'quiet' &&
     previous && !previous.correct &&
     !hasApologizedForQuietDelivery(game) &&
     !game.draft.sealed &&
