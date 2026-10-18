@@ -25,8 +25,9 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       after.relationshipRewardIds.includes(outcomeId)) return after;
   // Skipping dialogue does not erase a real cup from the customer's memory.
   // A direct apology is explicit dialogue, even without a separate greeting.
-  // Only truly silent service suppresses the NPC callback.
-  if (!choice && !hasApologizedForQuietDelivery(before)) return {
+  // A private preference is not consent to discuss past complaints.
+  // Keep the actual delivery in memory but do not speak unless greeted or apologized.
+  if (choice !== 'greet' && !hasApologizedForQuietDelivery(before)) return {
     ...after, relationshipRewardIds: [...after.relationshipRewardIds, outcomeId],
   };
   const name = before.reviews.find(r => r.customerId === order.customerId)?.customerName ?? 'Khách quen';

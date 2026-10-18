@@ -180,6 +180,18 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     expect(silentBad.relationshipRewardIds).not.toContain('remembered-greeting:repeat-day-five');
     expect(silentBad.storyLog).toEqual(initial.storyLog); // No unsolicited callback.
 
+    // Privacy must suppress speech, not erase an actual delivered cup.
+    const privateGood = serve(keepRememberedPreferencePrivate(initial), true);
+    expect(privateGood.relationshipRewardIds).toContain('remembered-outcome:miu:repeat-day-five:5:good');
+    expect(privateGood.relationshipRewardIds).not.toContain('remembered-service:repeat-day-five');
+    expect(privateGood.storyLog).toEqual(initial.storyLog);
+    const privateReturn: GameState = {
+      ...privateGood, day: 6, phase: 'open',
+      city: { ...privateGood.city, day: 6 },
+      currentOrder: { ...initial.currentOrder!, id: 'private-return-day-six' },
+    };
+    expect(getRememberedSilentDelivery(privateReturn)).toEqual({ day: 5, correct: true });
+
     const nextVisit: GameState = {
       ...silentBad, day: 6, phase: 'open',
       city: { ...silentBad.city, day: 6, minutes: 850, energy: 50 },
@@ -187,9 +199,12 @@ describe('NPC remembers repeated incorrect cups across days', () => {
     };
     const quiet = keepRememberedPreferencePrivate(nextVisit);
     expect(quiet.relationshipRewardIds).toContain('remembered-quiet:silent-day-six');
+    expect(render(quiet)).toContain('Khách vẫn nhớ chất lượng ly trà');
     expect(quiet.customerBond).toEqual(nextVisit.customerBond);
     const secondBad = serve(quiet, false);
     expect(secondBad.relationshipRewardIds).toContain('remembered-outcome:miu:silent-day-six:6:bad');
+    expect(secondBad.relationshipRewardIds).not.toContain('remembered-service:silent-day-six');
+    expect(secondBad.storyLog).toEqual(quiet.storyLog);
 
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', {

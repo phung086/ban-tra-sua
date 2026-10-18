@@ -166,7 +166,7 @@ export function CustomerScene({ game, onGame }: {
               : '“Ồ, tiệm vẫn nhớ góp ý lần trước! Mình mong ly hôm nay đúng đơn nhé.”'}</p>
         </> : <>
           <small>✓ Đã chọn giữ riêng góp ý của khách.</small>
-          <p>Chủ tiệm mỉm cười và chuẩn bị đúng đơn, không nhắc lại góp ý cũ.</p>
+          <p>Chủ tiệm mỉm cười và chuẩn bị đúng đơn, không nhắc lại góp ý cũ. Khách vẫn nhớ chất lượng ly trà sau khi giao.</p>
         </>}
       </div> :
         <div className="life-review-followup-actions life-remembered-actions">
