@@ -14,7 +14,7 @@ import {MovementStick} from './MovementStick';
 import {HoldTask} from './HoldTask';
 import {residentAt,missionDefinition,type ResidentId,type StoryAction,type NeighborhoodMission} from '../game/neighborhoodStories';
 import {getUiPreferences} from '../game/preferences';
-import {observeNavigationHeartbeat, observeRenderHeartbeat, NAVIGATION_ARRIVAL_RADIUS, type NavigationHeartbeat} from '../game/renderHeartbeat';
+import {observeNavigationHeartbeat, observeRenderHeartbeat, shouldOfferNavigationAssist, NAVIGATION_ARRIVAL_RADIUS, type NavigationHeartbeat} from '../game/renderHeartbeat';
 import {GameIcon} from './GameIcon';
 import {CityCompass} from './CityCompass';
 
@@ -47,6 +47,8 @@ export function StreetWorld(props: Props) {
   const [status, setStatus] = useState("loading"),
     [overview, setOverview] = useState(false);
   const [fallbackPlace, setFallbackPlace] = useState<Place>("counter");
+  const [fallbackReason, setFallbackReason] = useState<'graphics' | 'navigation'>('graphics');
+  const [navigationAssist, setNavigationAssist] = useState<Place | null>(null);
   const [showNotice,setShowNotice]=useState(false);
   useEffect(()=>{setShowNotice(true);const timer=setTimeout(()=>setShowNotice(false),4500);return()=>clearTimeout(timer);},[props.game.notice]);
   useEffect(() => {
@@ -64,11 +66,12 @@ export function StreetWorld(props: Props) {
         await loadPhotographicSurfaces();
         const factory=prefs.renderEngine==='babylon'?(await import('../scene/babylonRenderer')).BabylonSceneRenderer:undefined;
         if(cancelled||ticket!==generation||!container.current)return;
-        runtime.current=new StreetRuntime(container.current,latest.current,p=>latest.current.onPosition(p),()=>setStatus('fallback'),factory?(scene,camera,profile)=>new factory(scene,camera,profile):undefined,prefs.graphics,initial);
+        runtime.current=new StreetRuntime(container.current,latest.current,p=>latest.current.onPosition(p),()=>{setFallbackReason('graphics');setStatus('fallback');},factory?(scene,camera,profile)=>new factory(scene,camera,profile):undefined,prefs.graphics,initial);
         setStatus('ready');
+        setFallbackReason('graphics');
       }catch(error){
         if(cancelled||ticket!==generation)return;
-        console.error('Không mở được đồ họa',error);setStatus('fallback');
+        console.error('Không mở được đồ họa',error);setFallbackReason('graphics');setStatus('fallback');
       }
     };
     void initialize();
@@ -147,10 +150,13 @@ export function StreetWorld(props: Props) {
         navigation, lastShopPlace.current, distance, now, navigating,
       );
       navigation = route.heartbeat;
+      setNavigationAssist(shouldOfferNavigationAssist(navigation, now, navigating) ? lastShopPlace.current : null);
       if (!frame.stalled && !route.stalled) return;
       const destination = lastShopPlace.current;
       live.dispose();
       runtime.current = null;
+      setNavigationAssist(null);
+      setFallbackReason(route.stalled ? 'navigation' : 'graphics');
       setStatus('fallback');
       if (destination && !latest.current.exploring) {
         setFallbackPlace(destination);
@@ -162,6 +168,7 @@ export function StreetWorld(props: Props) {
   }, [status]);
 
   const go = (place: Place) => {
+    setNavigationAssist(null);
     lastShopPlace.current = place;
     if (status === 'loading') {
       pendingShopPlace.current = place;
@@ -175,6 +182,19 @@ export function StreetWorld(props: Props) {
       props.onPosition(PLACES[place]);
       lastShopPlace.current = null;
     }
+  };
+  const useSimplePlaceNavigation = () => {
+    const place = navigationAssist;
+    if (!place || status !== 'ready' || !runtime.current || latest.current.paused || latest.current.exploring) return;
+    runtime.current.dispose();
+    runtime.current = null;
+    pendingShopPlace.current = null;
+    lastShopPlace.current = null;
+    setNavigationAssist(null);
+    setFallbackReason('navigation');
+    setFallbackPlace(place);
+    setStatus('fallback');
+    latest.current.onPosition(PLACES[place]);
   };
   const order = props.game.currentOrder,
     location = order ? deliveryFor(order) : null;
@@ -218,7 +238,9 @@ export function StreetWorld(props: Props) {
             <p>
               {status === "loading"
                 ? "Dựng quầy, bàn ghế và khách trong xóm."
-                : `Thiết bị chưa mở được đồ họa 3D. Bạn vẫn pha chế và giao tại ${PLACES[fallbackPlace].label.toLowerCase()} bằng các nút địa điểm.`}
+                : fallbackReason === 'navigation'
+                  ? `Đường đi bị kẹt. Đã chuyển sang nút địa điểm để bạn tiếp tục giao trà tại ${PLACES[fallbackPlace].label.toLowerCase()}.`
+                  : `Thiết bị chưa mở được đồ họa 3D. Bạn vẫn pha chế và giao tại ${PLACES[fallbackPlace].label.toLowerCase()} bằng các nút địa điểm.`}
             </p>
           </div>
         )}
@@ -273,6 +295,14 @@ export function StreetWorld(props: Props) {
                     : "Ly đã trên tay. Mang đến đúng vị trí của khách."
                   : getCustomer(order.customerId).greeting}
               </p>
+              {props.carrying && navigationAssist && !near && location === navigationAssist && !props.paused && (
+                <div role="status" aria-live="polite">
+                  <p>Đường tới {PLACES[navigationAssist].label.toLowerCase()} chưa tiến triển. Bạn có thể dùng điều khiển địa điểm đơn giản.</p>
+                  <button type="button" onClick={useSimplePlaceNavigation}>
+                    Đi tới {PLACES[navigationAssist].label} bằng chế độ đơn giản
+                  </button>
+                </div>
+              )}
               {props.carrying && (
                 <button
                   className="primary-button"
@@ -310,7 +340,7 @@ export function StreetWorld(props: Props) {
               <small>
                 {overview ? "Chạm sàn để đi · kéo để xoay" : "Kéo núm tròn để đi · vuốt cảnh để xoay camera"}
               </small>
-              <MovementStick disabled={props.paused||status!=='ready'} onMove={stick=>{runtime.current?.analog(stick);if(stick.x||stick.y){lastShopPlace.current=null;pendingShopPlace.current=null;setOverview(false);}}}/>
+              <MovementStick disabled={props.paused||status!=='ready'} onMove={stick=>{runtime.current?.analog(stick);if(stick.x||stick.y){lastShopPlace.current=null;pendingShopPlace.current=null;setNavigationAssist(null);setOverview(false);}}}/>
             </div>
           </div>
         </>

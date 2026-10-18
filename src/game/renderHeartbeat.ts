@@ -32,6 +32,8 @@ export function observeRenderHeartbeat(
 /** A selected shop destination should never become an endless walking command. */
 export const NAVIGATION_STALL_TIMEOUT_MS = 20_000;
 export const NAVIGATION_ARRIVAL_RADIUS = 1.15;
+/** Offer a voluntary accessible escape before the automatic 20-second recovery. */
+export const NAVIGATION_ASSIST_DELAY_MS = 8_000;
 export type NavigationHeartbeat = {
   place: string | null;
   distance: number;
@@ -66,4 +68,17 @@ export function observeNavigationHeartbeat(
     heartbeat: previous,
     stalled: now - previous.lastProgressAt >= NAVIGATION_STALL_TIMEOUT_MS,
   };
+}
+
+/** Never offer a shortcut for a paused, hidden, finished or progressing route. */
+export function shouldOfferNavigationAssist(
+  heartbeat: NavigationHeartbeat,
+  now: number,
+  active: boolean,
+): boolean {
+  return active && heartbeat.place !== null &&
+    Number.isFinite(now) && Number.isFinite(heartbeat.distance) &&
+    heartbeat.distance > NAVIGATION_ARRIVAL_RADIUS &&
+    now >= heartbeat.lastProgressAt &&
+    now - heartbeat.lastProgressAt >= NAVIGATION_ASSIST_DELAY_MS;
 }

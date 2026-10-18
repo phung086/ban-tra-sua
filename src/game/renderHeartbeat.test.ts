@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   NAVIGATION_STALL_TIMEOUT_MS,
+  NAVIGATION_ASSIST_DELAY_MS,
+  shouldOfferNavigationAssist,
   observeNavigationHeartbeat,
   observeRenderHeartbeat,
   RENDER_STALL_TIMEOUT_MS,
@@ -23,6 +25,19 @@ describe('3D shop interaction recovery', () => {
     const progress = observeNavigationHeartbeat(selected, 'table2', 5.6, 7000, true);
     expect(progress.stalled).toBe(false);
     expect(progress.heartbeat.lastProgressAt).toBe(7000);
+  });
+
+  it('offers a voluntary fallback only after eight seconds without route progress', () => {
+    const start = { place: 'table2', distance: 6, lastProgressAt: 1000 };
+    expect(shouldOfferNavigationAssist(start, 1000 + NAVIGATION_ASSIST_DELAY_MS - 1, true)).toBe(false);
+    expect(shouldOfferNavigationAssist(start, 1000 + NAVIGATION_ASSIST_DELAY_MS, true)).toBe(true);
+    expect(shouldOfferNavigationAssist(start, 100_000, false)).toBe(false);
+    expect(shouldOfferNavigationAssist({ ...start, place: null }, 100_000, true)).toBe(false);
+    expect(shouldOfferNavigationAssist({ ...start, distance: 1 }, 100_000, true)).toBe(false);
+    expect(shouldOfferNavigationAssist({ ...start, distance: Infinity }, 100_000, true)).toBe(false);
+    const progressed = observeNavigationHeartbeat(start, 'table2', 5.7, 8000, true).heartbeat;
+    expect(shouldOfferNavigationAssist(progressed, 8000, true)).toBe(false);
+    expect(shouldOfferNavigationAssist(progressed, 8000 + NAVIGATION_ASSIST_DELAY_MS, true)).toBe(true);
   });
 
   it('ignores hidden, paused, arrived, changed and invalid destinations', () => {
