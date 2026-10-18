@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const KEY = 'tiem-tra-chibi-save-v3';
-const output = 'artifacts/remembered-quiet-apology';
+const output = process.env.REMEMBERED_QUIET_APOLOGY_OUTPUT ?? 'artifacts/remembered-quiet-apology';
 const sizes = [[360, 800], [390, 844], [844, 390], [1280, 800]];
 const report = { environment: 'Chromium simulated touch / SwiftShader (not physical devices)', passed: [], errors: [] };
 await mkdir(output, { recursive: true });
