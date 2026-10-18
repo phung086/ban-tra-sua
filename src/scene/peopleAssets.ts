@@ -35,6 +35,7 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
   const box=new T.Box3().setFromObject(model),scale=2.1/(box.max.y-box.min.y);
   model.scale.multiplyScalar(scale);model.position.y=-box.min.y*scale;
   root.scale.set(look.build,look.height/2.1,1);
+  const animatedBounds=box.getBoundingSphere(new T.Sphere());animatedBounds.radius*=1.4;
   model.traverse(object=>{
     if(!(object instanceof T.Mesh))return;
     object.geometry=w.geometry(`person-asset:${object.geometry.uuid}`,()=>toCreasedNormals(object.geometry.clone(),Math.PI/3));
@@ -50,7 +51,7 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
     };
     object.material=Array.isArray(object.material)?object.material.map(adapt):adapt(object.material);
     object.castShadow=object.receiveShadow=true;
-    if(object instanceof T.SkinnedMesh){w.skeletons.add(object.skeleton);object.frustumCulled=false;}
+    if(object instanceof T.SkinnedMesh){w.skeletons.add(object.skeleton);object.boundingSphere=animatedBounds.clone();object.frustumCulled=true;}
   });
   const bone=(name:string)=>(model.getObjectByName(name)??body) as T.Group;
   const hand=new T.Group();bone('Fist.R').add(hand);hand.scale.setScalar(1/scale);

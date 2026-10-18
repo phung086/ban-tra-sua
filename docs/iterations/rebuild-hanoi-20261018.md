@@ -37,7 +37,7 @@ Bản sao nguồn có license: https://github.com/MarcoPaoletta/4-xogot-reel-tyc
 
 ## Kiểm tra và giới hạn
 
-`npm test`: 650 test / 134 file Vitest, node acceptance 6/6, life design validator.
+`npm test`: 651 test / 134 file Vitest, node acceptance 6/6, life design validator.
 `npm run build`: thành công. Babylon chunk vẫn có cảnh báo kích thước.
 `checks/peopleAssets.test.ts` đọc GLB thật, kiểm chân trên mặt đường xuyên chu kỳ
 Idle, chuyển clip, giải phóng skeleton và biến dạng giữa hai renderer.
@@ -88,3 +88,9 @@ Sau sửa reset cuộn, `rebuild-browser-smoke` đã chạy lại trọn luồng
 [JSON mới nhất](evidence/rebuild-hanoi-20261018/three-results.json).
 
 ![Quầy sau khi trở lại từ phố](evidence/rebuild-hanoi-20261018/shop-service.png)
+
+
+Tối ưu cuối: mesh người có bounding sphere chung đủ bao tư thế đứng/đi/ngồi,
+được frustum cull thay vì vẽ toàn bộ người ngoài màn hình. Test trên vertex
+GLB thật xác nhận bounds bao hình học cả hai tư thế. Đây là giảm công việc GPU,
+không phải số đo FPS điện thoại. Tổng test sau bổ sung: 651.

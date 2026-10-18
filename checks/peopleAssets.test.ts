@@ -28,6 +28,13 @@ describe('bundled production people',()=>{
     expect(person.imported!.actions.get('SitDown')!.time).toBeCloseTo(person.imported!.actions.get('SitDown')!.getClip().duration);
     w.dispose();expect(w.skeletons.size).toBe(0);
   });
+  it('keeps animated geometry inside conservative culling bounds',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
+    for(const sitting of [false,true]){
+      pose(person,0,!sitting,0,sitting,false);person.root.updateMatrixWorld(true);
+      person.root.traverse(o=>{if(o instanceof T.SkinnedMesh){expect(o.frustumCulled).toBe(true);const p=o.geometry.getAttribute('position'),v=new T.Vector3();for(let i=0;i<p.count;i+=5){o.getVertexPosition(i,v);expect(v.distanceTo(o.boundingSphere!.center)).toBeLessThanOrEqual(o.boundingSphere!.radius);}}});
+    }w.dispose();
+  });
   it('keeps arbitrary imported joint order identical between Three and Babylon',()=>{
     const w=new Workshop(),person=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
     const meshes:T.SkinnedMesh[]=[];person.root.traverse(o=>{if(o instanceof T.SkinnedMesh)meshes.push(o);});
