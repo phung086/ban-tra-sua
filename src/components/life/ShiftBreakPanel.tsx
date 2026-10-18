@@ -18,7 +18,8 @@ export function ShiftBreakPanel({ game, onGame }: {
     {alreadyRested
       ? <p>Đã nghỉ trong lượt khách này. Hoàn tất đơn để có thể nghỉ lượt sau.</p>
       : <div className="life-morning-options">
-        {game.morning.breakfast === 'leftovers' && <button type="button"
+        {game.morning.breakfast === 'leftovers' &&
+          !(game.morning as typeof game.morning & {leftoverBreakUsed?: boolean}).leftoverBreakUsed && <button type="button"
           className="life-morning-option" disabled={!canEatLeftoverBreak(game)}
           onClick={() => onGame(eatLeftoverBreak(game))}>
           <strong>🍚 Ăn cơm nguội mang theo</strong>
