@@ -31,6 +31,9 @@ describe('3D shop interaction recovery', () => {
     expect(observeNavigationHeartbeat(start, 'table2', 0.9, 100_000, true).stalled).toBe(false);
     expect(observeNavigationHeartbeat(start, 'counter', 6, 100_000, true).stalled).toBe(false);
     expect(observeNavigationHeartbeat(start, 'table2', NaN, 100_000, true).stalled).toBe(false);
-    expect(observeNavigationHeartbeat(start, null, Infinity, 100_000, true).stalled).toBe(false);
+    const cleared = observeNavigationHeartbeat(start, null, Infinity, 100_000, true);
+    expect(cleared.stalled).toBe(false);
+    expect(cleared.heartbeat.place).toBeNull();
+    expect(observeNavigationHeartbeat(cleared.heartbeat, 'table2', 6, 101_000, true).stalled).toBe(false);
   });
 });

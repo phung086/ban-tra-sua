@@ -46,10 +46,18 @@ export function observeNavigationHeartbeat(
   now: number,
   active: boolean,
 ): { heartbeat: NavigationHeartbeat; stalled: boolean } {
-  if (!Number.isFinite(distance) || distance < 0 || !Number.isFinite(now)) {
+  if (!Number.isFinite(now)) {
     return { heartbeat: previous, stalled: false };
   }
-  if (!active || place === null || previous.place !== place ||
+  // Clearing a route is a new observation even though it has no finite
+  // distance. Otherwise a second tap on the same table inherits a stale timer.
+  if (place === null) {
+    return { heartbeat: { place: null, distance: Infinity, lastProgressAt: now }, stalled: false };
+  }
+  if (!Number.isFinite(distance) || distance < 0) {
+    return { heartbeat: previous, stalled: false };
+  }
+  if (!active || previous.place !== place ||
       distance <= NAVIGATION_ARRIVAL_RADIUS ||
       distance < previous.distance - 0.12 || now < previous.lastProgressAt) {
     return { heartbeat: { place, distance, lastProgressAt: now }, stalled: false };

@@ -14,7 +14,7 @@ import {MovementStick} from './MovementStick';
 import {HoldTask} from './HoldTask';
 import {residentAt,missionDefinition,type ResidentId,type StoryAction,type NeighborhoodMission} from '../game/neighborhoodStories';
 import {getUiPreferences} from '../game/preferences';
-import {observeNavigationHeartbeat, observeRenderHeartbeat, NAVIGATION_ARRIVAL_RADIUS} from '../game/renderHeartbeat';
+import {observeNavigationHeartbeat, observeRenderHeartbeat, NAVIGATION_ARRIVAL_RADIUS, type NavigationHeartbeat} from '../game/renderHeartbeat';
 import {GameIcon} from './GameIcon';
 import {CityCompass} from './CityCompass';
 
@@ -129,7 +129,7 @@ export function StreetWorld(props: Props) {
     if (status !== 'ready' || !runtime.current) return;
     const start = performance.now();
     let render = { frames: runtime.current.renderSamples, lastProgressAt: start };
-    let navigation = { place: null as Place | null, distance: Infinity, lastProgressAt: start };
+    let navigation: NavigationHeartbeat = { place: null, distance: Infinity, lastProgressAt: start };
     const timer = window.setInterval(() => {
       const live = runtime.current;
       if (!live) return;
