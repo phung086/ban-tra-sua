@@ -3,7 +3,8 @@ import { createInitialState } from '../engine';
 import { deliverDrink, deliveryFor, PLACES } from '../service';
 import { loadGame, saveGame } from '../storage';
 import type { GameState } from '../types';
-import { greetRememberedCustomer, keepRememberedPreferencePrivate } from './rememberedCustomer';
+import { greetRememberedCustomer, keepRememberedPreferencePrivate, getRememberedSilentDelivery } from './rememberedCustomer';
+import { rememberedDeliveryHistory } from './rememberedHistory';
 
 function returning(): GameState {
   const initial = createInitialState();
@@ -185,6 +186,55 @@ describe('remembered NPC callback on actual delivery', () => {
       draft: { ...initial.draft, fill: 0 } });
     expect(wrongAgain.storyLog[0].text).toContain('Lần trước ly cũng chưa đúng');
     expect(wrongAgain.storyLog[0].text).not.toContain('Mình từng góp ý rồi');
+  });
+
+  it('reconciles encoded order IDs across spoken, quiet and legacy deliveries after reload', () => {
+    const original = returning();
+    const specialId = 'miu:ngày 2/ly 50% 🍵';
+    const order = { ...original.currentOrder!, id: specialId };
+    const state = { ...original, currentOrder: order };
+    const greeted = serve(greetRememberedCustomer(state));
+    expect(greeted.storyLog[0].id).toBe('remembered-service:' + encodeURIComponent(specialId));
+    expect(rememberedDeliveryHistory(greeted, 'miu').at(-1)?.orderId).toBe(encodeURIComponent(specialId));
+
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+    });
+    saveGame(greeted);
+    const reloaded = loadGame();
+    const nextOrder = { ...order, id: 'miu:return/day-3' };
+    const returnVisit: GameState = {
+      ...reloaded, day: 3, phase: 'open',
+      city: { ...reloaded.city, day: 3, minutes: 850, energy: 50 },
+      currentOrder: nextOrder, draft: original.draft,
+    };
+    expect(getRememberedSilentDelivery(returnVisit)).toBeNull();
+    expect(serve(greetRememberedCustomer(returnVisit)).notice).toContain('Tiệm còn nhớ mình');
+
+    // Old saves may contain only a visible story callback, not a durable outcome.
+    const legacy: GameState = {
+      ...returnVisit,
+      relationshipRewardIds: returnVisit.relationshipRewardIds.filter(id =>
+        !id.startsWith('remembered-outcome:')),
+    };
+    expect(rememberedDeliveryHistory(legacy, 'miu').at(-1)?.orderId).toBe(encodeURIComponent(specialId));
+    expect(getRememberedSilentDelivery(legacy)).toBeNull();
+
+    const quietWrong = serve({
+      ...keepRememberedPreferencePrivate(state),
+      draft: { ...state.draft, fill: 0 },
+    });
+    const quietReturn: GameState = {
+      ...quietWrong, day: 3, phase: 'open',
+      city: { ...quietWrong.city, day: 3, minutes: 850, energy: 50 },
+      currentOrder: nextOrder, draft: original.draft,
+    };
+    expect(getRememberedSilentDelivery(quietReturn)).toEqual({ day: 2, correct: false });
+    expect(serve(greetRememberedCustomer(quietReturn)).notice)
+      .toContain('Lần trước ly chưa đúng đơn, hôm nay đúng rồi');
   });
 
 });
