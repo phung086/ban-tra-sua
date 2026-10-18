@@ -304,3 +304,66 @@ describe('QG-08 day 12 rainy school tea delivery', () => {
     expect(cityContracts(nextDay(postponed)).find(contract => contract.destination === 'school')?.reward).toBe(82000);
   });
 });
+
+describe('QG-09 day 13 class-fair sign with Lan', () => {
+  const dayThirteen = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 13; day++) game = nextDay(game);
+    return game;
+  };
+
+  it('pays for a sign once, survives reload and changes only the day-14 school order', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = { ...dayThirteen(), relationshipRewardIds: ['school.day12.gift'] };
+    expect(cityContracts(before).find(c => c.destination === 'school')?.reward).toBe(94000);
+    const painted = cityAction(before, { type: 'schoolFair', choice: 'paint' }, CITY_PLACES.school);
+    expect(painted.cash).toBe(before.cash - 8000);
+    expect(painted.city.minutes).toBe(before.city.minutes + 20);
+    expect(painted.city.energy).toBe(before.city.energy - 12);
+    expect(painted.city.goodwill).toBe(before.city.goodwill + 4);
+    expect(painted.fans).toBe(before.fans + 2);
+    expect(painted.relationshipRewardIds).toContain('school.day13.paint');
+    expect(cityAction(painted, { type: 'schoolFair', choice: 'share' }, CITY_PLACES.school)).toBe(painted);
+    saveGame(painted);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('school.day13.paint');
+    expect(cityAction(resumed, { type: 'schoolFair', choice: 'paint' }, CITY_PLACES.school)).toBe(resumed);
+    const day14 = nextDay(resumed);
+    expect(cityContracts(day14).find(c => c.destination === 'school')?.reward).toBe(90000);
+    expect(cityContracts(nextDay(day14)).find(c => c.destination === 'school')?.reward).toBe(82000);
+  });
+
+  it('lets a player with no money or stock share the menu instead', () => {
+    const start = dayThirteen();
+    const before = { ...start, cash: 0, city: { ...start.city, energy: 2 }, inventory: { ...start.inventory, peachTea: 0 } };
+    expect(cityAction(before, { type: 'schoolFair', choice: 'paint' }, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    const shared = cityAction(before, { type: 'schoolFair', choice: 'share' }, CITY_PLACES.school);
+    expect(shared.cash).toBe(0);
+    expect(shared.inventory).toEqual(before.inventory);
+    expect(shared.city.energy).toBe(0);
+    expect(shared.city.minutes).toBe(before.city.minutes + 5);
+    expect(shared.city.goodwill).toBe(before.city.goodwill + 1);
+    expect(shared.fans).toBe(before.fans + 1);
+    expect(shared.relationshipRewardIds).toContain('school.day13.share');
+    expect(cityContracts(nextDay(shared)).find(c => c.destination === 'school')?.reward).toBe(85000);
+  });
+
+  it('rejects other days, locations, open shifts, active jobs, late hours and low energy', () => {
+    const before = dayThirteen();
+    const paint = { type: 'schoolFair' as const, choice: 'paint' as const };
+    expect(cityAction(createInitialState(), paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, paint, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'school' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    const tired = { ...before, city: { ...before.city, energy: 11 } };
+    expect(cityAction(tired, paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.school.hours[1] - 10 } };
+    expect(cityAction(late, paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
+  });
+});
