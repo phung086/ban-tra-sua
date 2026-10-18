@@ -66,6 +66,16 @@ try {
       if (await page.locator('.life-morning-option')
         .filter({ hasText: 'Ăn cơm nguội còn lại ở nhà' }).count())
         throw new Error('Breakfast can be purchased again after reload');
+      await page.getByRole('button', { name: /Mở cửa tiệm/ }).click();
+      await page.getByRole('button', { name: /Ăn cơm nguội mang theo/ }).click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}').morning?.leftoverBreakUsed === true, KEY);
+      const eatenAtShop = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (eatenAtShop.cash !== 0 || eatenAtShop.morning.satiety !== 75 ||
+          eatenAtShop.city.minutes !== restored.city.minutes + 6)
+        throw new Error('Free rice break did not apply once');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      if (await page.getByRole('button', { name: /Ăn cơm nguội mang theo/ }).count())
+        throw new Error('Consumed rice reappeared after reload');
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
         throw new Error('Horizontal overflow');
       if (errors.length) throw new Error('Console/page errors: ' + errors.join(' | '));
