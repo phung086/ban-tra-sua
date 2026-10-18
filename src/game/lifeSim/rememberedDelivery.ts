@@ -1,16 +1,12 @@
 import type { GameState, Order } from '../types';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, getPreviousRememberedServiceFeedback } from './rememberedCustomer';
+import { getRememberedCupMismatch } from './rememberedCupCheck';
+import { hasOfferedRememberedSample } from './rememberedSample';
+import { rememberedOutcomeId } from './rememberedHistory';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getUnresolvedRememberedComplaint, getRememberedSilentDelivery, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage, hasApologizedForQuietDelivery } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
-  if (draft.base !== order.base) return 'Bạn pha nhầm nền trà rồi.';
-  if (draft.size !== order.size) return 'Kích cỡ ly chưa đúng đơn.';
-  if (draft.topping !== order.topping) return 'Topping chưa đúng đơn.';
-  if (draft.sugar !== order.sugar) return 'Độ ngọt chưa đúng đơn.';
-  if (draft.ice !== order.ice) return 'Mức đá chưa đúng đơn.';
-  if (Math.abs(draft.fill - order.targetFill) >= 15) return 'Lượng trà trong ly chưa đúng yêu cầu.';
-  if (Math.abs(draft.shake - order.targetShake) >= 15) return 'Độ lắc chưa đúng yêu cầu.';
-  if (score < 80) return 'Lần sau bạn pha kỹ hơn nhé.';
-  return '';
+  return getRememberedCupMismatch(order, draft) ??
+    (score < 80 ? 'Lần sau bạn pha kỹ hơn nhé.' : '');
 }
 
 /** One saved NPC callback per actual delivery; no additional rewards. */
@@ -21,36 +17,101 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
       !hasRememberedLowSugar(before, order.customerId)) return after;
   const choice = getRememberedGreetingChoice(before);
   const id = 'remembered-service:' + encodeURIComponent(order.id);
-  if (!choice || after.relationshipRewardIds.includes(id)) return after;
+  // A customer remembers the actual cup even if the player skips optional chat.
+  // Never gate durable delivery history on a greeting or a private preference choice.
+  const outcomeId = rememberedOutcomeId(order.customerId, order.id, before.day,
+    !feedback(order, before.draft, after.lastScore));
+  if (after.relationshipRewardIds.includes(id) ||
+      after.relationshipRewardIds.includes(outcomeId)) return after;
+  // Skipping dialogue does not erase a real cup from the customer's memory.
+  // A direct apology is explicit dialogue, even without a separate greeting.
+  // A private preference is not consent to discuss past complaints.
+  // Keep the actual delivery in memory but do not speak unless greeted or apologized.
+  if (choice !== 'greet' && !hasApologizedForQuietDelivery(before)) return {
+    ...after, relationshipRewardIds: [...after.relationshipRewardIds, outcomeId],
+  };
   const name = before.reviews.find(r => r.customerId === order.customerId)?.customerName ?? 'Khách quen';
   const correction = feedback(order, before.draft, after.lastScore);
   // A previous real delivery matters on the next visit, not just a generic
   // customer preference. Never change the customer's current recipe.
-  // Only the most recent earlier delivery determines whether feedback remains
-  // unresolved. A later satisfied delivery closes an older complaint across reloads.
-  const lastDelivery = getPreviousRememberedServiceFeedback(before);
-  const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
+  // The latest actual cup wins, including deliveries without dialogue.
+  const previousComplaint = getUnresolvedRememberedComplaint(before) !== null;
+  const silentWrong = getRememberedSilentDelivery(before)?.correct === false;
+  const repeatedMistakes = hasRepeatedRememberedComplaint(before);
+  const recovering = getRememberedTrustStage(before) === 'recovering';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
+  const promised = hasPromisedRememberedCorrection(before);
+  const checked = promised && getRememberedPromiseCupCheck(before) !== null;
+  const apologized = hasApologizedForBrokenPromise(before);
+  const sampled = hasOfferedRememberedSample(before);
+  const acknowledgedQuietMistake = hasApologizedForQuietDelivery(before);
   const message = correction
-    ? name + ': “' + (previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : silentWrong ? 'Lần trước ly cũng chưa đúng: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    : recovering
+      ? name + ': “Ly thứ hai đúng rồi. Giờ mình tin tiệm hơn.”'
+    : silentWrong
+      ? name + ': “Lần trước ly chưa đúng đơn, hôm nay đúng rồi. Cảm ơn tiệm đã sửa.”'
     : previousComplaint
-      ? name + (asked
+      ? name + (repeatedMistakes
+        ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Lần trước mình có góp ý, cảm ơn tiệm đã sửa.”'
+        : apologized
+        ? ': “Cảm ơn tiệm đã xin lỗi. Hôm nay ly đúng đơn rồi, mình yên tâm hơn.”'
+        : asked
         ? ': “Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!”'
         : ': “Lần trước mình có góp ý, hôm nay ly đã đúng rồi. Cảm ơn tiệm!”')
+      : asked ? name + ': “Cảm ơn tiệm đã hỏi kỹ góp ý cũ. Ly hôm nay vừa miệng mình!”'
       : choice === 'greet' ? name + ': “Tiệm còn nhớ mình! Ly này vừa miệng.”' :
         name + ': “Ly hôm nay vừa miệng mình rồi.”';
+  // A correct cup is not proof that the promised quality check happened.
+  const skippedCheck = promised && !checked && !correction;
+  // Saying sorry alone cannot restore trust. A later correct *delivered* cup can.
+  // If the player makes another explicit check promise, that promise must be kept.
+  const recoveredAfterApology = previousComplaint && apologized && !correction &&
+    (!promised || checked);
+  const promiseDelta = promised
+    ? (correction ? -1 : checked ? 1 : 0)
+    : recoveredAfterApology ? 1 : 0;
+  const sampleDelta = sampled && !correction ? 1 : 0;
+  const totalDelta = promiseDelta + sampleDelta;
+  const response = message + (acknowledgedQuietMistake
+    ? correction
+      ? ' Khách đã nghe lời xin lỗi, nhưng ly giao vẫn sai. Cần sửa bằng hành động.'
+      : ' Khách ghi nhận lời xin lỗi và ly trà được sửa đúng đơn.'
+    : '') + (sampled
+    ? correction
+      ? ' Cảm ơn ly trà mẫu, nhưng ly giao vẫn sai; khách chưa thể yên tâm.'
+      : ' Ly trà mẫu giúp khách thử vị; ly giao đúng mới khiến khách yên tâm hơn.'
+    : '') + (apologized && correction
+    ? ' Mình đã nghe lời xin lỗi, nhưng ly vẫn chưa đúng.'
+    : '') + (promised
+    ? (correction
+      ? ' Tiệm đã hứa kiểm tra kỹ nhưng vẫn làm sai; mình thất vọng.'
+      : checked ? ' Tiệm đã giữ lời kiểm tra kỹ. Lần sau mình sẽ yên tâm hơn.' : '')
+    : '') + (skippedCheck
+      ? ' Bạn giao đúng ly nhưng đã bỏ qua bước soát ly đã hứa; không nhận thưởng uy tín giữ lời.'
+      : '') + (recovering && correction
+      ? ' Ly trước đã đúng nhưng hôm nay lại sai. Khách cần thấy sự ổn định trước khi tin tưởng.'
+      : '') + (repeatedMistakes && !correction
+      ? ' Đây là ly đúng đầu tiên; khách cần thêm một lần giao đúng để thật sự yên tâm.'
+      : '');
   return {
     ...after,
-    relationshipRewardIds: [...after.relationshipRewardIds, id],
+    relationshipRewardIds: [...after.relationshipRewardIds, id,
+      outcomeId],
+    customerBond: totalDelta !== 0 ? {
+      ...after.customerBond,
+      [order.customerId]: Math.max(0, (after.customerBond[order.customerId] ?? 0) + totalDelta),
+    } : after.customerBond,
     storyLog: [{
       id, customerId: order.customerId, customerName: name,
       title: correction ? 'Khách quen góp ý thêm' : 'Khách quen hài lòng',
-      text: message, day: before.day, rewardFans: 0,
+      text: response, day: before.day, rewardFans: 0,
     }, ...after.storyLog].slice(0, 24),
     city: {
       ...after.city,
-      journal: ['Ngày ' + before.day + ' · ' + message, ...after.city.journal].slice(0, 24),
+      goodwill: totalDelta !== 0 ? Math.max(0, after.city.goodwill + totalDelta) : after.city.goodwill,
+      journal: ['Ngày ' + before.day + ' · ' + response, ...after.city.journal].slice(0, 24),
     },
-    notice: after.notice + ' 💬 ' + message,
+    notice: after.notice + ' 💬 ' + response,
   };
 }

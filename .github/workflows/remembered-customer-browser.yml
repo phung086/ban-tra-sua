@@ -4,9 +4,18 @@ on:
     branches: [main, 'codex/**']
     paths:
       - 'src/game/lifeSim/remembered*.ts'
+      - 'src/game/lifeSim/remembered*.tsx'
       - 'src/components/CustomerScene.tsx'
       - 'src/game/service.ts'
+      - 'src/components/StreetWorld.tsx'
+      - 'src/game/renderHeartbeat*.ts'
       - 'scripts/remembered-customer-browser-smoke.mjs'
+      - 'scripts/remembered-thanks-browser-smoke.mjs'
+      - 'scripts/remembered-recovery-browser-smoke.mjs'
+      - 'scripts/remembered-sample-browser-smoke.mjs'
+      - 'scripts/remembered-quiet-return-browser-smoke.mjs'
+      - 'scripts/remembered-direct-apology-browser-smoke.mjs'
+      - 'scripts/navigation-fallback-browser-smoke.mjs'
       - '.github/workflows/remembered-customer-browser.yml'
   pull_request:
     branches: [main]
@@ -18,6 +27,25 @@ concurrency:
 
 jobs:
   browser:
+    name: ${{ matrix.suite }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: remembered-customer
+            script: scripts/remembered-customer-browser-smoke.mjs
+          - suite: remembered-thanks
+            script: scripts/remembered-thanks-browser-smoke.mjs
+          - suite: remembered-recovery
+            script: scripts/remembered-recovery-browser-smoke.mjs
+          - suite: remembered-sample
+            script: scripts/remembered-sample-browser-smoke.mjs
+          - suite: remembered-quiet-return
+            script: scripts/remembered-quiet-return-browser-smoke.mjs
+          - suite: remembered-direct-apology
+            script: scripts/remembered-direct-apology-browser-smoke.mjs
+          - suite: navigation-fallback
+            script: scripts/navigation-fallback-browser-smoke.mjs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -46,11 +74,11 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:5193/ >/dev/null
-          node scripts/remembered-customer-browser-smoke.mjs
+          node "${{ matrix.script }}"
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: remembered-customer-${{ github.sha }}
-          path: artifacts/remembered-customer/
+          name: ${{ matrix.suite }}-${{ github.sha }}
+          path: artifacts/${{ matrix.suite }}/
           retention-days: 14

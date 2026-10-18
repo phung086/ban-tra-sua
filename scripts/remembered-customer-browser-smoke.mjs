@@ -124,7 +124,47 @@ try {
       if (clarificationReload.city.minutes !== 855 || clarificationReload.city.energy !== 48 || clarificationReload.storyLog.filter(item => item.id === 'remembered-clarify:return-e2e').length !== 1) {
         throw new Error('Clarification diary or cost lost or duplicated after reload');
       }
-      // Actual crafting/delivery: no direct reducer call or fake callback.
+      // Promise is a real player action; verify its one-time ledger and cost.
+      await page.getByRole('button', { name: /Hứa kiểm tra kỹ/ }).click();
+      await page.waitForFunction(key => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}');
+        return state.relationshipRewardIds?.includes('remembered-promise:return-e2e');
+      }, KEY);
+      const promised = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (promised.city.minutes !== 856 || promised.city.energy !== 48 ||
+          promised.cash !== 210000 || promised.currentOrder?.sugar !== 25) {
+        throw new Error('Promise changed resources or customer recipe incorrectly');
+      }
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByText(/Đã hứa kiểm tra kỹ/).waitFor();
+      if (await page.getByRole('button', { name: /Hứa kiểm tra kỹ/ }).count()) {
+        throw new Error('Promise can be claimed twice after reload');
+      }
+
+      // Real counter crafting, cup check and delivery: no direct reducer call.
+      await page.locator('.craft-stations button').nth(3).click({ timeout: 20000 });
+      await page.getByRole('button', { name: /Soát ly trước khi dập nắp/ }).click();
+      await page.waitForFunction(key => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}');
+        return state.relationshipRewardIds?.some(id => id.startsWith('remembered-cup-check:return-e2e:'));
+      }, KEY);
+      const checked = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (checked.city.minutes !== 858 || checked.city.energy !== 47 ||
+          checked.cash !== 210000 ||
+          checked.relationshipRewardIds.filter(id => id.startsWith('remembered-cup-check:return-e2e:')).length !== 1) {
+        throw new Error('Cup check was charged incorrectly or duplicated');
+      }
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByText(/Đã soát đúng công thức|Đã chỉnh đúng công thức sau lần soát/).waitFor();
+      if (await page.getByRole('button', { name: /Soát ly trước khi dập nắp/ }).count()) {
+        throw new Error('Cup check can be claimed twice after reload');
+      }
+      const checkedReload = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (checkedReload.city.minutes !== 858 || checkedReload.city.energy !== 47 ||
+          checkedReload.relationshipRewardIds.filter(id => id.startsWith('remembered-cup-check:return-e2e:')).length !== 1) {
+        throw new Error('Cup check ledger or cost changed after reload');
+      }
+      // Station tabs are transient UI state and reset to step 1 on reload.
       await page.locator('.craft-stations button').nth(3).click({ timeout: 20000 });
       await page.locator('.seal-button').click({ timeout: 20000 });
       await page.locator('.serve-button').click({ timeout: 15000 });
@@ -138,7 +178,8 @@ try {
       const delivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (delivered.lastScore < 80 ||
           delivered.storyLog[0]?.id !== 'remembered-service:return-e2e' ||
-          !delivered.notice.includes('Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!')) {
+          !delivered.notice.includes('Cảm ơn tiệm đã hỏi kỹ. Hôm nay ly đúng ý mình rồi!') ||
+          !delivered.storyLog[0]?.text.includes('Tiệm đã giữ lời kiểm tra kỹ')) {
         throw new Error('Real tea delivery did not produce the expected NPC callback');
       }
       await page.screenshot({
@@ -152,11 +193,52 @@ try {
           persisted.relationshipRewardIds.filter(id => id === 'remembered-service:return-e2e').length !== 1) {
         throw new Error('NPC delivery callback was lost or duplicated on reload');
       }
+      // Silent-service regression: skip both optional dialogue buttons. The
+      // actual delivered cup must still be remembered after save/reload.
+      const silentFixture = {
+        ...fixture, day: 3, city: { ...fixture.city, day: 3 },
+        morning: { ...fixture.morning, day: 3,
+          plan: { ...fixture.morning.plan, day: 3 } },
+        currentOrder: { ...fixture.currentOrder, id: 'silent-e2e-day3' },
+        relationshipRewardIds: [...fixture.relationshipRewardIds],
+        storyLog: [...fixture.storyLog], currentOrderQueuedAt: Date.now(),
+      };
+      await page.addInitScript(({ key, value }) => {
+        if (sessionStorage.getItem('remember-silent-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(value));
+        sessionStorage.setItem('remember-silent-seeded', '1');
+      }, { key: KEY, value: silentFixture });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: /Chào khách quen/ }).waitFor();
+      await page.locator('.craft-stations button').nth(3).click();
+      await page.locator('.seal-button').click();
+      await page.locator('.serve-button').click();
+      await page.locator('.place-buttons button.destination').click();
+      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      await page.locator('.delivery-tag button.primary-button').click();
+      await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+        .relationshipRewardIds?.includes('remembered-outcome:miu:silent-e2e-day3:3:good'), KEY);
+      const silentDelivered = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (!silentDelivered.relationshipRewardIds.includes('remembered-outcome:miu:silent-e2e-day3:3:good') ||
+          silentDelivered.relationshipRewardIds.includes('remembered-greeting:silent-e2e-day3') ||
+          silentDelivered.relationshipRewardIds.includes('remembered-quiet:silent-e2e-day3') ||
+          silentDelivered.storyLog.some(entry => entry.id === 'remembered-service:silent-e2e-day3'))
+        throw new Error('Skipped dialogue lost a real NPC delivery memory');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const silentSaved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+      if (silentSaved.relationshipRewardIds.filter(id =>
+          id === 'remembered-outcome:miu:silent-e2e-day3:3:good').length !== 1 ||
+          silentSaved.storyLog.some(entry => entry.id === 'remembered-service:silent-e2e-day3'))
+        throw new Error('Silent NPC delivery memory duplicated or vanished after reload');
+      await page.screenshot({
+        path: `${output}/silent-delivery-${width}x${height}.png`,
+        fullPage: true, animations: 'disabled',
+      });
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2)) {
         throw new Error('Horizontal overflow');
       }
       if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
-      report.passed.push(`${width}x${height}: greet, clarify, diary, reload and physical delivery`);
+      report.passed.push(`${width}x${height}: greet, clarify, promise, cup check, reload and real delivery`);
       console.log('PASS', report.passed.at(-1));
     } catch (error) {
       failures += 1;
