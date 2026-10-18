@@ -119,6 +119,22 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
                 onClick={() => onAction({ type: 'schoolFair', choice: 'share' })}>Đưa thực đơn · 5 phút · 2 sức</button>
             </div>}
         </article>}
+        {selected === 'apartments' && game.day === 14 && <article className="market-basket" aria-label="Ngày 14: Cô Thu chuẩn bị họp khu tập thể">
+          <h4>🏘️ Ngày 14 · Buổi họp khu tập thể An Hòa</h4>
+          <p>Thang máy hỏng, cô Thu đang kê ghế chuẩn bị họp tầng. Bạn mang 2 ly trà sữa và phụ kê ghế, hay nhờ hàng xóm cùng giúp? Lựa chọn ảnh hưởng đơn Ngày 15.</p>
+          {game.relationshipRewardIds.some(id => id.startsWith('apartments.day14.'))
+            ? <p role="status">{game.relationshipRewardIds.includes('apartments.day14.carry')
+              ? 'Đã mang trà và kê ghế cùng cô Thu. Đơn khu tập thể Ngày 15 tăng 10.000 ₫.'
+              : 'Đã nhờ hàng xóm phối hợp. Đơn khu tập thể Ngày 15 tăng 4.000 ₫.'}</p>
+            : <div className="market-day-actions">
+              <p>Mang trà cần 2 trà sữa truyền thống, 2 ly M, 1 đường và 2 đá còn tươi. Thiếu nguyên liệu vẫn có thể nhờ hàng xóm.</p>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 12 || city.minutes + 22 > CITY_PLACES.apartments.hours[1] || game.inventory.classicMilkTea < 2 || game.inventory.cupsM < 2 || game.inventory.sugar < 1 || game.inventory.ice < 2 || !(['classicMilkTea','cupsM','sugar','ice'] as const).every(key => game.freshness[key] >= 20)}
+                onClick={() => onAction({ type: 'apartmentMeet', choice: 'carry' })}>Mang 2 ly và kê ghế · 22 phút · 12 sức</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 2 || city.minutes + 6 > CITY_PLACES.apartments.hours[1]}
+                onClick={() => onAction({ type: 'apartmentMeet', choice: 'coordinate' })}>Nhờ hàng xóm cùng giúp · 6 phút · 2 sức</button>
+            </div>}
+        </article>}
+        {selected === 'apartments' && game.day === 15 && game.relationshipRewardIds.some(id => id.startsWith('apartments.day14.')) && <p role="status" className="market-day-story">Cô Thu nhớ buổi họp hôm qua: đơn trà khu tập thể trong mục Giao trà hôm nay có giá trị cao hơn.</p>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}
