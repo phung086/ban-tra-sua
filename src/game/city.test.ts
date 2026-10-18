@@ -367,3 +367,75 @@ describe('QG-09 day 13 class-fair sign with Lan', () => {
     expect(cityAction(nextDay(before), paint, CITY_PLACES.school).relationshipRewardIds).toEqual([]);
   });
 });
+
+describe('QG-10 day 14 apartment meeting with Co Thu', () => {
+  const dayFourteen = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 14; day++) game = nextDay(game);
+    // Daily spoilage clears perishable stock before Day 14; emulate a fresh restock.
+    return { ...game,
+      inventory: { ...game.inventory, classicMilkTea: 4, cupsM: 4, sugar: 4, ice: 4 },
+      freshness: { ...game.freshness, classicMilkTea: 100, cupsM: 100, sugar: 100, ice: 100 },
+    };
+  };
+
+  it('carries two fresh teas once and persists the day-15 apartment order bonus', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = dayFourteen();
+    const helped = cityAction(before, { type: 'apartmentMeet', choice: 'carry' }, CITY_PLACES.apartments);
+    expect(helped.inventory.classicMilkTea).toBe(before.inventory.classicMilkTea - 2);
+    expect(helped.inventory.cupsM).toBe(before.inventory.cupsM - 2);
+    expect(helped.inventory.sugar).toBe(before.inventory.sugar - 1);
+    expect(helped.inventory.ice).toBe(before.inventory.ice - 2);
+    expect(helped.cash).toBe(before.cash);
+    expect(helped.city.minutes).toBe(before.city.minutes + 22);
+    expect(helped.city.energy).toBe(before.city.energy - 12);
+    expect(helped.city.goodwill).toBe(before.city.goodwill + 4);
+    expect(helped.fans).toBe(before.fans + 2);
+    expect(helped.relationshipRewardIds).toContain('apartments.day14.carry');
+    expect(cityAction(helped, { type: 'apartmentMeet', choice: 'coordinate' }, CITY_PLACES.apartments)).toBe(helped);
+    saveGame(helped);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('apartments.day14.carry');
+    expect(cityAction(resumed, { type: 'apartmentMeet', choice: 'carry' }, CITY_PLACES.apartments)).toBe(resumed);
+    const day15 = nextDay(resumed);
+    expect(cityContracts(day15).find(c => c.destination === 'apartments')?.reward).toBe(118000);
+    expect(cityContracts(nextDay(day15)).find(c => c.destination === 'apartments')?.reward).toBe(108000);
+  });
+
+  it('lets a player with no fresh tea coordinate without losing supplies', () => {
+    const before = dayFourteen();
+    const empty = { ...before, inventory: { ...before.inventory, classicMilkTea: 0 }, city: { ...before.city, energy: 2 } };
+    expect(cityAction(empty, { type: 'apartmentMeet', choice: 'carry' }, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    const coordinated = cityAction(empty, { type: 'apartmentMeet', choice: 'coordinate' }, CITY_PLACES.apartments);
+    expect(coordinated.inventory).toEqual(empty.inventory);
+    expect(coordinated.cash).toBe(empty.cash);
+    expect(coordinated.city.energy).toBe(0);
+    expect(coordinated.city.minutes).toBe(empty.city.minutes + 6);
+    expect(coordinated.city.goodwill).toBe(empty.city.goodwill + 1);
+    expect(coordinated.fans).toBe(empty.fans + 1);
+    expect(coordinated.relationshipRewardIds).toContain('apartments.day14.coordinate');
+    expect(cityContracts(nextDay(coordinated)).find(c => c.destination === 'apartments')?.reward).toBe(112000);
+  });
+
+  it('guards the day, location, shift, active delivery, freshness, time and energy', () => {
+    const before = dayFourteen();
+    const carry = { type: 'apartmentMeet' as const, choice: 'carry' as const };
+    expect(cityAction(createInitialState(), carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, carry, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'apartments' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    const stale = { ...before, freshness: { ...before.freshness, classicMilkTea: 0 } };
+    expect(cityAction(stale, carry, CITY_PLACES.apartments).inventory).toEqual(stale.inventory);
+    const tired = { ...before, city: { ...before.city, energy: 11 } };
+    expect(cityAction(tired, carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.apartments.hours[1] - 10 } };
+    expect(cityAction(late, carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
+  });
+});
