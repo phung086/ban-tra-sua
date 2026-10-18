@@ -23,6 +23,7 @@ try {
     try {
       await page.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
         { waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: 'Bỏ qua' }).click();
       await page.waitForFunction(key => Boolean(localStorage.getItem(key)), KEY);
       const fixture = await page.evaluate(key => {
         const saved = JSON.parse(localStorage.getItem(key));
