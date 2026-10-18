@@ -46,8 +46,10 @@ export function rememberedDeliveryHistory(
     const orderId = moment.id.slice('remembered-service:'.length);
     if (!orderId || marked.has(orderId) || legacySeen.has(orderId)) continue;
     legacySeen.add(orderId);
+    // The story ID already contains the encoded order ID. Encoding twice
+    // breaks reconciliation with the durable outcome ledger after save/reload.
     legacy.push({ day: moment.day, correct: moment.title === 'Khách quen hài lòng',
-      orderId: encodeURIComponent(orderId), source: 0, index });
+      orderId, source: 0, index });
   }
 
   // On a migration day, legacy callbacks precede new persistent markers.
