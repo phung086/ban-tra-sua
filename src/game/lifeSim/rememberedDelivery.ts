@@ -2,7 +2,7 @@ import type { GameState, Order } from '../types';
 import { getRememberedCupMismatch } from './rememberedCupCheck';
 import { hasOfferedRememberedSample } from './rememberedSample';
 import { rememberedOutcomeId } from './rememberedHistory';
-import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getPreviousRememberedServiceFeedback, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage, hasApologizedForQuietDelivery } from './rememberedCustomer';
+import { getRememberedGreetingChoice, hasRememberedLowSugar, hasAskedRememberedCustomerAboutComplaint, hasPromisedRememberedCorrection, getUnresolvedRememberedComplaint, getRememberedSilentDelivery, hasApologizedForBrokenPromise, getRememberedPromiseCupCheck, hasRepeatedRememberedComplaint, getRememberedTrustStage, hasApologizedForQuietDelivery } from './rememberedCustomer';
 
 function feedback(order: Order, draft: GameState['draft'], score: number): string {
   return getRememberedCupMismatch(order, draft) ??
@@ -34,10 +34,9 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const correction = feedback(order, before.draft, after.lastScore);
   // A previous real delivery matters on the next visit, not just a generic
   // customer preference. Never change the customer's current recipe.
-  // Only the most recent earlier delivery determines whether feedback remains
-  // unresolved. A later satisfied delivery closes an older complaint across reloads.
-  const lastDelivery = getPreviousRememberedServiceFeedback(before);
-  const previousComplaint = lastDelivery?.title === 'Khách quen góp ý thêm';
+  // The latest actual cup wins, including deliveries without dialogue.
+  const previousComplaint = getUnresolvedRememberedComplaint(before) !== null;
+  const silentWrong = getRememberedSilentDelivery(before)?.correct === false;
   const repeatedMistakes = hasRepeatedRememberedComplaint(before);
   const recovering = getRememberedTrustStage(before) === 'recovering';
   const asked = hasAskedRememberedCustomerAboutComplaint(before);
@@ -47,9 +46,11 @@ export function withRememberedDeliveryReaction(before: GameState, after: GameSta
   const sampled = hasOfferedRememberedSample(before);
   const acknowledgedQuietMistake = hasApologizedForQuietDelivery(before);
   const message = correction
-    ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
+    ? name + ': “' + (repeatedMistakes ? 'Mình đã nhận hai ly sai liên tiếp: ' : silentWrong ? 'Lần trước ly cũng chưa đúng: ' : previousComplaint ? 'Mình từng góp ý rồi: ' : '') + correction + '”'
     : recovering
       ? name + ': “Ly thứ hai đúng rồi. Giờ mình tin tiệm hơn.”'
+    : silentWrong
+      ? name + ': “Lần trước ly chưa đúng đơn, hôm nay đúng rồi. Cảm ơn tiệm đã sửa.”'
     : previousComplaint
       ? name + (repeatedMistakes
         ? ': “Hai lần trước ly đều sai, hôm nay đúng rồi. Lần trước mình có góp ý, cảm ơn tiệm đã sửa.”'

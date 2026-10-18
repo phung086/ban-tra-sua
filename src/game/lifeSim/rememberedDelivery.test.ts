@@ -129,4 +129,62 @@ describe('remembered NPC callback on actual delivery', () => {
     expect(blocked.served).toBe(greeted.served);
     expect(blocked.relationshipRewardIds).not.toContain('remembered-service:return-serve-1');
   });
+
+  it('closes an old spoken complaint after a quiet correct cup on the next day', () => {
+    const initial = returning();
+    const wrong = serve({ ...greetRememberedCustomer(initial),
+      draft: { ...initial.draft, fill: 0 } });
+    expect(wrong.storyLog[0].title).toBe('Khách quen góp ý thêm');
+    const quietVisit: GameState = {
+      ...wrong, day: 3, phase: 'open',
+      city: { ...wrong.city, day: 3, minutes: 850, energy: 50 },
+      currentOrder: { ...initial.currentOrder!, id: 'quiet-repair-day3' },
+      draft: initial.draft,
+    };
+    const repaired = serve(keepRememberedPreferencePrivate(quietVisit));
+    expect(repaired.relationshipRewardIds).toContain('remembered-outcome:miu:quiet-repair-day3:3:good');
+    expect(repaired.relationshipRewardIds).not.toContain('remembered-service:quiet-repair-day3');
+    const returnVisit: GameState = {
+      ...repaired, day: 4, phase: 'open',
+      city: { ...repaired.city, day: 4, minutes: 850, energy: 50 },
+      currentOrder: { ...initial.currentOrder!, id: 'repaired-return-day4' },
+      draft: initial.draft,
+    };
+    const delivered = serve(greetRememberedCustomer(returnVisit));
+    expect(delivered.storyLog[0].title).toBe('Khách quen hài lòng');
+    expect(delivered.storyLog[0].text).toContain('Ly này vừa miệng');
+    expect(delivered.storyLog[0].text).not.toContain('Lần trước mình có góp ý');
+  });
+
+  it('recalls a quiet wrong cup after save/reload without inventing an earlier conversation', () => {
+    const initial = returning();
+    const wrong = serve({ ...keepRememberedPreferencePrivate(initial),
+      draft: { ...initial.draft, fill: 0 } });
+    expect(wrong.relationshipRewardIds).toContain('remembered-outcome:miu:return-serve-1:2:bad');
+    expect(wrong.storyLog).toEqual(initial.storyLog);
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => { store.set(k, v); },
+      removeItem: (k: string) => { store.delete(k); },
+    });
+    saveGame(wrong);
+    const restored = loadGame();
+    const next: GameState = {
+      ...restored, day: 3, phase: 'open',
+      city: { ...restored.city, day: 3, minutes: 850, energy: 50 },
+      currentOrder: { ...initial.currentOrder!, id: 'quiet-wrong-return-day3' },
+      draft: initial.draft,
+    };
+    const corrected = serve(greetRememberedCustomer(next));
+    expect(corrected.storyLog[0].text).toContain('Lần trước ly chưa đúng đơn, hôm nay đúng rồi');
+    expect(corrected.storyLog[0].text).not.toContain('Mình từng góp ý rồi');
+    expect(corrected.relationshipRewardIds.filter(id =>
+      id === 'remembered-service:quiet-wrong-return-day3')).toHaveLength(1);
+    const wrongAgain = serve({ ...greetRememberedCustomer(next),
+      draft: { ...initial.draft, fill: 0 } });
+    expect(wrongAgain.storyLog[0].text).toContain('Lần trước ly cũng chưa đúng');
+    expect(wrongAgain.storyLog[0].text).not.toContain('Mình từng góp ý rồi');
+  });
+
 });
