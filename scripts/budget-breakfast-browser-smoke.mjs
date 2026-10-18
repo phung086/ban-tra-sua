@@ -90,9 +90,13 @@ try {
       waterFixture.morning.packedWaterDrunk = false;
       delete waterFixture.morning.shiftBreakOrder;
       waterFixture.city.energy = 40;
-      const waterPage = await browser.newPage({
+      // Isolate the second shop session so the first tab cannot overwrite its save.
+      // Carry forward UI preferences, including the completed tutorial.
+      const waterContext = await browser.newContext({
         viewport: { width, height }, isMobile: width < 1000, hasTouch: width < 1000,
+        storageState: await page.context().storageState(),
       });
+      const waterPage = await waterContext.newPage();
       try {
         waterPage.setDefaultTimeout(60000);
         waterPage.on('pageerror', error => errors.push(error.message));
@@ -106,8 +110,7 @@ try {
         }, { key: KEY, fixture: waterFixture });
         await waterPage.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
           { waitUntil: 'domcontentloaded' });
-        // This is a fresh browser context: the real first-run coach is expected.
-        // Dismiss it through the visible UI before tapping the shift action.
+        // If the tutorial is still visible, dismiss it through the real UI.
         const coach = waterPage.getByRole('dialog', { name: 'Hướng dẫn chơi' });
         if (await coach.isVisible()) {
           await coach.getByRole('button', { name: 'Bỏ qua' }).click();
@@ -135,7 +138,7 @@ try {
         await waterPage.screenshot({ path: OUT + '/water-' + width + 'x' + height + '.png',
           fullPage: true, animations: 'disabled' });
       } finally {
-        await waterPage.close();
+        await waterContext.close();
       }
       report.passed.push(width + 'x' + height + ': free meal and bottled water → effects → save/reload');
     } catch (error) {
