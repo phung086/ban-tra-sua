@@ -14,6 +14,7 @@ import {MovementStick} from './MovementStick';
 import {HoldTask} from './HoldTask';
 import {residentAt,missionDefinition,type ResidentId,type StoryAction,type NeighborhoodMission} from '../game/neighborhoodStories';
 import {getUiPreferences} from '../game/preferences';
+import {supportsWebGL} from '../game/webglSupport';
 import {observeNavigationHeartbeat, observeRenderHeartbeat, shouldOfferNavigationAssist, NAVIGATION_ARRIVAL_RADIUS, type NavigationHeartbeat} from '../game/renderHeartbeat';
 import {GameIcon} from './GameIcon';
 import {CityCompass} from './CityCompass';
@@ -60,6 +61,15 @@ export function StreetWorld(props: Props) {
       const initial=current?{position:{...current.player},yaw:current.yaw,pitch:current.pitch,overview:current.overview}:undefined;
       setOverview(initial?.overview??false);
       current?.dispose();runtime.current=null;setStatus('loading');
+      // A device without WebGL must keep the interactive 2D place/delivery UI.
+      // Probe before loading the heavyweight scene and textures.
+      if (!supportsWebGL()) {
+        if (!cancelled && ticket === generation) {
+          setFallbackReason('graphics');
+          setStatus('fallback');
+        }
+        return;
+      }
       try{
         const {StreetRuntime}=await import('../scene/runtime');
         const {loadPhotographicSurfaces}=await import('../scene/photoSurfaces');

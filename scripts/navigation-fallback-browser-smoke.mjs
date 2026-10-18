@@ -1,10 +1,10 @@
-// Browser E2E: a failed 3D chunk must not prevent a real tea delivery.
+// Browser E2E: unavailable WebGL must not prevent a real tea delivery.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const KEY = 'tiem-tra-chibi-save-v3';
 const OUT = 'artifacts/navigation-fallback';
-const report = { passed: [], errors: [], environment: 'Chromium SwiftShader; not physical devices' };
+const report = { passed: [], errors: [], environment: 'Chromium with WebGL disabled; not physical devices' };
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch({ headless: true, args: [
   '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
@@ -15,16 +15,19 @@ try {
       isMobile: width < 1000, hasTouch: width < 1000 });
     page.setDefaultTimeout(90000);
     const errors = [];
-    let blocked = 0;
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => {
       if (m.type() !== 'error') return;
-      if (/Không mở được đồ họa|Failed to fetch dynamically imported module|net::ERR_FAILED/.test(m.text())) return;
+      if (/Không mở được đồ họa|Error creating WebGL context|THREE\.WebGLRenderer/.test(m.text())) return;
       errors.push(m.text());
     });
-    await page.route('**/assets/runtime-*.js', route => {
-      blocked += 1;
-      return route.abort('failed');
+    // Force context creation to fail regardless of the renderer's hashed chunk name.
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
+        if (/^(webgl2?|experimental-webgl)$/i.test(String(kind))) return null;
+        return original.call(this, kind, ...args);
+      };
     });
     await page.addInitScript(() => localStorage.setItem('tiem-tra-chibi-ui-v1',
       JSON.stringify({ renderEngine: 'three', graphics: 'light',
@@ -58,8 +61,12 @@ try {
         sessionStorage.setItem('navigation-fallback-seeded', '1');
       }, { key: KEY, fixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
+      const webglAvailable = await page.evaluate(() => Boolean(
+        document.createElement('canvas').getContext('webgl2') ||
+        document.createElement('canvas').getContext('webgl')
+      ));
+      if (webglAvailable) throw new Error('Invalid fixture: WebGL was not disabled');
       await page.locator('.world-viewport[data-renderer="fallback"]').waitFor();
-      if (!blocked) throw new Error('3D chunk was not intercepted; fallback untested');
       await page.getByText(/Thiết bị chưa mở được đồ họa 3D/).waitFor();
       await page.locator('.craft-stations button').nth(3).click();
       await page.locator('.seal-button').click();
@@ -79,7 +86,7 @@ try {
       if (errors.length) throw new Error('Unexpected console/page errors: ' + errors.join(' | '));
       await page.screenshot({ path: OUT + '/' + width + 'x' + height + '.png',
         fullPage: true, animations: 'disabled' });
-      report.passed.push(width + 'x' + height + ': 3D failure → 2D place → delivery → reload');
+      report.passed.push(width + 'x' + height + ': no WebGL → 2D place → delivery → reload');
     } catch (error) {
       report.errors.push(width + 'x' + height + ': ' + String(error.stack || error));
       await page.screenshot({ path: OUT + '/FAIL-' + width + 'x' + height + '.png',
