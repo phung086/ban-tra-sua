@@ -1,4 +1,5 @@
 import type { GameState } from '../../game/types';
+import { canEatLeftoverBreak, eatLeftoverBreak } from '../../game/lifeSim/leftoverBreak';
 import {
   canTakeShiftBreak, SHIFT_BREAK_OPTIONS, takeShiftBreak,
 } from '../../game/lifeSim/shiftNeeds';
@@ -17,6 +18,12 @@ export function ShiftBreakPanel({ game, onGame }: {
     {alreadyRested
       ? <p>Đã nghỉ trong lượt khách này. Hoàn tất đơn để có thể nghỉ lượt sau.</p>
       : <div className="life-morning-options">
+        {game.morning.breakfast === 'leftovers' && <button type="button"
+          className="life-morning-option" disabled={!canEatLeftoverBreak(game)}
+          onClick={() => onGame(eatLeftoverBreak(game))}>
+          <strong>🍚 Ăn cơm nguội mang theo</strong>
+          <small>6 phút · miễn phí · +20 no · +2 sức · chỉ một lần/ngày</small>
+        </button>}
         {(['snack', 'rest'] as const).map(choice => {
           const option = SHIFT_BREAK_OPTIONS[choice];
           return <button type="button" className="life-morning-option" key={choice}
