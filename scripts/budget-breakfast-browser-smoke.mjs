@@ -81,7 +81,56 @@ try {
       if (errors.length) throw new Error('Console/page errors: ' + errors.join(' | '));
       await page.screenshot({ path: OUT + '/' + width + 'x' + height + '.png',
         fullPage: true, animations: 'disabled' });
-      report.passed.push(width + 'x' + height + ': free meal → effects → save/reload');
+      // A second, real shop session verifies the free bottle prepared at home.
+      // Seed from a valid in-game open-shift snapshot; never mock the UI reducer.
+      const waterFixture = JSON.parse(JSON.stringify(eatenAtShop));
+      waterFixture.morning.lunchPrep = 'water';
+      waterFixture.morning.breakfast = 'skip';
+      waterFixture.morning.satiety = 30;
+      waterFixture.morning.packedWaterDrunk = false;
+      delete waterFixture.morning.shiftBreakOrder;
+      waterFixture.city.energy = 40;
+      const waterPage = await browser.newPage({
+        viewport: { width, height }, isMobile: width < 1000, hasTouch: width < 1000,
+      });
+      try {
+        waterPage.setDefaultTimeout(60000);
+        waterPage.on('pageerror', error => errors.push(error.message));
+        waterPage.on('console', message => {
+          if (message.type() === 'error') errors.push(message.text());
+        });
+        await waterPage.addInitScript(({ key, fixture }) => {
+          if (sessionStorage.getItem('packed-water-seeded')) return;
+          localStorage.setItem(key, JSON.stringify(fixture));
+          sessionStorage.setItem('packed-water-seeded', '1');
+        }, { key: KEY, fixture: waterFixture });
+        await waterPage.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
+          { waitUntil: 'domcontentloaded' });
+        const drink = waterPage.getByRole('button', { name: /Uống nước lọc mang theo/ });
+        await drink.click();
+        await waterPage.waitForFunction(key =>
+          JSON.parse(localStorage.getItem(key) || '{}').morning?.packedWaterDrunk === true, KEY);
+        const hydrated = await waterPage.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+        if (hydrated.cash !== waterFixture.cash ||
+            hydrated.city.minutes !== waterFixture.city.minutes + 4 ||
+            hydrated.city.energy !== 43 ||
+            hydrated.morning.satiety !== 30)
+          throw new Error('Packed water cost/time/stamina/satiety mismatch');
+        await waterPage.reload({ waitUntil: 'domcontentloaded' });
+        const waterRestored = await waterPage.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+        if (waterRestored.morning.packedWaterDrunk !== true ||
+            waterRestored.city.energy !== 43 ||
+            await waterPage.getByRole('button', { name: /Uống nước lọc mang theo/ }).count())
+          throw new Error('Packed water duplicated or lost on reload');
+        if (await waterPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2))
+          throw new Error('Packed water mobile horizontal overflow');
+        if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
+        await waterPage.screenshot({ path: OUT + '/water-' + width + 'x' + height + '.png',
+          fullPage: true, animations: 'disabled' });
+      } finally {
+        await waterPage.close();
+      }
+      report.passed.push(width + 'x' + height + ': free meal and bottled water → effects → save/reload');
     } catch (error) {
       report.errors.push(width + 'x' + height + ': ' + String(error.stack || error));
       await page.screenshot({ path: OUT + '/FAIL-' + width + 'x' + height + '.png',

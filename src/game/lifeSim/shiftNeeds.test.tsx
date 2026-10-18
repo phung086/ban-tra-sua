@@ -6,7 +6,7 @@ import { createInitialState, nextDay, startDay, updateDraft } from '../engine';
 import { deliverDrink, deliveryFor, PLACES } from '../service';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import {
-  applyShiftFatigue, canTakeShiftBreak, takeShiftBreak,
+  applyShiftFatigue, canTakeShiftBreak, previewShiftFatigue, takeShiftBreak,
 } from './shiftNeeds';
 
 const ready = (breakfast: 'cook' | 'street' | 'skip' = 'skip') => {
@@ -24,6 +24,8 @@ describe('playable between-order recovery', () => {
     expect(html).toContain('Ăn chuối');
     expect(html).toContain('Ngồi nghỉ');
     expect(html).toContain('Độ no 30/100');
+    expect(html).toContain('Giao ly tiếp theo:');
+    expect(html).toContain('Đang đói');
   });
 
   it('computes less fatigue for a filling breakfast', () => {
@@ -35,6 +37,8 @@ describe('playable between-order recovery', () => {
     expect(hungryAfter.morning.satiety).toBe(hungry.morning.satiety - 8);
     expect(fullAfter.city.energy).toBe(full.city.energy - 1);
     expect(hungryAfter.city.energy).toBe(hungry.city.energy - 4);
+    expect(previewShiftFatigue(hungry)).toEqual({ satietyLost: 8, energyLost: 4 });
+    expect(previewShiftFatigue(full)).toEqual({ satietyLost: 8, energyLost: 1 });
   });
 
   it('charges a snack only once per order and preserves that decision after save/reload', () => {

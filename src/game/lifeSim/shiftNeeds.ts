@@ -21,19 +21,29 @@ export const SHIFT_BREAK_OPTIONS = {
   },
 } as const;
 
-/** Only successful deliveries consume energy: no double charge on invalid orders. */
-export function applyShiftFatigue(game: GameState): GameState {
+/** The exact costs of the next successful delivery; also shown in the live tea UI. */
+export function previewShiftFatigue(game: GameState): { satietyLost: number; energyLost: number } | null {
   if (game.phase !== 'open' || game.morning.day !== game.day ||
       game.morning.step !== 'finished' ||
       ![game.morning.satiety, game.city.energy].every(Number.isFinite) ||
       game.morning.satiety < 0 || game.morning.satiety > 100 ||
-      game.city.energy < 0 || game.city.energy > 100) return game;
-  const satiety = Math.max(0, Math.min(100, game.morning.satiety - 8));
-  const energyCost = satiety >= 60 ? 1 : satiety >= 30 ? 2 : 4;
+      game.city.energy < 0 || game.city.energy > 100) return null;
+  const satietyAfter = Math.max(0, game.morning.satiety - 8);
+  const energyCost = satietyAfter >= 60 ? 1 : satietyAfter >= 30 ? 2 : 4;
+  return {
+    satietyLost: game.morning.satiety - satietyAfter,
+    energyLost: Math.min(game.city.energy, energyCost),
+  };
+}
+
+/** Only successful deliveries consume energy: no double charge on invalid orders. */
+export function applyShiftFatigue(game: GameState): GameState {
+  const cost = previewShiftFatigue(game);
+  if (!cost) return game;
   return {
     ...game,
-    morning: { ...game.morning, satiety },
-    city: { ...game.city, energy: Math.max(0, game.city.energy - energyCost) },
+    morning: { ...game.morning, satiety: game.morning.satiety - cost.satietyLost },
+    city: { ...game.city, energy: game.city.energy - cost.energyLost },
   };
 }
 

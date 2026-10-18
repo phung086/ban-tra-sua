@@ -23,6 +23,7 @@ step: MorningStep;
 breakfast: BreakfastChoice | null;
 satiety: number;
 shiftBreakOrder?: number;
+packedWaterDrunk?: boolean;
 episodeChoice?: DayEpisodeChoice | null;
 fatherCall: FatherCallChoice | null;
 motherCall?: MotherCallChoice | null;
@@ -114,7 +115,8 @@ lunchPrep: null,
 plantCare: null,
 lastPlantCare: null,
 marketVisit: null,
-homeCooked: false};
+homeCooked: false,
+packedWaterDrunk: false};
 }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -152,6 +154,7 @@ lanMeal: meal === 'split' || meal === 'treat' || meal === 'walk' || meal === 'de
 lunchPrep: value.lunchPrep==="lunchbox"||value.lunchPrep==="water" ? value.lunchPrep : null,
 plantCare: value.plantCare==="water"||value.plantCare==="ask-binh" ? value.plantCare : null,
 lastPlantCare: value.lastPlantCare==="water"||value.lastPlantCare==="ask-binh" ? value.lastPlantCare : null,
+packedWaterDrunk: value.packedWaterDrunk === true,
 homeCooked: value.marketVisit==='basket' && value.homeCooked === true,
 marketVisit: value.marketVisit==="fruit"||value.marketVisit==="chat"||value.marketVisit==="leave"||value.marketVisit==="basket" ? value.marketVisit : null};
   }

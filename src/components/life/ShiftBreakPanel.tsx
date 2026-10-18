@@ -1,8 +1,9 @@
 import type { GameState } from '../../game/types';
 import { canEatLeftoverBreak, eatLeftoverBreak } from '../../game/lifeSim/leftoverBreak';
 import { canEatPackedLunch, eatPackedLunch } from '../../game/lifeSim/packedLunch';
+import { canDrinkPackedWater, drinkPackedWater } from '../../game/lifeSim/packedWater';
 import {
-  canTakeShiftBreak, SHIFT_BREAK_OPTIONS, takeShiftBreak,
+  canTakeShiftBreak, previewShiftFatigue, SHIFT_BREAK_OPTIONS, takeShiftBreak,
 } from '../../game/lifeSim/shiftNeeds';
 
 /** A light touch-friendly break action in the real brewing station. */
@@ -12,10 +13,12 @@ export function ShiftBreakPanel({ game, onGame }: {
 }) {
   if (game.phase !== 'open' || !game.currentOrder) return null;
   const alreadyRested = game.morning.shiftBreakOrder === game.served;
+  const forecast = previewShiftFatigue(game);
   return <section className="life-morning" aria-label="Giữ sức giữa ca bán trà">
     <span className="life-morning-label">SỨC BỀN · CA BÁN NGÀY {game.day}</span>
     <h3>🥣 Hôm nay mình đã ăn đủ chưa?</h3>
     <p role="status">Độ no {game.morning.satiety}/100 · Năng lượng {Math.round(game.city.energy)}/100</p>
+    {forecast && <p className="life-shift-forecast">Giao ly tiếp theo: −{forecast.satietyLost} no · −{forecast.energyLost} sức. {forecast.energyLost >= 4 ? "Đang đói, nên ăn hoặc nghỉ để giữ sức." : "Ăn đủ sẽ đỡ mất sức khi phục vụ."}</p>}
     {alreadyRested
       ? <p>Đã nghỉ trong lượt khách này. Hoàn tất đơn để có thể nghỉ lượt sau.</p>
       : <div className="life-morning-options">
@@ -33,6 +36,13 @@ export function ShiftBreakPanel({ game, onGame }: {
             onClick={() => onGame(eatPackedLunch(game))}>
             <strong>🍱 Ăn cơm hộp mang theo</strong>
             <small>10 phút · đã trả khi chuẩn bị · +30 no · +4 sức · một lần/ngày</small>
+          </button>}
+        {game.morning.lunchPrep === 'water' && !game.morning.packedWaterDrunk &&
+          <button type="button" className="life-morning-option"
+            disabled={!canDrinkPackedWater(game)}
+            onClick={() => onGame(drinkPackedWater(game))}>
+            <strong>💧 Uống nước lọc mang theo</strong>
+            <small>4 phút · miễn phí · +3 sức · chỉ một lần/ngày</small>
           </button>}
         {(['snack', 'rest'] as const).map(choice => {
           const option = SHIFT_BREAK_OPTIONS[choice];
