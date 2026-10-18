@@ -1,3 +1,4 @@
+import {morningActionBlock} from './morningAction';
 import type { GameState } from '../types';
 
 import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanner';
@@ -355,6 +356,8 @@ export function visitMorningMarket(game: GameState, choice: MarketVisitChoice): 
   const option = MARKET_OPTIONS[choice];
   if (!option) return game;
   if (game.cash < option.cost) return { ...game, notice: 'Chưa đủ tiền mua rau. Có thể hỏi thăm cô Hạnh miễn phí.' };
+  const blocked=morningActionBlock(game,option.cost,option.minutes,option.energy);
+  if(blocked)return {...game,notice:blocked};
   const remembered = game.storyLog.some(moment => moment.customerId === 'hanh' && moment.id.startsWith('morning-market-'));
   const reply = choice === 'basket'
     ? remembered ? 'Cô Hạnh nhớ mặt: “Lại nấu cơm à? Rau hôm nay tươi lắm!”' : 'Cô Hạnh lựa cho mình mớ rau và hai quả trứng tươi.'
@@ -382,7 +385,8 @@ export function cookMarketMeal(game: GameState): GameState {
   const morning = game.morning;
   if (game.phase !== 'prep' || morning.day !== game.day || morning.step !== 'finished' ||
       morning.marketVisit !== 'basket' || morning.homeCooked === true) return game;
-  if (game.city.energy < 3) return { ...game, notice: 'Mệt quá rồi, nghỉ ngơi trước khi nấu nhé.' };
+  const blocked=morningActionBlock(game,0,18,3);
+  if(blocked)return {...game,notice:blocked};
   return {
     ...game,
     city: {

@@ -1,3 +1,4 @@
+import {morningActionBlock} from './morningAction';
 import type { GameState } from '../types';
 
 /** Daily market choices are persisted in morning state, not ephemeral UI state. */
@@ -34,6 +35,8 @@ export function visitMorningMarket(game: GameState, choice: MarketChoice): GameS
   if (game.cash < option.cost) return {
     ...game, notice: 'Chưa đủ tiền mua trái cây; có thể hỏi thăm miễn phí.',
   };
+  const blocked=morningActionBlock(game,option.cost,option.minutes);
+  if(blocked)return {...game,notice:blocked};
   const hanhBond = Math.min(1000, (game.city.stories.bonds.hanh ?? 0) + option.bond);
   const reply = marketDialogue(choice, hanhBond);
   return {

@@ -20,3 +20,9 @@ export function clearCameraFraction(focus:{x:number;z:number},desired:{x:number;
   }
   return fraction;
 }
+
+/** Obstruction response is immediate; distance recovery is gradual and frame-rate independent. */
+export function easeCameraClearance(previous:number,clear:number,dt:number,motion:boolean){
+  if(!motion||clear<=previous)return clear;
+  return previous+(clear-previous)*(1-Math.exp(-4*Math.max(0,Math.min(.05,dt))));
+}

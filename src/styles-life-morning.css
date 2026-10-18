@@ -117,3 +117,8 @@
 .life-market-actions button:focus-visible,.life-market-result button:focus-visible{outline:3px solid #a94d7e;outline-offset:2px}
 .life-market-result{margin-top:9px;padding:8px 10px;border-radius:10px;background:#f7efe3;color:#704a38}
 @media(max-width:580px){.life-market-actions{grid-template-columns:1fr}}
+
+.life-market-unified .life-morning-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.life-market-unified .life-morning-option{min-height:112px}
+.life-market-result>button{min-height:48px;padding:12px 14px;line-height:1.5}
+.life-market-result>small{display:block;margin-top:8px}

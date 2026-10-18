@@ -1,3 +1,4 @@
+import {hairGeometry} from './hairGeometry';
 import * as T from "three";
 import { neighborGreeting, INITIAL_GREETING } from "./neighborGreeting";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -79,7 +80,7 @@ export class Workshop {
     scale: number[],
     metal = 0,
   ) {
-    const simple = Math.max(...scale)>=8 || Math.min(...scale)<0.075;
+    const simple = Math.max(...scale)>=2 || Math.min(...scale)<0.075;
     return this.mesh(
       parent,
       this.geometry(simple?'plain-box':"box", () => simple?new T.BoxGeometry(1,1,1):new RoundedBoxGeometry(1, 1, 1, 2, 0.065)),
@@ -553,38 +554,8 @@ export function makePerson(w: Workshop, customer: Customer): Person {
     ],
     0.008,
   );
-  const hair = w.mesh(
-    head,
-    w.geometry(
-      "hair",
-      () => new T.SphereGeometry(1, 20, 12, 0, Math.PI * 2, 0, 1.55),
-    ),
-    l.hair,
-    [0, 0.022, -0.019],
-    [0.218, 0.282, 0.204],
-  );
-  hair.rotation.z = -0.09;
-  if (l.style === "bald") {
-    hair.scale.set(0.247, 0.28, 0.223);
-    hair.rotation.x = -0.5;
-  }
-  if (l.style === "bob" || l.style === "long") {
-    w.ball(head,l.hair,[0,l.style==='long'?-.16:-.08,-.12],[.224,l.style==='long'?.35:.23,.125]);
-    for(const side of [-1,1])w.ball(head,l.hair,[side*.18,-.08,-.015],[.054,.22,.12]);
-  }
-  if (l.style === "bun")
-    w.ball(head, l.hair, [0, 0.12, -0.245], [0.12, 0.12, 0.105]);
-  if (l.style === 'bun') w.cylinder(head, '#a1768b', [0, 0.1, -0.245], 0.107, 0.035).rotation.x = Math.PI / 2;
-  if (l.style !== "bald")
-    for (let i = 0; i < 5; i++) {
-      const lock = w.capsule(
-        head,
-        l.hair,
-        [-0.16 + i * 0.065, 0.18 + Math.sin(i) * 0.025, 0.16],
-        [0.033, 0.073, 0.045],
-      );
-      lock.rotation.z = -0.45 + i * 0.06;
-    }
+  w.mesh(head,w.geometry(`hair-shell:${l.style}`,()=>hairGeometry(l.style)),l.hair,[0,0,0]);
+  if(l.style==='bun')w.ball(head,l.hair,[0,.08,-.21],[.095,.1,.085]);
   if (["lan", "lyly", "phuc"].includes(customer.id)) {
     w.line(
       body,

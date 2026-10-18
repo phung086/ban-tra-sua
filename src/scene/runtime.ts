@@ -1,4 +1,4 @@
-import {clearCameraFraction} from './followCamera';
+import {clearCameraFraction,easeCameraClearance} from './followCamera';
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import {FramePacer} from './framePacing';
@@ -108,6 +108,7 @@ export class StreetRuntime {
   cameraFocus = new T.Vector3();
   cameraMode = '';
   followHeight=5;
+  cameraClearance=1;
   ray = new T.Raycaster();
   pointer = new T.Vector2();
   plane = new T.Plane(new T.Vector3(0, 1, 0), 0);
@@ -385,6 +386,7 @@ export class StreetRuntime {
         this.workshop,
         getCustomer(visit.order.customerId),
       );
+      contactShadow(this.workshop,person.root,.46);
       const cup = makeCup(this.workshop);
       // Cup is already modeled upright along +Y.
       person.hand.add(cup.root);
@@ -564,7 +566,8 @@ export class StreetRuntime {
       }
       this.followHeight+= (height-this.followHeight)*(this.motion?1-Math.exp(-10*dt):1);
       this.camera.position.y=this.followHeight;
-      const clear=clearCameraFraction(this.cameraFocus,this.camera.position,CITY_BLOCKS);
+      const available=clearCameraFraction(this.cameraFocus,this.camera.position,CITY_BLOCKS);
+      const clear=this.cameraClearance=easeCameraClearance(this.cameraClearance,available,dt,this.motion);
       this.camera.position.x=this.cameraFocus.x+(this.camera.position.x-this.cameraFocus.x)*clear;
       this.camera.position.z=this.cameraFocus.z+(this.camera.position.z-this.cameraFocus.z)*clear;
       this.camera.position.y=.8+(this.camera.position.y-.8)*clear;

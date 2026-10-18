@@ -1,0 +1,10 @@
+{
+  "environment": "headless Chromium / SwiftShader, not real device",
+  "passed": [
+    "360x800: market, cooking, persisted reload and shop open",
+    "390x844: market, cooking, persisted reload and shop open",
+    "844x390: market, cooking, persisted reload and shop open",
+    "1280x800: market, cooking, persisted reload and shop open"
+  ],
+  "errors": []
+}
