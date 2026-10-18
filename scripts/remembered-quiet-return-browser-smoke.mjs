@@ -73,7 +73,11 @@ try {
       const restored = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
       if (restored.relationshipRewardIds.filter(id => id === outcome).length !== 1)
         throw new Error('Silent delivered-cup memory lost or duplicated on reload');
-      await page.evaluate(({ key, order }) => {
+      // The app persists the previous React state during pagehide. Writing
+      // localStorage immediately before reload is overwritten by that save.
+      // Prepare the next-day fixture, then install it in the new document
+      // before the app hydrates (once per page session).
+      const returnFixture = await page.evaluate(({ key, order }) => {
         const state = JSON.parse(localStorage.getItem(key));
         state.day = 4; state.phase = 'open';
         state.city = { ...state.city, day: 4, minutes: 850, energy: 50 };
@@ -82,9 +86,18 @@ try {
         state.currentOrder = { ...order, id: 'quiet-return-day4' };
         state.draft = { ...state.draft, sealed: false };
         state.currentOrderQueuedAt = Date.now(); state.customerQueue = [];
-        localStorage.setItem(key, JSON.stringify(state));
+        return state;
       }, { key: KEY, order: fixture.currentOrder });
+      await page.addInitScript(({ key, state }) => {
+        if (sessionStorage.getItem('quiet-return-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(state));
+        sessionStorage.setItem('quiet-return-seeded', '1');
+      }, { key: KEY, state: returnFixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(key => {
+        const state = JSON.parse(localStorage.getItem(key) || '{}');
+        return state.day === 4 && state.currentOrder?.id === 'quiet-return-day4';
+      }, KEY);
       await page.getByRole('note').filter({ hasText: 'Lần giao trước (ngày 3)' }).waitFor();
       await page.getByRole('note').filter({ hasText: 'Ly đã đúng đơn' }).waitFor();
       if (await page.getByRole('button', { name: /Hỏi kỹ lỗi lần trước/ }).count())
