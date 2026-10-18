@@ -59,8 +59,11 @@ describe('remembered NPC callback on actual delivery', () => {
 
   it('respects privacy and flags an incorrect topping even at high score', () => {
     const quiet = serve(keepRememberedPreferencePrivate(returning()));
-    expect(quiet.notice).toContain('Ly hôm nay vừa miệng');
+    expect(quiet.notice).not.toContain('Ly hôm nay vừa miệng');
     expect(quiet.notice).not.toContain('Tiệm còn nhớ mình');
+    expect(quiet.relationshipRewardIds).toContain('remembered-outcome:miu:return-serve-1:2:good');
+    expect(quiet.relationshipRewardIds).not.toContain('remembered-service:return-serve-1');
+    expect(quiet.storyLog).toEqual(returning().storyLog);
     const greeted = greetRememberedCustomer(returning());
     const wrong = serve({ ...greeted, draft: { ...greeted.draft, topping: 'black-pearl' } });
     expect(wrong.lastScore).toBeGreaterThanOrEqual(80);
