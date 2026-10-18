@@ -24,11 +24,17 @@ try {
       await page.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
         { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(key => Boolean(localStorage.getItem(key)), KEY);
-      await page.evaluate(key => {
+      const fixture = await page.evaluate(key => {
         const saved = JSON.parse(localStorage.getItem(key));
         saved.cash = 0;
-        localStorage.setItem(key, JSON.stringify(saved));
+        return saved;
       }, KEY);
+      // pagehide persists the old state; seed after navigation starts.
+      await page.addInitScript(({ key, fixture }) => {
+        if (sessionStorage.getItem('budget-breakfast-seeded')) return;
+        localStorage.setItem(key, JSON.stringify(fixture));
+        sessionStorage.setItem('budget-breakfast-seeded', '1');
+      }, { key: KEY, fixture });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('.life-morning-wake').click();
       await page.waitForFunction(key =>
