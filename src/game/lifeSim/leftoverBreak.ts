@@ -22,7 +22,7 @@ export function eatLeftoverBreak(game: GameState): GameState {
     ...game,
     morning: { ...game.morning, leftoverBreakUsed: true,
       shiftBreakOrder: game.served,
-      satiety: Math.min(100, game.morning.satiety + 20) },
+      satiety: Math.min(100, game.morning.satiety + 20) } as MealMemory,
     city: { ...game.city, minutes: game.city.minutes + 6,
       energy: Math.min(100, game.city.energy + 2),
       journal: [`Ngày ${game.day} · Ăn phần cơm nguội còn lại ở quầy (6 phút, 0 ₫).`,
