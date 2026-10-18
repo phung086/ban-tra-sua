@@ -1,6 +1,7 @@
 import type { GameState } from '../types';
 
-const alreadyEaten = (game: GameState) => game.morning.packedLunchEaten === true;
+type PackedLunchMemory = GameState['morning'] & { packedLunchEaten?: boolean };
+const alreadyEaten = (game: GameState) => (game.morning as PackedLunchMemory).packedLunchEaten === true;
 
 /**
  * The lunchbox is bought and prepared at home, then eaten at the tea counter.
@@ -27,7 +28,7 @@ export function eatPackedLunch(game: GameState): GameState {
       packedLunchEaten: true,
       shiftBreakOrder: game.served,
       satiety: Math.min(100, game.morning.satiety + 30),
-    },
+    } as PackedLunchMemory,
     city: {
       ...game.city,
       minutes: game.city.minutes + 10,
