@@ -39,7 +39,7 @@ describe('prepared lunchbox during tea service', () => {
 
   it('does not grant a second break for the same customer or without a lunchbox', () => {
     const open = preparedShift();
-    const rested = takeShiftBreak(open, 'rest');
+    const rested = takeShiftBreak({ ...open, city: { ...open.city, energy: 80 } }, 'rest');
     expect(canEatPackedLunch(rested)).toBe(false);
     expect(eatPackedLunch(rested)).toBe(rested);
     expect(canEatPackedLunch({ ...open, morning: { ...open.morning, lunchPrep: 'water' } })).toBe(false);
