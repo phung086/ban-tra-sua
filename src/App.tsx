@@ -49,6 +49,7 @@ import type { GameState, Screen } from "./game/types";
 function App() {
   const [game, setGame] = useState<GameState>(() => loadGame());
   const [screen, setScreen] = useState<Screen>("shop");
+  useEffect(()=>{const content=document.getElementById('game-content');if(content)content.scrollTop=0;},[game.phase]);
   const [station, setStation] = useState(0);
   const [carrying, setCarrying] = useState(false);
   // Transient post-delivery guidance: do not modify persisted save schema.

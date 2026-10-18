@@ -1,0 +1,10 @@
+{
+  "environment": "Chromium software WebGL / emulated touch, not physical mobile",
+  "checks": [
+    "bundled rig loaded; real joystick starts Walk clip",
+    "compact notebook opens and closes",
+    "844x390: no overflow, joystick inside and released",
+    "wake, breakfast, open shop and imported customer spawn"
+  ],
+  "errors": []
+}

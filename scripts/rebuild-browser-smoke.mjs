@@ -33,6 +33,8 @@ for(const [width,height] of (engine==='babylon'?[[844,390]]:[[360,800],[844,390]
  report.checks.push(`${width}x${height}: no overflow, joystick inside and released`);
 }
 await page.getByRole('button',{name:/Về tiệm/}).click();await page.waitForFunction(()=>{const r=window.__m1Runtime;return !r.input.exploring&&!r.path.length&&Math.hypot(r.player.x,r.player.z-2.15)<.2;},null,{timeout:90000});await page.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();await page.getByRole('button',{name:/Đi làm luôn/}).click();await page.getByRole('button',{name:/Mở cửa tiệm/}).click();
-await page.waitForFunction(()=>window.__m1Runtime.actors.size>0);await page.screenshot({path:out+'/shop-service.png'});
+await page.waitForFunction(()=>window.__m1Runtime.actors.size>0);
+if(await page.locator('#game-content').evaluate(el=>el.scrollTop)>1)throw new Error('Service panel retained the morning scroll offset');
+await page.screenshot({path:out+'/shop-service.png'});
 report.checks.push('wake, breakfast, open shop and imported customer spawn');
 }catch(e){report.errors.push(String(e.stack??e));process.exitCode=1;}finally{await writeFile(out+'/results.json',JSON.stringify(report,null,2));console.log('REBUILD_REPORT',JSON.stringify(report));await browser.close();}

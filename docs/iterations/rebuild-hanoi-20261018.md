@@ -38,7 +38,7 @@ Bản sao nguồn có license: https://github.com/MarcoPaoletta/4-xogot-reel-tyc
 ## Kiểm tra và giới hạn
 
 `npm test`: 650 test / 134 file Vitest, node acceptance 6/6, life design validator.
-`npm run build`: thành công. Babel/Babylon chunk vẫn có cảnh báo kích thước.
+`npm run build`: thành công. Babylon chunk vẫn có cảnh báo kích thước.
 `checks/peopleAssets.test.ts` đọc GLB thật, kiểm chân trên mặt đường xuyên chu kỳ
 Idle, chuyển clip, giải phóng skeleton và biến dạng giữa hai renderer.
 
@@ -55,3 +55,36 @@ chưa có rider. Chưa đo FPS trên thiết bị thật hoặc nghiệm thu pro
 Bước tiếp: dùng đúng bản này kiểm đi quanh một vòng An Hòa bằng ngón tay,
 phục vụ 5 đơn và nhận/trả một nhiệm vụ; ghi vấn đề bằng ảnh/các bước tái hiện.
 Ưu tiên lỗi góc camera, tư thế cầm/ngồi và kích thước đường trước khi thêm nội dung.
+
+
+## Ảnh và browser evidence
+
+![Cảnh mới trên mobile](evidence/rebuild-hanoi-20261018/street-mobile.png)
+![Cảnh mới trên desktop](evidence/rebuild-hanoi-20261018/street-desktop.png)
+![Sổ nhiệm vụ mở khi cần](evidence/rebuild-hanoi-20261018/notebook-mobile.png)
+
+- [Three browser](evidence/rebuild-hanoi-20261018/three-results.json): model,
+  joystick/Walk, sổ tay, bốn viewport, buổi sáng và khách tới quầy.
+- [Babylon browser](evidence/rebuild-hanoi-20261018/babylon-results.json): cùng
+  rig/điều khiển, dọc/ngang, sổ tay và mở tiệm; không pageerror.
+- [Lượt mobile đầu](evidence/rebuild-hanoi-20261018/mobile-first-pass.json):
+  9 viewport quầy, 4 viewport phố (đóng/mở sổ), wake/bữa sáng/reload, pha/cầm/giao ly.
+  Lượt này trước khi chốt đường trở lại quầy và specificity HUD ngang; xem
+  báo cáo lần cuối khi có, không gán kết quả này cho toàn bộ thay đổi sau đó.
+
+
+Lượt mobile chốt: [JSON](evidence/rebuild-hanoi-20261018/mobile-final-results.json)
+qua 9 viewport quầy và 4 viewport phố (8 snapshot đóng/mở sổ), toàn bộ 6 luồng
+wake/bữa sáng/reload, xoay và thả joystick, pha/cầm/giao ly; không pageerror.
+Bản chốt này đã có footprint mái hiên, orbit an toàn, HUD ngang compact và
+trở lại đúng quầy. Sau kiểm tra ảnh, thêm reset cuộn panel khi chuyển phase
+để order không bị khuất sau luồng buổi sáng.
+CI core `106bf6a`: https://github.com/phung086/ban-tra-sua/actions/runs/39134066228
+Lan browser `106bf6a`: https://github.com/phung086/ban-tra-sua/actions/runs/39134066384
+
+
+Sau sửa reset cuộn, `rebuild-browser-smoke` đã chạy lại trọn luồng, bao gồm
+đợi đến đúng quầy, mở ca và assert scrollTop panel bằng 0; không pageerror.
+[JSON mới nhất](evidence/rebuild-hanoi-20261018/three-results.json).
+
+![Quầy sau khi trở lại từ phố](evidence/rebuild-hanoi-20261018/shop-service.png)
