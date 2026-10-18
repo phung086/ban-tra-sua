@@ -43,6 +43,8 @@ const DAY11_HELP_ID = 'market.day11.help';
 const DAY11_HURRY_ID = 'market.day11.hurry';
 const DAY12_SCHOOL_PREFIX = 'school.day12.';
 const DAY13_FAIR_PREFIX = 'school.day13.';
+const DAY14_APARTMENT_PREFIX = 'apartments.day14.';
+export type ApartmentChoice = 'carry' | 'coordinate';
 export type SchoolChoice = 'gift' | 'sell' | 'reschedule';
 export type SchoolFairChoice = 'paint' | 'share';
 
@@ -103,9 +105,11 @@ export function cityContracts(state: GameState): TeaContract[] {
     ? 12000 : state.day === 13 && state.relationshipRewardIds.includes('school.day12.sell') ? 6000 : 0;
   const fairReferral = state.day === 14 && state.relationshipRewardIds.includes('school.day13.paint')
     ? 8000 : state.day === 14 && state.relationshipRewardIds.includes('school.day13.share') ? 3000 : 0;
+  const apartmentReferral = state.day === 15 && state.relationshipRewardIds.includes('apartments.day14.carry')
+    ? 10000 : state.day === 15 && state.relationshipRewardIds.includes('apartments.day14.coordinate') ? 4000 : 0;
   return [
     { id: `${state.day}-school`, destination: 'school', base: 'peach-tea', sugar: 50, count: 3, reward: 82000 + lanReferral + fairReferral, deadline: 120, packed: false },
-    { id: `${state.day}-apartments`, destination: 'apartments', base: 'classic-milk-tea', sugar: 75, count: 4, reward: 108000, deadline: 150, packed: false },
+    { id: `${state.day}-apartments`, destination: 'apartments', base: 'classic-milk-tea', sugar: 75, count: 4, reward: 108000 + apartmentReferral, deadline: 150, packed: false },
     { id: `${state.day}-library`, destination: 'library', base: 'oolong-milk-tea', sugar: 25, count: 3, reward: 96000, deadline: 150, packed: false },
   ].filter(c => state.unlockedBaseIds.includes(c.base as BaseId)) as TeaContract[];
 }
@@ -115,7 +119,7 @@ export type CityAction =
   | { type: 'pack'; base: BaseId; sugar: number; timing: number }
   | { type: 'deliver' } | { type: 'cancel' }
   | { type: 'market'; basket?: MarketBasket } | { type: 'supplier'; choice: 'help' | 'hurry' }
-  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'talk'; place: CityPlace }
+  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'apartmentMeet'; choice: ApartmentChoice } | { type: 'talk'; place: CityPlace }
   | { type: 'garden' } | { type: 'rest'; place?:CityPlace }
   | { type: 'bus' }
   | { type: 'project'; id: CityProject };
@@ -139,7 +143,7 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
     return result(state, { ...city, contract: { ...contract, deadline: city.minutes + contract.deadline } }, 'Đã nhận đơn. Về quầy pha đúng trà, đường và đóng túi.');
   }
   if (action.type === 'cancel') return result(state, { ...city, contract: null }, 'Đã hủy chuyến. Nguyên liệu đã pha không hoàn lại.');
-  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
+  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'apartmentMeet' ? 'apartments' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
   if (!nearCityPlace(position, place)) return { ...state, notice: `Đi đến ${CITY_PLACES[place].name} để thực hiện.` };
   if (city.minutes < CITY_PLACES[place].hours[0] || city.minutes > CITY_PLACES[place].hours[1]) return { ...state, notice: 'Địa điểm đã đóng cửa. Quay lại vào ngày mai.' };
   if (action.type === 'bus') {
@@ -230,6 +234,32 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
       : 'Bạn đưa Lan thực đơn của tiệm để nhóm tự chia sẻ. Thêm 1 thiện cảm và 1 fan; ngày 14 có đơn nhỏ hơn.',
     { cash: state.cash - cost, fans: state.fans + (paint ? 2 : 1),
       relationshipRewardIds: [...state.relationshipRewardIds, `${DAY13_FAIR_PREFIX}${action.choice}`] });
+  }
+  if (action.type === 'apartmentMeet') {
+    // QG-10: Day-14 meeting at the apartment block; exactly-once Day-15 referral.
+    if (state.day !== 14 || state.relationshipRewardIds.some(id => id.startsWith(DAY14_APARTMENT_PREFIX))) return state;
+    if (city.contract) return { ...state, notice: 'Hoàn tất chuyến giao đang nhận trước khi giúp cô Thu.' };
+    const carry = action.choice === 'carry';
+    const minutes = carry ? 22 : 6;
+    const energy = carry ? 12 : 2;
+    if (city.energy < energy || city.minutes + minutes > Math.min(1260, CITY_PLACES.apartments.hours[1])) {
+      return { ...state, notice: 'Không đủ thời gian hoặc sức lực trước giờ họp. Có thể nghỉ chân rồi quay lại.' };
+    }
+    const needs: Partial<Record<InventoryKey, number>> = { classicMilkTea: 2, cupsM: 2, sugar: 1, ice: 2 };
+    if (carry && Object.entries(needs).some(([key, count]) =>
+      state.inventory[key as InventoryKey] < (count ?? 0) || state.freshness[key as InventoryKey] < 20)) {
+      return { ...state, notice: 'Cần 2 phần trà sữa tươi, 2 ly M, đường và đá. Bạn vẫn có thể nhờ hàng xóm hỗ trợ.' };
+    }
+    const inventory = { ...state.inventory };
+    if (carry) for (const [key, count] of Object.entries(needs)) inventory[key as InventoryKey] -= count ?? 0;
+    return result(state, {
+      ...city, minutes: city.minutes + minutes, energy: city.energy - energy,
+      goodwill: city.goodwill + (carry ? 4 : 1),
+    }, carry
+      ? 'Bạn mang 2 ly trà sữa và cùng cô Thu kê ghế lên tầng. Thêm 4 thiện cảm, 2 fan; ngày 15 khu tập thể đặt thêm trà.'
+      : 'Bạn gọi hàng xóm cùng chuẩn bị ghế và nước uống. Thêm 1 thiện cảm, 1 fan; ngày 15 có thêm một đơn nhỏ.',
+    { inventory, fans: state.fans + (carry ? 2 : 1),
+      relationshipRewardIds: [...state.relationshipRewardIds, `${DAY14_APARTMENT_PREFIX}${action.choice}`] });
   }
   if (city.energy < 8) return { ...state, notice: 'Bạn mệt rồi. Ghé hồ nghỉ chân để hồi sức.' };
   if (action.type === 'pack') {
