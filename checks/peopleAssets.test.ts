@@ -23,10 +23,38 @@ describe('bundled production people',()=>{
     for(let i=0;i<60;i++){pose(person,i/30,false,0,false,true);person.root.updateMatrixWorld(true);person.root.traverse(o=>{if(o instanceof T.SkinnedMesh)o.computeBoundingBox();});expect(Math.abs(new T.Box3().setFromObject(person.root).min.y)).toBeLessThan(.02);}
     pose(person,2,true,0,false,true);pose(person,.04,true,0,false,true);
     expect(person.imported!.active).toBe('Walk');
-    pose(person,.08,true,.5,false,true);expect(person.imported!.active).toBe('Walk_Carry');
+    pose(person,.08,true,0,false,true,1,true);expect(person.imported!.active).toBe('Walk_Carry');
     pose(person,.12,false,0,true,false);expect(person.imported!.active).toBe('SitDown');
     expect(person.imported!.actions.get('SitDown')!.time).toBeCloseTo(person.imported!.actions.get('SitDown')!.getClip().duration);
     w.dispose();expect(w.skeletons.size).toBe(0);
+  });
+  it('attaches items to the actual imported wrist, not the model origin',()=>{
+    const w=new Workshop(),p=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
+    expect(p.hand.parent?.name).toBe('FistR');expect(p.leftLeg.name).toBe('UpperLegL');
+    p.root.updateMatrixWorld(true);expect(p.hand.getWorldPosition(new T.Vector3()).y).toBeGreaterThan(.5);w.dispose();
+  });
+  it('drives cadence by travelled phase and shares it between carrying and walking',()=>{
+    const w=new Workshop(),p=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
+    pose(p,0,true,0,false,true,Math.PI);
+    const walk=p.imported!.actions.get('Walk')!;
+    expect(walk.time/walk.getClip().duration).toBeCloseTo(.5);
+    pose(p,.05,true,0,false,true,Math.PI);
+    expect(walk.time/walk.getClip().duration).toBeCloseTo(.5);
+    pose(p,.1,true,0,false,true,Math.PI,true);
+    const carry=p.imported!.actions.get('Walk_Carry')!;
+    expect(carry.time/carry.getClip().duration).toBeCloseTo(.5);
+    pose(p,.15,true,0,false,true,Math.PI*1.1,true);
+    expect(carry.time/carry.getClip().duration).toBeCloseTo(.55);w.dispose();
+  });
+  it('settles carrying legs into idle and does not mistake a greeting for an item',()=>{
+    const w=new Workshop(),p=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
+    pose(p,0,true,0,false,true,2,true);
+    for(let i=1;i<=15;i++)pose(p,i/30,false,0,false,true,2,true);
+    expect(p.imported!.active).toBe('Idle_Carry');
+    const idle=p.imported!.actions.get('Idle')!.getClip(),carry=p.imported!.actions.get('Idle_Carry')!.getClip();
+    for(const track of idle.tracks.filter(t=>/^(UpperLeg|LowerLeg|Foot)/.test(t.name)))
+      expect([...carry.tracks.find(t=>t.name===track.name)!.values]).toEqual([...track.values]);
+    pose(p,.55,false,.35,false,true);expect(p.imported!.active).toBe('Idle');w.dispose();
   });
   it('keeps animated geometry inside conservative culling bounds',()=>{
     const w=new Workshop(),person=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);

@@ -28,6 +28,17 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
   root.name=`resident:${customer.id}`;root.userData.characterAsset=key;
   const mixer=new T.AnimationMixer(model),actions=new Map<string,T.AnimationAction>();
   for(const clip of template.animations)actions.set(clip.name,mixer.clipAction(clip));
+  // Carrying at rest uses idle legs, never a frozen mid-stride walk pose.
+  const idle=template.animations.find(c=>c.name==='Idle')!,carry=template.animations.find(c=>c.name==='Walk_Carry')!;
+  const idleCarry=idle.clone();idleCarry.name='Idle_Carry';
+  idleCarry.tracks=idleCarry.tracks.map(track=>{
+    if(!/^(Shoulder|UpperArm|LowerArm|Fist)[LR]\./.test(track.name))return track;
+    const source=carry.tracks.find(t=>t.name===track.name);if(!source)return track;
+    const size=source.getValueSize(),sample=source.values.slice(0,size);
+    for(let i=0;i<track.values.length;i+=size)track.values.set(sample,i);
+    return track;
+  });
+  actions.set(idleCarry.name,mixer.clipAction(idleCarry));
   actions.get('Idle')?.play();mixer.update(0);model.updateMatrixWorld(true);
   model.traverse(o=>{if(o instanceof T.SkinnedMesh)o.computeBoundingBox();});
   // The source file is saved in a non-idle pose. Normalize the evaluated idle
@@ -53,7 +64,8 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
     object.castShadow=object.receiveShadow=true;
     if(object instanceof T.SkinnedMesh){w.skeletons.add(object.skeleton);object.boundingSphere=animatedBounds.clone();object.frustumCulled=true;}
   });
-  const bone=(name:string)=>(model.getObjectByName(name)??body) as T.Group;
+  // GLTFLoader sanitizes dots in Blender bone names (Fist.R -> FistR).
+  const bone=(name:string)=>(model.getObjectByName(name)??model.getObjectByName(T.PropertyBinding.sanitizeNodeName(name))??body) as T.Group;
   const hand=new T.Group();bone('Fist.R').add(hand);hand.scale.setScalar(1/scale);
   hand.position.set(0,0,0);hand.rotation.z=-Math.PI/2;
 
@@ -65,19 +77,25 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
     imported:{mixer,actions,active:'Idle',time:null}};
 }
 
-export function poseImported(person:Person,time:number,walking:boolean,carrying:boolean,sitting:boolean,motion:boolean){
+export function poseImported(person:Person,time:number,walking:boolean,carrying:boolean,sitting:boolean,motion:boolean,gaitPhase:number){
   const rig=person.imported!;
   const dt=rig.time===null?0:Math.max(0,Math.min(.05,time-rig.time));rig.time=time;
-  const next=sitting?'SitDown':carrying?'Walk_Carry':walking&&motion?'Walk':'Idle';
+  const stepping=walking&&motion;
+  const next=sitting?'SitDown':stepping?(carrying?'Walk_Carry':'Walk'):(carrying?'Idle_Carry':'Idle');
   if(next!==rig.active){
     const action=rig.actions.get(next),old=rig.actions.get(rig.active);
     if(action){action.reset().play();if(next==='SitDown'){action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;}
       else action.setLoop(T.LoopRepeat,Infinity);
-      if(motion)old?action.crossFadeFrom(old,.2,true):action.fadeIn(.2);else old?.stop();
+      // No time warping: cadence comes from ground displacement, not wall time.
+      if(motion)old?action.crossFadeFrom(old,.16,false):action.fadeIn(.16);else old?.stop();
     }
     rig.active=next;
   }
-  const carry=rig.actions.get('Walk_Carry');if(carry)carry.timeScale=walking&&motion?1:0;
+  for(const name of ['Walk','Walk_Carry']){
+    const action=rig.actions.get(name);if(!action)continue;
+    action.timeScale=0;
+    if(stepping&&Number.isFinite(gaitPhase))action.time=((gaitPhase/(2*Math.PI))%1+1)%1*action.getClip().duration;
+  }
   rig.mixer.update(motion?dt:0);
   if(!motion&&sitting){const action=rig.actions.get('SitDown');if(action){action.time=action.getClip().duration;rig.mixer.update(0);}}
 }

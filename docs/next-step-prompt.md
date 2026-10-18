@@ -1,6 +1,7 @@
 # Prompt tiếp theo: nghiệm thu lát cắt An Hòa trên điện thoại thật
 
-Đọc docs/iterations/rebuild-hanoi-20261018.md, docs/production-roadmap.md,
+Đọc docs/iterations/motion-repair-20261018.md,
+docs/iterations/rebuild-hanoi-20261018.md, docs/production-roadmap.md,
 docs/iteration-protocol.md và public/models/people/sources.json. Nền mới nằm trên
 codex/rebuild-hanoi-experience-20261018 (hoặc main khi đã tích hợp). Giữ save và
 thay đổi của người khác, không đưa lại nhân vật capsule làm mặc định.

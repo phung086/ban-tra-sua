@@ -4,12 +4,14 @@ import {texturedGround} from './urbanExpansion';
 
 /** Street geometry and doors share the existing walkable footprint. */
 export function hanoiFrontage(w:Workshop,root:T.Group){
+  const facades:T.Group[]=[];
   const palette=['#d0bd91','#bec4ae','#d9c6a4','#c2b6a1','#b3bfad'];
   const names=['TẠP HÓA CÔ HẠNH','SỬA XE BÁC HÙNG','BÁNH MÌ HÀ NỘI','HIỆU TÓC LAN','GIẶT LÀ AN HÒA'];
   texturedGround(w,root,'paving','#a4a18e',0,-9.65,25,1.25,-.025);
   texturedGround(w,root,'asphalt','#6a7069',0,-8.48,35,1.1,-.166);
   for(let i=0;i<5;i++){
     const facade=new T.Group();facade.position.set((i-2)*4.6,0,-11.3);root.add(facade);
+    facades.push(facade);
     const height=i===1?8.5:6.3,wall=palette[i],green='#344f45',wood='#685540';
     w.box(facade,wall,[0,height/2,0],[4.5,height,2]).material=w.surface('plaster',wall);
     w.box(facade,'#79766a',[0,.23,1.025],[4.5,.46,.08]);
@@ -67,4 +69,5 @@ export function hanoiFrontage(w:Workshop,root:T.Group){
   }
   // Continuous curbstones, not a wall across the player's route.
   for(let i=0;i<25;i++)w.box(root,'#aaa795',[-12+i,-.075,-9.0],[.985,.18,.14]);
+  return facades;
 }

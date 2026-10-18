@@ -472,7 +472,9 @@ export function buildShop(w: Workshop) {
   // A sidewalk and lived-in neighboring façades beyond the open storefront.
   w.box(root, "#aaa99d", [0, -0.12, -6.2], [25, 0.26, 2.8]);
   w.box(root, "#626d69", [0, -0.22, -8.65], [35, 0.08, 2.2]);
-  streetFronts(w, root);
+  const facades=streetFronts(w, root);
+  root.updateMatrixWorld(true);
+  for(const facade of facades)cutaways.push({root:facade,bounds:new T.Box3().setFromObject(facade)});
   const bike=makeScooter(w,'#496b62');bike.position.set(PARKED_SCOOTER.x,0,PARKED_SCOOTER.z);bike.rotation.y=PARKED_SCOOTER.yaw!;root.add(bike);
   for (let i = 0; i < 3; i++) {
     const x = 2.8 + i * 0.8;
@@ -582,8 +584,8 @@ export function buildShop(w: Workshop) {
     machine.add(group);
     return group;
   });
-  const dynamic=[brewer,sealer,shaker,decor,...jars,rear,awning];
-  for(const [index,part] of [rear,awning].entries()){
+  const dynamic=[brewer,sealer,shaker,decor,...jars,...cutaways.map(p=>p.root)];
+  for(const [index,part] of cutaways.map(p=>p.root).entries()){
     mergeRigid(part,[],(key,factory)=>w.geometry(key,factory),`shop-cutaway-${index}`,8);
     batchStatic(part,[]);
   }

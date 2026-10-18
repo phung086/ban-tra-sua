@@ -198,4 +198,4 @@ export function teaVessels(w: Workshop, root: T.Group) {
   ).rotation.y = Math.PI;
 }
 
-export function streetFronts(w:Workshop,root:T.Group){hanoiFrontage(w,root);}
+export function streetFronts(w:Workshop,root:T.Group){return hanoiFrontage(w,root);}

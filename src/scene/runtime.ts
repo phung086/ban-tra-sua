@@ -29,8 +29,6 @@ import {advanceNpcLocomotion,initialNpcLocomotion,type NpcLocomotion} from './np
 import {RESIDENTS,missionDefinition,type ResidentId} from '../game/neighborhoodStories';
 import {nearCityPlace} from '../game/cityMap';
 
-// Camera clearance includes balconies and awnings; walkers can still pass below.
-const CAMERA_BLOCKS=CITY_BLOCKS.map(b=>({...b,depth:b.depth+(b.z===-11.3?1.4:.6),z:b.z+(b.z===-11.3?.7:0)}));
 // A wide phone in landscape (e.g. 932px) is still a mobile GPU. Mirror
 // the responsive game layout instead of a hard 700px CSS breakpoint.
 function isMobileSceneViewport() {
@@ -85,6 +83,9 @@ export class StreetRuntime {
   playerHand = new T.Group();
   player = { x: 0, z: 3.15 };
   yaw = 0;
+  orbitYaw = 0;
+  orbitInputYaw = 0;
+  stickYaw:number|null=null;
   pitch = -0.23;
   overview = false;
   keys = new Set<string>();
@@ -349,6 +350,8 @@ export class StreetRuntime {
   }
   analog(stick:Stick) {
     if(this.input.paused){this.stick={x:0,y:0};return;}
+    if((stick.x||stick.y)&&!(this.stick.x||this.stick.y))this.stickYaw=this.input.exploring?this.orbitYaw:this.yaw;
+    if(!stick.x&&!stick.y)this.stickYaw=null;
     this.stick=stick;
     if(stick.x||stick.y){this.path=[];this.overview=false;}
   }
@@ -479,7 +482,7 @@ export class StreetRuntime {
         Number(this.keys.has("a") || this.keys.has("arrowleft"));
       if (forward || side || this.stick.x || this.stick.y) {
         const walkingSpeed=this.input.exploring?(game.city.energy<8?1.6:rainy?2.5:2.9):2.3;
-        const delta=movementVector(this.stick.x||this.stick.y?this.stick:{x:side,y:-forward},this.yaw,walkingSpeed,dt);
+        const delta=movementVector(this.stick.x||this.stick.y?this.stick:{x:side,y:-forward},this.stickYaw??this.yaw,walkingSpeed,dt);
         dx=delta.x;dz=delta.z;
       } else if (this.path.length) {
         const next = this.path[0],
@@ -534,8 +537,9 @@ export class StreetRuntime {
       cup.root.visible=i<game.city.contract!.count;
       cup.update({size:'M',base:game.city.contract!.base,sugar:game.city.contract!.sugar,ice:50,topping:'none',fill:70,shake:70,sealed:true});
     });
-    this.avatarPhase+=Math.hypot(dx,dz)*5.2;
-    pose(this.avatar, now / 1000, !!(dx || dz), this.parcel.root.visible||item?0.45:0, false, this.motion,this.avatarPhase);
+    // Match the visitors' 1.75m gait cycle; a slow analog drag must not jog.
+    this.avatarPhase+=Math.hypot(dx,dz)*3.6;
+    pose(this.avatar, now / 1000, Math.hypot(dx,dz)>.0001, 0, false, this.motion,this.avatarPhase,!!(this.parcel.root.visible||item));
     if(this.avatar.imported&&(this.parcel.root.visible||item)){
       this.avatar.root.updateMatrixWorld(true);
       const socket=this.avatar.root.worldToLocal(this.avatar.hand.getWorldPosition(this.target));
@@ -563,12 +567,15 @@ export class StreetRuntime {
       this.cameraFocus.lerp(this.target.set(this.player.x,0,this.player.z),this.motion?1-Math.exp(-12*dt):1);
       const elevation=T.MathUtils.clamp(0.36-this.pitch*0.4,0.24,0.72);
       const distance=6.2*Math.cos(elevation);
-      const safeYaw=clearOrbitYaw(this.cameraFocus,this.yaw,distance,CAMERA_BLOCKS);
-      this.yaw+=(safeYaw-this.yaw)*(this.motion&&!cameraChanged?1-Math.exp(-8*dt):1);
+      if(cameraChanged)this.orbitYaw=this.yaw;
+      else this.orbitYaw+=this.yaw-this.orbitInputYaw;
+      this.orbitInputYaw=this.yaw;
+      const safeYaw=clearOrbitYaw(this.cameraFocus,this.orbitYaw,distance,CITY_BLOCKS);
+      this.orbitYaw+=(safeYaw-this.orbitYaw)*(this.motion&&!cameraChanged?1-Math.exp(-8*dt):1);
       // Raise the camera inside the shop; foreground structures are cut away
       // below when they intersect the player's sightline.
       let height=this.player.z>-5.3?8.5:1.25+6.2*Math.sin(elevation);
-      this.camera.position.set(this.cameraFocus.x+Math.sin(this.yaw)*distance,height,this.cameraFocus.z+Math.cos(this.yaw)*distance);
+      this.camera.position.set(this.cameraFocus.x+Math.sin(this.orbitYaw)*distance,height,this.cameraFocus.z+Math.cos(this.orbitYaw)*distance);
       // Raise the follow camera out of building footprints instead of clipping
       // into a wall. Gameplay collision and camera collision are independent.
       for(const block of CITY_BLOCKS){
@@ -579,7 +586,9 @@ export class StreetRuntime {
       }
       this.followHeight+= (height-this.followHeight)*(this.motion?1-Math.exp(-10*dt):1);
       this.camera.position.y=this.followHeight;
-      const available=clearCameraFraction(this.cameraFocus,this.camera.position,CAMERA_BLOCKS);
+      // Balconies use bounded cutaways below, rather than collapsing the lens
+      // onto the avatar when the player walks underneath an overhang.
+      const available=clearCameraFraction(this.cameraFocus,this.camera.position,CITY_BLOCKS);
       const clear=this.cameraClearance=easeCameraClearance(this.cameraClearance,available,dt,this.motion);
       this.camera.position.x=this.cameraFocus.x+(this.camera.position.x-this.cameraFocus.x)*clear;
       this.camera.position.z=this.cameraFocus.z+(this.camera.position.z-this.cameraFocus.z)*clear;
@@ -610,7 +619,7 @@ export class StreetRuntime {
       const obstruction=this.ray.ray.intersectBox(part.bounds,this.hit);
       part.root.visible=!(this.input.exploring&&!this.overview&&obstruction&&this.target.distanceTo(obstruction)<cameraDistance);
     }
-    this.held.root.visible = carrying && screen === "shop" && !this.overview;
+    this.held.root.visible = carrying && screen === "shop" && !this.overview && !this.input.exploring;
     this.playerHand.visible = this.held.root.visible;
     this.draft.root.visible = game.phase === "open" && !carrying;
     this.held.update(game.draft);
