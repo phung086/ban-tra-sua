@@ -135,6 +135,22 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
             </div>}
         </article>}
         {selected === 'apartments' && game.day === 15 && game.relationshipRewardIds.some(id => id.startsWith('apartments.day14.')) && <p role="status" className="market-day-story">Cô Thu nhớ buổi họp hôm qua: đơn trà khu tập thể trong mục Giao trà hôm nay có giá trị cao hơn.</p>}
+        {selected === 'library' && game.day === 15 && <article className="market-basket" aria-label="Ngày 15: Anh Nam chuẩn bị góc đọc sách">
+          <h4>📚 Ngày 15 · Góc đọc sách của anh Nam</h4>
+          <p>Anh Nam đang kê lại góc đọc cho trẻ trong xóm. Bạn pha 2 ly ô long mời nhóm hay giúp anh xếp sách và dán lịch đọc? Đơn hiệu sách Ngày 16 sẽ thay đổi.</p>
+          {game.relationshipRewardIds.some(id => id.startsWith('library.day15.'))
+            ? <p role="status">{game.relationshipRewardIds.includes('library.day15.brew')
+              ? 'Đã pha trà cho góc đọc. Đơn hiệu sách Ngày 16 tăng 8.000 ₫.'
+              : 'Đã giúp xếp sách. Đơn hiệu sách Ngày 16 tăng 3.000 ₫.'}</p>
+            : <div className="market-day-actions">
+              <p>Pha trà cần công thức ô long, 2 phần ô long, 2 ly M, 1 đường và 2 đá còn tươi. Thiếu hàng vẫn có thể giúp xếp sách.</p>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || !game.unlockedBaseIds.includes('oolong-milk-tea') || city.energy < 10 || city.minutes + 18 > CITY_PLACES.library.hours[1] || game.inventory.oolongMilkTea < 2 || game.inventory.cupsM < 2 || game.inventory.sugar < 1 || game.inventory.ice < 2 || !(['oolongMilkTea','cupsM','sugar','ice'] as const).every(key => game.freshness[key] >= 20)}
+                onClick={() => onAction({ type: 'libraryCorner', choice: 'brew' })}>Pha 2 ly ô long · 18 phút · 10 sức</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 2 || city.minutes + 6 > CITY_PLACES.library.hours[1]}
+                onClick={() => onAction({ type: 'libraryCorner', choice: 'organize' })}>Giúp xếp sách · 6 phút · 2 sức</button>
+            </div>}
+        </article>}
+        {selected === 'library' && game.day === 16 && game.relationshipRewardIds.some(id => id.startsWith('library.day15.')) && <p role="status" className="market-day-story">Anh Nam nhớ bạn đã giúp góc đọc: đơn hiệu sách hôm nay có giá trị cao hơn.</p>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}
