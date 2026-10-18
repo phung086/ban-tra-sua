@@ -162,7 +162,7 @@ export function getRememberedSilentDelivery(game: GameState): { day: number; cor
   const hasCallback = game.storyLog.some(moment =>
     moment.customerId === order.customerId &&
     moment.id.startsWith('remembered-service:') &&
-    encodeURIComponent(moment.id.slice('remembered-service:'.length)) === latest.orderId);
+    moment.id.slice('remembered-service:'.length) === latest.orderId);
   return hasCallback ? null : { day: latest.day, correct: latest.correct };
 }
 
