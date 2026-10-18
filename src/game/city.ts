@@ -44,7 +44,9 @@ const DAY11_HURRY_ID = 'market.day11.hurry';
 const DAY12_SCHOOL_PREFIX = 'school.day12.';
 const DAY13_FAIR_PREFIX = 'school.day13.';
 const DAY14_APARTMENT_PREFIX = 'apartments.day14.';
+const DAY15_LIBRARY_PREFIX = 'library.day15.';
 export type ApartmentChoice = 'carry' | 'coordinate';
+export type LibraryChoice = 'brew' | 'organize';
 export type SchoolChoice = 'gift' | 'sell' | 'reschedule';
 export type SchoolFairChoice = 'paint' | 'share';
 
@@ -107,10 +109,12 @@ export function cityContracts(state: GameState): TeaContract[] {
     ? 8000 : state.day === 14 && state.relationshipRewardIds.includes('school.day13.share') ? 3000 : 0;
   const apartmentReferral = state.day === 15 && state.relationshipRewardIds.includes('apartments.day14.carry')
     ? 10000 : state.day === 15 && state.relationshipRewardIds.includes('apartments.day14.coordinate') ? 4000 : 0;
+  const libraryReferral = state.day === 16 && state.relationshipRewardIds.includes('library.day15.brew')
+    ? 8000 : state.day === 16 && state.relationshipRewardIds.includes('library.day15.organize') ? 3000 : 0;
   return [
     { id: `${state.day}-school`, destination: 'school', base: 'peach-tea', sugar: 50, count: 3, reward: 82000 + lanReferral + fairReferral, deadline: 120, packed: false },
     { id: `${state.day}-apartments`, destination: 'apartments', base: 'classic-milk-tea', sugar: 75, count: 4, reward: 108000 + apartmentReferral, deadline: 150, packed: false },
-    { id: `${state.day}-library`, destination: 'library', base: 'oolong-milk-tea', sugar: 25, count: 3, reward: 96000, deadline: 150, packed: false },
+    { id: `${state.day}-library`, destination: 'library', base: 'oolong-milk-tea', sugar: 25, count: 3, reward: 96000 + libraryReferral, deadline: 150, packed: false },
   ].filter(c => state.unlockedBaseIds.includes(c.base as BaseId)) as TeaContract[];
 }
 const baseKey: Record<BaseId, InventoryKey> = { 'classic-milk-tea': 'classicMilkTea', 'peach-tea': 'peachTea', 'matcha-latte': 'matchaLatte', 'oolong-milk-tea': 'oolongMilkTea', 'taro-milk-tea': 'taroMix', 'strawberry-milk': 'strawberryMilk', 'cocoa-milk': 'cocoaMilk', 'lemon-tea': 'lemonTea' };
@@ -119,7 +123,7 @@ export type CityAction =
   | { type: 'pack'; base: BaseId; sugar: number; timing: number }
   | { type: 'deliver' } | { type: 'cancel' }
   | { type: 'market'; basket?: MarketBasket } | { type: 'supplier'; choice: 'help' | 'hurry' }
-  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'apartmentMeet'; choice: ApartmentChoice } | { type: 'talk'; place: CityPlace }
+  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'apartmentMeet'; choice: ApartmentChoice } | { type: 'libraryCorner'; choice: LibraryChoice } | { type: 'talk'; place: CityPlace }
   | { type: 'garden' } | { type: 'rest'; place?:CityPlace }
   | { type: 'bus' }
   | { type: 'project'; id: CityProject };
@@ -143,7 +147,7 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
     return result(state, { ...city, contract: { ...contract, deadline: city.minutes + contract.deadline } }, 'Đã nhận đơn. Về quầy pha đúng trà, đường và đóng túi.');
   }
   if (action.type === 'cancel') return result(state, { ...city, contract: null }, 'Đã hủy chuyến. Nguyên liệu đã pha không hoàn lại.');
-  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'apartmentMeet' ? 'apartments' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
+  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'apartmentMeet' ? 'apartments' : action.type === 'libraryCorner' ? 'library' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
   if (!nearCityPlace(position, place)) return { ...state, notice: `Đi đến ${CITY_PLACES[place].name} để thực hiện.` };
   if (city.minutes < CITY_PLACES[place].hours[0] || city.minutes > CITY_PLACES[place].hours[1]) return { ...state, notice: 'Địa điểm đã đóng cửa. Quay lại vào ngày mai.' };
   if (action.type === 'bus') {
@@ -260,6 +264,35 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
       : 'Bạn gọi hàng xóm cùng chuẩn bị ghế và nước uống. Thêm 1 thiện cảm, 1 fan; ngày 15 có thêm một đơn nhỏ.',
     { inventory, fans: state.fans + (carry ? 2 : 1),
       relationshipRewardIds: [...state.relationshipRewardIds, `${DAY14_APARTMENT_PREFIX}${action.choice}`] });
+  }
+  if (action.type === 'libraryCorner') {
+    // QG-11: Day-15 reading corner with anh Nam. Only Day-16 library demand changes.
+    if (state.day !== 15 || state.relationshipRewardIds.some(id => id.startsWith(DAY15_LIBRARY_PREFIX))) return state;
+    if (city.contract) return { ...state, notice: 'Hoàn tất chuyến giao đang nhận rồi hãy giúp anh Nam.' };
+    const brew = action.choice === 'brew';
+    const minutes = brew ? 18 : 6;
+    const energy = brew ? 10 : 2;
+    if (city.energy < energy || city.minutes + minutes > Math.min(1260, CITY_PLACES.library.hours[1])) {
+      return { ...state, notice: 'Không đủ sức hoặc thời gian trước khi hiệu sách đóng cửa. Bạn có thể nghỉ rồi quay lại sớm hơn.' };
+    }
+    if (brew && !state.unlockedBaseIds.includes('oolong-milk-tea')) {
+      return { ...state, notice: 'Bạn chưa mở công thức ô long. Vẫn có thể giúp anh Nam xếp sách.' };
+    }
+    const needs: Partial<Record<InventoryKey, number>> = { oolongMilkTea: 2, cupsM: 2, sugar: 1, ice: 2 };
+    if (brew && Object.entries(needs).some(([key, count]) =>
+      state.inventory[key as InventoryKey] < (count ?? 0) || state.freshness[key as InventoryKey] < 20)) {
+      return { ...state, notice: 'Cần 2 phần ô long tươi, 2 ly M, đường và đá. Thiếu hàng vẫn có thể giúp xếp sách.' };
+    }
+    const inventory = { ...state.inventory };
+    if (brew) for (const [key, count] of Object.entries(needs)) inventory[key as InventoryKey] -= count ?? 0;
+    return result(state, {
+      ...city, minutes: city.minutes + minutes, energy: city.energy - energy,
+      goodwill: city.goodwill + (brew ? 3 : 1),
+    }, brew
+      ? 'Bạn pha 2 ly ô long cho góc đọc sách của anh Nam. Thêm 3 thiện cảm, 2 fan; đơn hiệu sách Ngày 16 tăng 8.000 ₫.'
+      : 'Bạn giúp anh Nam xếp sách và dán lịch đọc. Thêm 1 thiện cảm, 1 fan; đơn hiệu sách Ngày 16 tăng 3.000 ₫.',
+    { inventory, fans: state.fans + (brew ? 2 : 1),
+      relationshipRewardIds: [...state.relationshipRewardIds, `${DAY15_LIBRARY_PREFIX}${action.choice}`] });
   }
   if (city.energy < 8) return { ...state, notice: 'Bạn mệt rồi. Ghé hồ nghỉ chân để hồi sức.' };
   if (action.type === 'pack') {
