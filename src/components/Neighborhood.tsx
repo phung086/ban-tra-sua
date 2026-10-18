@@ -37,7 +37,7 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
   const travel = (place: CityPlace) => { setSelected(place); onExpand(false); onNavigate(place); };
   const remaining = contract ? Math.max(0, Math.ceil(contract.deadline - city.minutes)) : 0;
   return <div className={`neighborhood ${expanded?'sheet-open':'sheet-closed'}`}>
-    <button className="neighborhood-sheet-toggle" aria-expanded={expanded} onClick={()=>onExpand(!expanded)}>{expanded?'Thu gọn để đi phố':'Mở sổ tay khu phố'}<span className="sheet-grip"/></button>
+    <button className="neighborhood-sheet-toggle" aria-expanded={expanded} onClick={()=>onExpand(!expanded)}>{expanded?'Đóng sổ · tiếp tục đi phố':'Việc trong xóm'}<span className="sheet-grip"/></button>
     <header className="city-title"><div><h2>Một vòng Hà Nội</h2><p>Khu An Hòa · khu phố hư cấu</p></div><button onClick={onReturn}>Về phục vụ</button></header>
     <div className="city-almanac" aria-label="Tình trạng khu phố">
       <strong>{cityTime(city.minutes)}</strong><span>{weather.name} · {weather.temperature}°C</span><span>Sức lực <b>{Math.ceil(city.energy)}/100</b></span>

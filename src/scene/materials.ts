@@ -13,13 +13,16 @@ export function makeSurface(kind:SurfaceKind,color:string,textures:T.Texture[]) 
     const tint=new T.Color(color).lerp(new T.Color('#ffffff'),.72);
     return new T.MeshStandardMaterial({color:tint,map,normalMap,normalScale:new T.Vector2(.65,.65),roughness:kind==='roof'?.86:.95});
   }
-  const size=512,canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+  const size=256,canvas=document.createElement('canvas');canvas.width=canvas.height=size;
   const ctx=canvas.getContext('2d')!,base=new T.Color(color).getHex();
   const rgb=[base>>16&255,base>>8&255,base&255],data=ctx.createImageData(size,size),heights=new Float32Array(size*size);
   const hash=(x:number,y:number)=>{const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n);};
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){
     const i=y*size+x,grain=hash(x,y),coarse=hash(Math.floor(x/28),Math.floor(y/28));let shade=1+(grain-.5)*.13,h=grain*.07;
-    if(kind==='brick'||kind==='paving'){
+    if(kind==='paving'){
+      const xx=x%128,yy=y%128,tile=hash(Math.floor(x/128),Math.floor(y/128));
+      const joint=xx<2||yy<2;shade=joint?.68:.96+tile*.07+(grain-.5)*.025;h=joint?.05:.21;
+    }else if(kind==='brick'){
       const row=Math.floor(y/64),xx=(x+(row%2)*64)%128,yy=y%64,mortar=xx<4||yy<4;
       const tile=hash(Math.floor((x+(row%2)*64)/128),row);
       shade=mortar?.61:.91+tile*.18+(grain-.5)*.09;h=mortar?.1:.7+grain*.04;
@@ -32,7 +35,7 @@ export function makeSurface(kind:SurfaceKind,color:string,textures:T.Texture[]) 
     else if(kind==='fabric'){shade+=((x%4===0||y%4===0)?-.13:.035);h+=(x%4===0||y%4===0)?0:.16;}
     else if(kind==='roof'){const roll=Math.cos(x/32*Math.PI*2);shade+=roll*.2;h+=roll*.3;if(y%96<4){shade*=.58;h=.03;}}
     else if(kind==='foliage'){shade=.8+coarse*.3+(grain-.5)*.18;h=grain*.08;}
-    else {shade+=(coarse-.5)*.075;h=grain*.11;}
+    else {shade=1+(grain-.5)*.035+(coarse-.5)*.025;h=grain*.035;}
     heights[i]=h;data.data[i*4]=Math.min(255,rgb[0]*shade);data.data[i*4+1]=Math.min(255,rgb[1]*shade);data.data[i*4+2]=Math.min(255,rgb[2]*shade);data.data[i*4+3]=255;
   }
   ctx.putImageData(data,0,0);

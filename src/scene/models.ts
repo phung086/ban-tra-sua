@@ -1,3 +1,4 @@
+import {importedPerson,poseImported,type ImportedMotion} from './peopleAssets';
 import {hairGeometry} from './hairGeometry';
 import * as T from "three";
 import { neighborGreeting, INITIAL_GREETING } from "./neighborGreeting";
@@ -212,7 +213,7 @@ export class Workshop {
   }
 }
 
-type Look = {
+export type Look = {
   height: number;
   build: number;
   skin: string;
@@ -401,6 +402,7 @@ export const LOOKS: Record<string, Look> = {
 };
 
 export interface Person {
+  imported?:ImportedMotion;
   root: T.Group;
   body: T.Group;
   head: T.Group;
@@ -418,6 +420,8 @@ export interface Person {
 
 export function makePerson(w: Workshop, customer: Customer): Person {
   const l = LOOKS[customer.id] ?? LOOKS.khanh;
+  const imported=importedPerson(w,customer,l);
+  if(imported)return imported;
   const root = new T.Group();
   root.scale.set(l.build, l.height / 2.1, 1);
   const body = new T.Group();
@@ -723,6 +727,7 @@ export function pose(
   strideScale=1,
   greeting=0,
 ) {
+  if(person.imported){poseImported(person,time,walking,holdingCup||gesture>0,sitting,motion);return;}
   // Blend locomotion instead of snapping all limbs when a step starts/stops.
   // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
   const anim=person.animation;

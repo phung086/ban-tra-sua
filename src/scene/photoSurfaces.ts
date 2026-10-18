@@ -4,17 +4,17 @@ let loading:Promise<void>|undefined;
 
 // Bundled CC0 photographs; decoding and downsampling happen before either
 // renderer reads the scene. GPU allocations belong to each scene Workshop.
-export function photographicSurface(kind:string){return photos.get(kind);}
+export function photographicSurface(kind:string){return kind==='paving'?undefined:photos.get(kind);}
 export function loadPhotographicSurfaces():Promise<void>{
   if(typeof document==='undefined')return Promise.resolve();
   if(loading)return loading;
   const load=(name:string)=>new Promise<HTMLCanvasElement>((resolve,reject)=>{
     const image=new Image();
     image.onload=()=>{
-      const canvas=document.createElement('canvas');canvas.width=canvas.height=512;
+      const canvas=document.createElement('canvas');canvas.width=canvas.height=256;
       const context=canvas.getContext('2d');
       if(!context){reject(new Error('Canvas unavailable'));return;}
-      context.drawImage(image,0,0,512,512);resolve(canvas);
+      context.drawImage(image,0,0,256,256);resolve(canvas);
     };
     image.onerror=()=>reject(new Error(`Material unavailable: ${name}`));
     image.src=`${import.meta.env.BASE_URL}textures/${name}.jpg`;

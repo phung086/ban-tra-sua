@@ -42,7 +42,7 @@ export function WorldChrome({
       <header className="v6-hud">
         <div className="v6-brand">
           <GameIcon />
-          <div><small>TIỆM TRÀ CHIBI</small><b>Phố nhỏ</b></div>
+          <div><small>HÀ NỘI · TIỆM TRÀ</small><b>Phố nhỏ</b></div>
         </div>
         <div className="v6-hud-cluster">
           <span aria-label={`Tiền quỹ ${cash}`}><GameIcon name="coin" /><b>{cash}</b></span>

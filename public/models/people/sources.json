@@ -1,0 +1,32 @@
+[
+  {
+    "file": "neighbor-elder.glb",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "https://github.com/MarcoPaoletta/4-xogot-reel-tycoon/tree/main/assets/Quaternius%20Ultimate%20Animated%20Characters",
+    "originalSHA256": "da22b0aa834495b6f20608fafa0fb83a7bc0f25a08e95417b4c53882dfa35721",
+    "sha256": "8f60c2c74b11cda75aa0d1d858090ccccfdb8a33451a25b0a0499fb064589b78",
+    "bytes": 630384,
+    "changes": "Retained Idle, Walk, Walk_Carry and SitDown; repacked referenced buffers. No mesh modification."
+  },
+  {
+    "file": "neighbor-female.glb",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "https://github.com/MarcoPaoletta/4-xogot-reel-tycoon/tree/main/assets/Quaternius%20Ultimate%20Animated%20Characters",
+    "originalSHA256": "d95c07243223d4f71130ce5e2e77fd1d5e5e778fade27b7234f6ba17bc4cbc8b",
+    "sha256": "f14c10ba1bc4c305e81a3fc63c5f01357e115f9e215b1632a569680c54b82441",
+    "bytes": 688432,
+    "changes": "Retained Idle, Walk, Walk_Carry and SitDown; repacked referenced buffers. No mesh modification."
+  },
+  {
+    "file": "neighbor-male.glb",
+    "author": "Quaternius",
+    "license": "CC0-1.0",
+    "source": "https://github.com/MarcoPaoletta/4-xogot-reel-tycoon/tree/main/assets/Quaternius%20Ultimate%20Animated%20Characters",
+    "originalSHA256": "34b06e07f9ec3f26171848c84d7b28cc32796714372f07fa49c319477099fc5a",
+    "sha256": "c279de2e8d9e9408d33ccb633230ede684cb9cc1939973c972341305cc2da518",
+    "bytes": 674372,
+    "changes": "Retained Idle, Walk, Walk_Carry and SitDown; repacked referenced buffers. No mesh modification."
+  }
+]

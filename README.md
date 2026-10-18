@@ -1,6 +1,8 @@
-# 🧋 Tiệm Trà Chibi
+# Phố Nhỏ · Tiệm trà Hà Nội
 
-**Lượt sửa đồ họa/logic đang review:** [Báo cáo 18/10/2026](docs/iterations/cohesion-20261018.md), nhánh `codex/visual-logic-cohesion-20261016`.
+**Bản dựng lại hiện tại:** [Đồ họa, rig, phố và HUD mới](docs/iterations/rebuild-hanoi-20261018.md), nhánh `codex/rebuild-hanoi-experience-20261018`.
+
+**Lượt sửa đồ họa/logic trước:** [Báo cáo 18/10/2026](docs/iterations/cohesion-20261018.md), nhánh `codex/visual-logic-cohesion-20261016`.
 
 **Hiện trạng sau tích hợp các nhánh:** [Báo cáo chạy thử 16/10/2026](docs/iterations/integration-20261016.md). Nguồn khởi đầu cho công việc mới là `main`; đọc [prompt tiếp theo](docs/next-step-prompt.md) trước khi triển khai. Mã Gemini chưa nối vào app được lưu riêng trong [khu thử nghiệm](src/experimental/gemini/README.md).
 

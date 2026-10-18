@@ -1,3 +1,4 @@
+import {makeScooter} from './scooter';
 import * as T from "three";
 import { Workshop } from "./models";
 import type { InventoryKey } from "../game/types";
@@ -12,7 +13,7 @@ export function buildShop(w: Workshop) {
     {root:rear,bounds:new T.Box3(new T.Vector3(-5.1,0,4.7),new T.Vector3(5.1,3.5,5.05))},
     {root:awning,bounds:new T.Box3(new T.Vector3(-5.1,2.7,-6.1),new T.Vector3(5.1,3.6,-4.5))},
   ];
-  const green = "#b67793",
+  const green = "#3f6457",
     cream = "#e7e3d6",
     wood = "#977758",
     metal = "#b9bec5";
@@ -50,21 +51,21 @@ export function buildShop(w: Workshop) {
   }
   // Front awning, sign and open doorway.
   w.box(awning, wood, [0, 3.35, -4.75], [10.1, 0.3, 0.27]);
-  w.box(awning, "#c584a0", [0, 3.15, -4.72], [4.2, 0.76, 0.13]);
+  w.box(awning, "#3f6457", [0, 3.15, -4.72], [4.2, 0.76, 0.13]);
   w.label(
     awning,
     "TIỆM TRÀ • PHỐ NHỎ",
     [0, 3.15, -4.64],
     3.9,
     0.59,
-    "#c584a0",
+    "#3f6457",
     "#fff4ef",
     60,
   );
   for (let i = 0; i < 14; i++)
     w.box(
       awning,
-      i % 2 ? "#f2dde6" : green,
+      i % 2 ? "#ddd2b4" : green,
       [-4.7 + i * 0.72, 3.38, -5.35],
       [0.7, 0.07, 1.3],
     ).rotation.x = -0.14;
@@ -94,7 +95,7 @@ export function buildShop(w: Workshop) {
     "#4a6653",
     86,
   ).rotation.y = Math.PI;
-  w.box(root, "#cd95ad", [0.3, 1.27, 1.2], [1.15, 0.035, 0.62]);
+  w.box(root, "#8f9f83", [0.3, 1.27, 1.2], [1.15, 0.035, 0.62]);
   w.box(root, metal, [-1.75, 1.265, 1.15], [0.76, 0.06, 0.55], 0.75);
   w.box(root, "#525f59", [-1.75, 1.285, 1.15], [0.59, 0.03, 0.39]);
   w.line(
@@ -405,9 +406,9 @@ export function buildShop(w: Workshop) {
     root.add(door);
     const center = -side * 0.69;
     for (const x of [0, -side * 1.38])
-      w.box(door, "#b77c99", [x, 1.32, 0], [0.055, 2.64, 0.055]);
+      w.box(door, "#3e5e50", [x, 1.32, 0], [0.055, 2.64, 0.055]);
     for (const y of [0.05, 2.61])
-      w.box(door, "#b77c99", [center, y, 0], [1.42, 0.055, 0.055]);
+      w.box(door, "#3e5e50", [center, y, 0], [1.42, 0.055, 0.055]);
     w.mesh(
       door,
       w.geometry("door-glass", () => new T.BoxGeometry(1.33, 2.48, 0.018)),
@@ -437,9 +438,9 @@ export function buildShop(w: Workshop) {
       99,
     );
   }
-  w.box(root, "#b37c97", [-3.4, 0.23, 2.22], [0.33, 0.44, 0.32]);
-  w.cylinder(root, "#cda5b7", [-3.4, 0.46, 2.22], 0.17, 0.045);
-  w.box(root, "#e6b5cb", [0.88, 1.315, 0.64], [0.24, 0.13, 0.16]);
+  w.box(root, "#987950", [-3.4, 0.23, 2.22], [0.33, 0.44, 0.32]);
+  w.cylinder(root, "#c5b28c", [-3.4, 0.46, 2.22], 0.17, 0.045);
+  w.box(root, "#b7c3a4", [0.88, 1.315, 0.64], [0.24, 0.13, 0.16]);
   for (let i = 0; i < 3; i++)
     w.box(
       root,
@@ -453,8 +454,8 @@ export function buildShop(w: Workshop) {
     [1.34, 1.51, 0.75],
     0.36,
     0.38,
-    "#f5d4e5",
-    "#955675",
+    "#ece5cf",
+    "#3b5849",
     95,
   ).rotation.y = Math.PI;
   for (const x of [-2.3, 2.3]) {
@@ -472,35 +473,7 @@ export function buildShop(w: Workshop) {
   w.box(root, "#aaa99d", [0, -0.12, -6.2], [25, 0.26, 2.8]);
   w.box(root, "#626d69", [0, -0.22, -8.65], [35, 0.08, 2.2]);
   streetFronts(w, root);
-  const bike = new T.Group();
-  bike.position.set(PARKED_SCOOTER.x, 0, PARKED_SCOOTER.z);
-  bike.rotation.y = PARKED_SCOOTER.yaw!;
-  root.add(bike);
-  for (const z of [-0.6, 0.6]) {
-    const wheel = w.mesh(
-      bike,
-      w.geometry("wheel", () => new T.TorusGeometry(0.28, 0.066, 8, 20)),
-      "#383d38",
-      [0, 0.31, z],
-    );
-    wheel.rotation.y = Math.PI / 2;
-    w.cylinder(bike, metal, [0, 0.31, z], 0.18, 0.075, 0.6).rotation.z =
-      Math.PI / 2;
-  }
-  w.box(bike, "#83968c", [0, 0.63, 0], [0.39, 0.42, 0.87]);
-  w.box(bike, "#3a413b", [0, 0.83, -0.18], [0.34, 0.14, 0.72]);
-  w.box(bike, "#778b80", [0, 0.85, 0.48], [0.34, 0.67, 0.13]).rotation.x = -0.2;
-  w.line(
-    bike,
-    metal,
-    [
-      [-0.27, 1.18, 0.55],
-      [0, 1.18, 0.55],
-      [0.27, 1.18, 0.55],
-    ],
-    0.025,
-  );
-  w.box(bike, "#e9ddbd", [0, 1.04, 0.6], [0.19, 0.12, 0.07]);
+  const bike=makeScooter(w,'#496b62');bike.position.set(PARKED_SCOOTER.x,0,PARKED_SCOOTER.z);bike.rotation.y=PARKED_SCOOTER.yaw!;root.add(bike);
   for (let i = 0; i < 3; i++) {
     const x = 2.8 + i * 0.8;
     w.box(root, "#a65b44", [x, 0.37, -6.1], [0.42, 0.065, 0.42]);

@@ -26,3 +26,15 @@ export function easeCameraClearance(previous:number,clear:number,dt:number,motio
   if(!motion||clear<=previous)return clear;
   return previous+(clear-previous)*(1-Math.exp(-4*Math.max(0,Math.min(.05,dt))));
 }
+
+/** Prefer a nearby clear orbit over pushing the lens into an awning. */
+export function clearOrbitYaw(focus:{x:number;z:number},yaw:number,distance:number,blocks:readonly Block[]){
+  const at=(angle:number)=>clearCameraFraction(focus,{x:focus.x+Math.sin(angle)*distance,z:focus.z+Math.cos(angle)*distance},blocks);
+  if(at(yaw)>.72)return yaw;
+  let best=yaw,score=at(yaw);
+  for(const offset of [-.65,.65,-1.3,1.3,-1.95,1.95,Math.PI]){
+    const available=at(yaw+offset),candidate=available-Math.abs(offset)*.04;
+    if(candidate>score){score=candidate;best=yaw+offset;}
+  }
+  return best;
+}

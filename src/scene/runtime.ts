@@ -1,4 +1,4 @@
-import {clearCameraFraction,easeCameraClearance} from './followCamera';
+import {clearCameraFraction,easeCameraClearance,clearOrbitYaw} from './followCamera';
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
 import {FramePacer} from './framePacing';
@@ -29,6 +29,8 @@ import {advanceNpcLocomotion,initialNpcLocomotion,type NpcLocomotion} from './np
 import {RESIDENTS,missionDefinition,type ResidentId} from '../game/neighborhoodStories';
 import {nearCityPlace} from '../game/cityMap';
 
+// Camera clearance includes balconies and awnings; walkers can still pass below.
+const CAMERA_BLOCKS=CITY_BLOCKS.map(b=>({...b,depth:b.depth+(b.z===-11.3?1.4:.6),z:b.z+(b.z===-11.3?.7:0)}));
 // A wide phone in landscape (e.g. 932px) is still a mobile GPU. Mirror
 // the responsive game layout instead of a hard 700px CSS breakpoint.
 function isMobileSceneViewport() {
@@ -74,7 +76,7 @@ export class StreetRuntime {
   parcel = deliveryBag(this.workshop);
   cargo=errandCargo(this.workshop);
   rod=fishingRod(this.workshop);
-  sun = new T.DirectionalLight('#fff2ec', 2.5);
+  sun = new T.DirectionalLight('#fff0d5', 2.2);
   ambient = new T.HemisphereLight('#e3edf4', '#8b806c', 1.1);
   visits = new Visits();
   actors = new Map<string, Actor>();
@@ -339,9 +341,11 @@ export class StreetRuntime {
     this.removeListeners.push(() => target.removeEventListener(type, fn));
   }
   update(input: Input) {
+    const returningToCounter=!input.exploring&&this.input.exploring;
     if(!input.exploring && this.input.exploring && this.player.z < -4.3) this.rideHome();
     if(input.paused||input.screen!==this.input.screen||input.exploring!==this.input.exploring){this.keys.clear();this.stick={x:0,y:0};this.path=[];}
     this.input = input;
+    if(returningToCounter){this.overview=false;this.path=routeTo(this.player,"counter",true);}
   }
   analog(stick:Stick) {
     if(this.input.paused){this.stick={x:0,y:0};return;}
@@ -410,7 +414,7 @@ export class StreetRuntime {
     const rainy = cityWeather(game.day).rain;
     this.sceneColor.set(night?'#38445c':rainy?'#b7c9cf':'#c8dde9');
     (this.scene.fog as T.Fog).color.copy(this.sceneColor);
-    this.sun.intensity=night?0.35:rainy?1.15:2.7;
+    this.sun.intensity=night?0.35:rainy?1.0:2.2;
     this.sun.castShadow=castCityShadow(this.qualityController.profile.id,this.input.exploring,this.overview,this.city.staticMergeSector);
     this.ambient.intensity=night?0.65:rainy?0.85:0.65;
     const focusX=this.input.exploring?(this.overview?0:this.player.x):0;
@@ -515,7 +519,7 @@ export class StreetRuntime {
     // Publish the final snapped arrival as well as moving samples.
     if(this.path.length===1&&Math.hypot(this.path[0].x-this.player.x,this.path[0].z-this.player.z)<0.06){
       const goal=this.path[0],arrival=slideMove(this.player,{x:goal.x-this.player.x,z:goal.z-this.player.z},this.input.exploring,this.input.exploring?this.city.trafficBodies:[]);
-      if(Math.hypot(arrival.x-goal.x,arrival.z-goal.z)<.001){this.player={...goal};this.path=[];this.notify({...this.player});this.lastPosition=now;}
+      if(Math.hypot(arrival.x-goal.x,arrival.z-goal.z)<.001){this.player={...goal};this.path=[];if(!this.input.exploring){this.yaw=0;this.pitch=-.18;}this.notify({...this.player});this.lastPosition=now;}
     }
     this.avatar.root.position.set(this.player.x, 0, this.player.z);
     if(dx||dz){const angle=Math.atan2(dx,dz),difference=Math.atan2(Math.sin(angle-this.avatar.root.rotation.y),Math.cos(angle-this.avatar.root.rotation.y));this.avatar.root.rotation.y+=difference*(this.motion?1-Math.exp(-16*dt):1);}
@@ -532,8 +536,15 @@ export class StreetRuntime {
     });
     this.avatarPhase+=Math.hypot(dx,dz)*5.2;
     pose(this.avatar, now / 1000, !!(dx || dz), this.parcel.root.visible||item?0.45:0, false, this.motion,this.avatarPhase);
+    if(this.avatar.imported&&(this.parcel.root.visible||item)){
+      this.avatar.root.updateMatrixWorld(true);
+      const socket=this.avatar.root.worldToLocal(this.avatar.hand.getWorldPosition(this.target));
+      this.parcel.root.position.set(socket.x-.52,socket.y-1.02,socket.z-.27);
+      Object.entries(this.cargo).forEach(([id,root])=>root.position.set(socket.x,socket.y-(id==='bag'?.38:id==='books'?.18:0),socket.z));
+    }
     const mode = `${screen}:${this.input.exploring}:${this.overview}`;
-    if(mode!==this.cameraMode) this.cameraFocus.set(this.player.x,0,this.player.z);
+    const cameraChanged=mode!==this.cameraMode;
+    if(cameraChanged) this.cameraFocus.set(this.player.x,0,this.player.z);
     this.cameraMode=mode;
     if (screen !== "shop") {
       const camera: Record<Exclude<Screen, "shop">, number[]> = {
@@ -550,11 +561,13 @@ export class StreetRuntime {
       this.camera.lookAt(0, 0, -47);
     } else if (this.input.exploring) {
       this.cameraFocus.lerp(this.target.set(this.player.x,0,this.player.z),this.motion?1-Math.exp(-12*dt):1);
-      const elevation=T.MathUtils.clamp(0.48-this.pitch*0.6,0.28,0.85);
-      const distance=7.2*Math.cos(elevation);
+      const elevation=T.MathUtils.clamp(0.36-this.pitch*0.4,0.24,0.72);
+      const distance=6.2*Math.cos(elevation);
+      const safeYaw=clearOrbitYaw(this.cameraFocus,this.yaw,distance,CAMERA_BLOCKS);
+      this.yaw+=(safeYaw-this.yaw)*(this.motion&&!cameraChanged?1-Math.exp(-8*dt):1);
       // Raise the camera inside the shop; foreground structures are cut away
       // below when they intersect the player's sightline.
-      let height=this.player.z>-5.3?8.5:1.05+7.2*Math.sin(elevation);
+      let height=this.player.z>-5.3?8.5:1.25+6.2*Math.sin(elevation);
       this.camera.position.set(this.cameraFocus.x+Math.sin(this.yaw)*distance,height,this.cameraFocus.z+Math.cos(this.yaw)*distance);
       // Raise the follow camera out of building footprints instead of clipping
       // into a wall. Gameplay collision and camera collision are independent.
@@ -566,11 +579,11 @@ export class StreetRuntime {
       }
       this.followHeight+= (height-this.followHeight)*(this.motion?1-Math.exp(-10*dt):1);
       this.camera.position.y=this.followHeight;
-      const available=clearCameraFraction(this.cameraFocus,this.camera.position,CITY_BLOCKS);
+      const available=clearCameraFraction(this.cameraFocus,this.camera.position,CAMERA_BLOCKS);
       const clear=this.cameraClearance=easeCameraClearance(this.cameraClearance,available,dt,this.motion);
       this.camera.position.x=this.cameraFocus.x+(this.camera.position.x-this.cameraFocus.x)*clear;
       this.camera.position.z=this.cameraFocus.z+(this.camera.position.z-this.cameraFocus.z)*clear;
-      this.camera.position.y=.8+(this.camera.position.y-.8)*clear;
+      this.camera.position.y=Math.max(this.player.z>-5.3?5.5:3.4,.8+(this.camera.position.y-.8)*clear);
       this.camera.lookAt(this.cameraFocus.x,0.8,this.cameraFocus.z);
     } else if (this.overview) {
       this.camera.position.set(

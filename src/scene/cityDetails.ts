@@ -84,6 +84,7 @@ export function streetFurniture(w: Workshop, root: T.Group) {
   }
 }
 export function dressBarista(w:Workshop, person:Person) {
+  if(person.imported)return;
   const cloth=w.geometry('curved-barista-apron',()=>{
     const g=new T.PlaneGeometry(.46,.68,14,12),p=g.getAttribute('position');
     for(let i=0;i<p.count;i++){

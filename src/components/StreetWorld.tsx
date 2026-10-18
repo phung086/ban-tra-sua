@@ -58,7 +58,8 @@ export function StreetWorld(props: Props) {
       try{
         const {StreetRuntime}=await import('../scene/runtime');
         const {loadPhotographicSurfaces}=await import('../scene/photoSurfaces');
-        await loadPhotographicSurfaces();
+        const {loadPeopleAssets}=await import('../scene/peopleAssets');
+        await Promise.all([loadPhotographicSurfaces(),loadPeopleAssets()]);
         const factory=prefs.renderEngine==='babylon'?(await import('../scene/babylonRenderer')).BabylonSceneRenderer:undefined;
         if(cancelled||ticket!==generation||!container.current)return;
         runtime.current=new StreetRuntime(container.current,latest.current,p=>latest.current.onPosition(p),()=>setStatus('fallback'),factory?(scene,camera,profile)=>new factory(scene,camera,profile):undefined,prefs.graphics,initial);
@@ -171,9 +172,10 @@ export function StreetWorld(props: Props) {
       {props.screen === "shop" && (
         <>
           <div className="view-controls">
-            <button disabled={props.game.phase === 'open'} onClick={props.exploring ? props.onReturn : props.onExplore}><GameIcon name={props.exploring?'home':'map'}/><span>{props.exploring ? 'Về tiệm' : 'Khám phá khu phố'}</span></button>
+            <button aria-label={props.exploring?'Về tiệm':'Khám phá khu phố'} disabled={props.game.phase === 'open'} onClick={props.exploring ? props.onReturn : props.onExplore}><GameIcon name={props.exploring?'home':'map'}/><span>{props.exploring ? 'Về tiệm' : 'Khám phá khu phố'}</span></button>
             <button
               disabled={status !== "ready"}
+              aria-label={props.exploring ? overview ? 'Theo chân nhân vật' : 'Nhìn toàn khu phố' : overview ? 'Đứng tại quầy' : 'Nhìn toàn tiệm'}
               aria-pressed={overview}
               onClick={() => {
                 const next = !overview;

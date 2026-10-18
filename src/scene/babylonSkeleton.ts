@@ -6,17 +6,18 @@ import type {Scene} from '@babylonjs/core/scene';
 
 export function nativeSkeleton(source:T.SkinnedMesh,scene:Scene){
   const skeleton=new Skeleton(`actor-${source.id}`,String(source.id),scene),bones:Bone[]=[];
-  // Two joints per limb fit in uniforms; no bone texture or per-vertex CPU work.
+  // Mesh-local absolute joints preserve glTF inverse binds and arbitrary joint
+  // order. Imported rigs do not guarantee that parents precede their children.
   skeleton.useTextureToStoreBoneMatrices=false;
   source.skeleton.bones.forEach((bone,i)=>{
-    const parent=source.skeleton.bones.indexOf(bone.parent as T.Bone);
-    // Engine switches can happen mid-stride: retain the original inverse binds.
-    const bind=source.skeleton.boneInverses[i].clone().invert();
-    bind.premultiply(parent>=0?source.skeleton.boneInverses[parent]:source.bindMatrix.clone().invert());
-    bones.push(new Bone(bone.name,skeleton,parent>=0?bones[parent]:null,Matrix.FromArray(bind.elements),undefined,undefined,i));
+    const bind=source.skeleton.boneInverses[i].clone().invert().premultiply(source.bindMatrix.clone().invert());
+    bones.push(new Bone(bone.name,skeleton,null,Matrix.FromArray(bind.elements),undefined,undefined,i));
   });
   return {skeleton,bones};
 }
 export function syncNativeBones(source:T.SkinnedMesh,bones:Bone[]){
-  bones.forEach((bone,i)=>bone.updateMatrix(Matrix.FromArray(source.skeleton.bones[i].matrix.elements),false,true));
+  bones.forEach((bone,i)=>{
+    const local=source.skeleton.bones[i].matrixWorld.clone().premultiply(source.bindMatrixInverse);
+    bone.updateMatrix(Matrix.FromArray(local.elements),false,true);
+  });
 }

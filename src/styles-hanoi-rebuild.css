@@ -1,0 +1,80 @@
+/* Hanoi art direction. This is the final presentation layer; hitboxes stay unscaled. */
+:root{--ui-ink:#233d35;--ui-muted:#66746b;--ui-paper:#fbfcf7;--ui-rose:#2d6553;--ui-blush:#e0eade;--ui-mint:#2d6553;--pastel-pink:#c6d8b6;--pastel-soft:#eef1e8;--pastel-border:#cbd5c4;--v6-ink:var(--ui-ink);--v6-ink-soft:var(--ui-muted);--v6-paper:var(--ui-paper);--v6-hud:#fbfcf7;--ink:#233d35;--muted:#66746b;--paper:#fbfcf7;--line:#d5ddcf;--accent:#2d6553;--rose:#2d6553}
+body,.app-shell{background:#eef1e8;color:#233d35}
+.app-shell button{font-family:inherit}
+.v6-brand>span,.primary-button,.life-morning-wake{background:#315e4d;color:#fff;border-color:#315e4d}
+.v6-brand b,.v6-brand small,.v6-world-nav button,.customer-heading b{color:#233d35}
+.v6-world-nav button.active,.city-tabs button[aria-selected=true]{color:#234d3d;background:#e2ebdc;border-color:#b5c8ad}
+.v6-toast,.customer-service,.order-card,.life-morning,.prep-foundation,.settings-popover{color:#294237;border-color:#ccd7c5;background:#fbfcf7;box-shadow:0 4px 16px #203f3010}
+.life-morning-label,.life-morning-clock,.life-morning-option,.life-morning-prompt,.prep-day{color:#365b49}
+.life-morning-option,.life-lan-invite,.life-family-call,.life-mother-call,.life-lunch,.life-day-episode{background:#f3f6ee;border-color:#ccd7c5}
+.life-morning-option:hover:not(:disabled){border-color:#6b8c6b;background:#fff}
+.life-morning-clock,.prep-stock-alert,.delivery-tag,.place-buttons button{background:#fbfcf7;color:#294237;border-color:#ccd7c5}
+.craft-stations button.active,.world-content .selected{background:#e3ebdc;color:#28533f;border-color:#75946a}
+.street-world{border-color:#bdccba;background:#c2d1c5;border-radius:18px}
+.customer-heading,.neighbor-portrait{background:#e9efdf;border-color:#ccd7c5}
+.neighborhood,.neighborhood-dialogue{background:#fbfcf7;color:#263d31;border-color:#b8c8b0}
+.neighborhood-dialogue .dialogue-choices button{border-radius:12px;background:#eef3e7;border-color:#bdceb4;color:#284632;min-height:52px}
+.neighborhood-dialogue .dialogue-speech{font-size:15px;line-height:1.65}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption{top:14px;bottom:auto;left:14px;max-width:166px;padding:10px 13px;border:1px solid #ffffff55;border-radius:14px;background:#f8fbf0ed;box-shadow:0 3px 18px #19352716;color:#243f31}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption h2{font-size:18px;margin:0;line-height:1.2}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption p{font-size:10px;margin:3px 0 7px;color:#657462}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption>.city-vitals{gap:12px;font-size:11px}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption>small{display:none}
+.app-shell.exploring-city[data-play-layout] .city-scene-caption meter{height:4px;margin:6px 0 0;accent-color:#648b50}
+.app-shell.exploring-city[data-play-layout] .view-controls{top:14px;right:64px;gap:7px}
+.app-shell.exploring-city[data-play-layout] .view-controls button,.app-shell.exploring-city[data-play-layout] .settings-trigger{width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;border:1px solid #fff8;border-radius:13px;background:#f8fbf0ed;box-shadow:0 3px 18px #19352716;color:#2c4939}
+.app-shell.exploring-city[data-play-layout] .view-controls button span{display:none}
+.app-shell.exploring-city[data-play-layout]>.game-settings{display:block;position:absolute;top:14px;right:14px;z-index:15}
+.app-shell.exploring-city[data-play-layout] .world-heading{display:none}
+.app-shell.exploring-city[data-play-layout] .city-compass{top:69px;right:14px;width:76px;height:76px;padding:5px;border:1px solid #fff9;border-radius:13px;background:#f6f9eeed;color:#344e3c;box-shadow:0 3px 18px #19352716}
+.app-shell.exploring-city[data-play-layout] .city-compass svg{height:51px;width:66px;border-radius:8px}
+.app-shell.exploring-city[data-play-layout] .city-compass span{font-size:8px;margin:1px 0 0}
+.app-shell.exploring-city[data-play-layout] .walk-ui{left:max(20px,var(--play-safe-left));bottom:calc(28px + var(--play-safe-bottom));right:auto;max-width:100px}
+.app-shell.exploring-city[data-play-layout] .movement-stick-wrap{width:96px}
+.app-shell.exploring-city[data-play-layout] .movement-stick{width:96px;height:96px;background:#f4f7e629;border:1px solid #fff8;box-shadow:inset 0 0 0 13px #ffffff12,0 4px 22px #1c362624;backdrop-filter:blur(3px)}
+.app-shell.exploring-city[data-play-layout] .movement-stick>.stick-knob{width:42px;height:42px;background:#f0f6e5cc;border:1px solid #fff;box-shadow:0 3px 10px #1b382630}
+.app-shell.exploring-city[data-play-layout] .movement-stick>.stick-knob::after{border-color:#3c624a66}
+.app-shell.exploring-city[data-play-layout] .movement-stick-wrap>small{display:none}
+.app-shell.exploring-city[data-play-layout] .movement-stick::before,.app-shell.exploring-city[data-play-layout] .movement-stick::after{opacity:.18}
+.app-shell.exploring-city[data-play-layout] .city-context-actions{bottom:calc(32px + var(--play-safe-bottom));right:16px;left:auto;width:min(170px,45vw)}
+.app-shell.exploring-city[data-play-layout] .city-context-actions button{min-height:50px;border-radius:15px;box-shadow:0 4px 15px #1c362626}
+.app-shell.exploring-city[data-play-layout] .city-play-notice{top:156px;bottom:auto;left:50%;transform:translateX(-50%);width:min(360px,calc(100% - 32px));background:#f5f9e9ef;color:#344b35;border-color:#c0cfb5;padding:9px 12px;font-size:11px;border-radius:12px}
+.app-shell.exploring-city[data-play-layout] .neighborhood.sheet-closed{position:absolute;top:auto;left:50%;right:auto;bottom:calc(20px + var(--play-safe-bottom));width:142px;max-height:52px;min-height:0;transform:translateX(-50%);padding:0;border:1px solid #fff8;border-radius:16px;background:#f7faefed;box-shadow:0 3px 18px #19352720;overflow:hidden}
+.app-shell.exploring-city[data-play-layout] .sheet-closed .neighborhood-sheet-toggle{height:48px;min-height:48px;padding:0 12px;display:flex;flex-direction:row;font-size:11px;font-weight:600;color:#2e503b}
+.app-shell.exploring-city[data-play-layout] .sheet-closed .sheet-grip,.app-shell.exploring-city[data-play-layout] .sheet-closed .city-tabs,.app-shell.exploring-city[data-play-layout] .sheet-closed .city-title,.app-shell.exploring-city[data-play-layout] .sheet-closed .city-almanac,.app-shell.exploring-city[data-play-layout] .sheet-closed .city-intro,.app-shell.exploring-city[data-play-layout] .sheet-closed .neighborhood-sheet-content{display:none}
+.app-shell.exploring-city[data-play-layout] .neighborhood.sheet-open{position:absolute;left:12px;right:12px;bottom:12px;top:auto;transform:none;width:auto;max-height:72dvh;border-radius:22px;padding:4px 14px 12px;box-shadow:0 10px 60px #19352740;z-index:20}
+.app-shell.exploring-city[data-play-layout] .sheet-open .neighborhood-sheet-content{max-height:calc(72dvh - 104px);overflow-y:auto}
+.app-shell.exploring-city[data-play-layout] .sheet-open .neighborhood-sheet-toggle{min-height:42px;color:#46643f}
+.app-shell.exploring-city[data-play-layout] .city-tabs button{font-size:10px;min-height:47px;color:#61735b}
+.app-shell.exploring-city[data-play-layout] .city-tabs button[aria-selected=true]{color:#244a34}
+@media(orientation:landscape){
+ .app-shell.exploring-city[data-play-layout] .city-scene-caption{display:block;max-width:145px;padding:8px 11px;top:10px;left:12px}
+ .app-shell.exploring-city[data-play-layout] .city-scene-caption p{display:none}
+ .app-shell.exploring-city[data-play-layout] .city-scene-caption h2{font-size:16px;margin-bottom:6px}
+ .app-shell.exploring-city[data-play-layout] .neighborhood.sheet-open{left:auto;right:12px;top:62px;bottom:12px;width:min(420px,52vw);max-height:none}
+ .app-shell.exploring-city[data-play-layout] .sheet-open .neighborhood-sheet-content{max-height:calc(100dvh - 166px)}
+ .app-shell.exploring-city[data-play-layout] .city-compass{top:64px;width:65px;height:65px}
+ .app-shell.exploring-city[data-play-layout] .city-compass svg{height:42px;width:55px}
+ .app-shell.exploring-city[data-play-layout] .city-play-notice{top:12px;width:min(330px,42vw)}
+ .app-shell.exploring-city[data-play-layout] .walk-ui{bottom:18px;left:18px}
+}
+@media(max-width:375px){
+ .app-shell.exploring-city[data-play-layout] .city-scene-caption{max-width:140px;padding:8px 10px;left:10px}
+ .app-shell.exploring-city[data-play-layout] .city-scene-caption h2{font-size:16px}
+ .app-shell.exploring-city[data-play-layout] .neighborhood.sheet-closed{width:126px;bottom:16px}
+ .app-shell.exploring-city[data-play-layout] .movement-stick-wrap,.app-shell.exploring-city[data-play-layout] .movement-stick{width:86px;height:86px}
+ .app-shell.exploring-city[data-play-layout] .walk-ui{left:14px;bottom:18px}
+}
+@media(prefers-reduced-motion:reduce){.app-shell *{scroll-behavior:auto}}
+
+.app-shell.exploring-city[data-play-layout]{position:fixed;inset:0;width:100%;height:var(--play-viewport-height,100dvh);max-width:none;padding:0;overflow:hidden}
+.app-shell.exploring-city[data-play-layout]>.v6-hud,.app-shell.exploring-city[data-play-layout]>.v6-world-nav,.app-shell.exploring-city[data-play-layout]>.v6-toast{display:none}
+.app-shell.exploring-city[data-play-layout] .street-layout{display:block;height:100%;padding:0}
+.app-shell.exploring-city[data-play-layout] .street-world{position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:none;border:0;border-radius:0}
+.app-shell.exploring-city[data-play-layout] .world-viewport{inset:0}
+.app-shell.exploring-city[data-play-layout] #game-content{position:static}
+.v6-hud-cluster>span,.customer-queue,.order-service-panel,.memory-cover,.order-helper-strip{background:#f1f5e9;color:#3d5743;border-color:#cbd7c2}
+.customer-queue .patience-track{background:#d9e3ce}.customer-queue .patience-track i{background:#6a8b56}
+.customer-queue.mood-upset{background:#f6eee0}.customer-queue.mood-restless{background:#f4f0dc}
+.craft-stations button,.recipe-controls button,.memory-toggle,.coach-toggle{border-color:#c7d5bc;color:#35573f;background:#f7faef}

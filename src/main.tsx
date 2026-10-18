@@ -14,6 +14,7 @@ import "./styles-chibi-reaction.css";
 import "./styles-chibi-fallback.css";
 import "./styles-tea-cup.css";
 import "./styles-quick-mix.css";
+import "./styles-hanoi-rebuild.css";
 import { syncMotionPreference } from "./game/preferences";
 
 syncMotionPreference();
