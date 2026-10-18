@@ -3,7 +3,7 @@ import type { GameState } from '../types';
 
 import { planLifeDay, type LifeDayPlan, type LifeDaySnapshot } from './dayPlanner';
 
-export type BreakfastChoice = 'cook' | 'street' | 'skip';
+export type BreakfastChoice = 'cook' | 'street' | 'leftovers' | 'skip';
 
 export type MorningStep = 'asleep' | 'awake' | 'finished';
 
@@ -67,6 +67,7 @@ export function motherCallPrompt(game: GameState): string {
   if (game.morning.breakfast === 'skip') return 'Mẹ Mai: Con lại bỏ bữa sáng à? Nhớ ăn gì đó khi rảnh nhé.';
   if (game.morning.breakfast === 'cook') return 'Mẹ Mai: Nghe con tự nấu cơm sáng mẹ vui lắm. Giữ sức khỏe nhé!';
   if (game.morning.breakfast === 'street') return 'Mẹ Mai: Bánh mì đầu ngõ ngon không? Hôm nào dẫn mẹ ra ăn với.';
+  if (game.morning.breakfast === 'leftovers') return 'Mẹ Mai: Ăn đồ còn lại cũng được, nhớ giữ sức nhé con.';
   return game.day === 1
     ? 'Mẹ Mai: Sáng đầu tiên tự mở tiệm thế nào rồi con? Mẹ gọi hỏi thăm thôi.'
     : 'Mẹ Mai: Hôm nay tiệm thế nào? Con có thời gian nói chuyện một chút không?';
@@ -91,6 +92,7 @@ export const LAN_MEAL_OPTIONS = {
 
 export const BREAKFAST_OPTIONS = {cook: { label: 'Nấu cơm trứng ở nhà', cost: 14000, minutes: 20, satiety: 80, energy: 5 },
 street: { label: 'Mua bánh mì đầu ngõ', cost: 20000, minutes: 10, satiety: 70, energy: 2 },
+leftovers: { label: 'Ăn cơm nguội còn lại ở nhà', cost: 0, minutes: 12, satiety: 55, energy: 1 },
 skip: { label: 'Đi làm luôn', cost: 0, minutes: 0, satiety: 30, energy: 0 }} as const;
 
 export function createWorldSeed(): string {
@@ -133,7 +135,7 @@ export function hydrateMorning(
     typeof value.plan.wakeMinute === 'number' && Number.isFinite(value.plan.wakeMinute) &&
     value.plan.wakeMinute >= 360 && value.plan.wakeMinute <= 1260 &&
     ['asleep', 'awake', 'finished'].includes(String(value.step)) &&
-    (value.breakfast === null || ['cook', 'street', 'skip'].includes(String(value.breakfast))) &&
+    (value.breakfast === null || ['cook', 'street', 'leftovers', 'skip'].includes(String(value.breakfast))) &&
     typeof value.satiety === 'number' && Number.isFinite(value.satiety) &&
     value.satiety >= 0 && value.satiety <= 100 &&
     (!('episodeChoice' in value) || value.episodeChoice === null ||
