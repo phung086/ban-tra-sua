@@ -6,7 +6,7 @@ const KEY = 'tiem-tra-chibi-save-v3';
 const url = process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193';
 const output = 'artifacts/remembered-sample';
 await mkdir(output, { recursive: true });
-const report = { passed: [], errors: [], environment: 'Chromium SwiftShader; not physical devices' };
+const report = { passed: [], errors: [], rendererFallbacks: [], environment: 'Chromium SwiftShader; not physical devices' };
 const browser = await chromium.launch({ headless: true, args: [
   '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
 ] });
@@ -250,7 +250,15 @@ try {
       await page.locator('.seal-button').click();
       await page.locator('.serve-button').click();
       await page.locator('.place-buttons button.destination').click();
-      await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      try {
+        await page.waitForSelector('.delivery-tag button.primary-button:not([disabled])');
+      } catch (error) {
+        const renderer = await page.locator('.world-viewport').getAttribute('data-renderer');
+        const position = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '{}').position, KEY);
+        throw new Error('Day-6 delivery navigation blocked: ' + JSON.stringify({ renderer, position }) + ' / ' + String(error));
+      }
+      const renderer = await page.locator('.world-viewport').getAttribute('data-renderer');
+      if (renderer === 'fallback') report.rendererFallbacks.push(width + 'x' + height + ': recovered with 2D place navigation');
       await page.locator('.delivery-tag button.primary-button').click();
       await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
         .relationshipRewardIds?.includes('remembered-service:sample-repeat-day6'), KEY);

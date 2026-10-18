@@ -14,6 +14,7 @@ import {MovementStick} from './MovementStick';
 import {HoldTask} from './HoldTask';
 import {residentAt,missionDefinition,type ResidentId,type StoryAction,type NeighborhoodMission} from '../game/neighborhoodStories';
 import {getUiPreferences} from '../game/preferences';
+import {observeNavigationHeartbeat, observeRenderHeartbeat, NAVIGATION_ARRIVAL_RADIUS} from '../game/renderHeartbeat';
 import {GameIcon} from './GameIcon';
 import {CityCompass} from './CityCompass';
 
@@ -41,6 +42,8 @@ export function StreetWorld(props: Props) {
     runtime = useRef<StreetRuntime | null>(null),
     latest = useRef(props);
   latest.current = props;
+  const pendingShopPlace = useRef<Place | null>(null);
+  const lastShopPlace = useRef<Place | null>(null);
   const [status, setStatus] = useState("loading"),
     [overview, setOverview] = useState(false);
   const [fallbackPlace, setFallbackPlace] = useState<Place>("counter");
@@ -103,11 +106,74 @@ export function StreetWorld(props: Props) {
     // Commands run once on arrival of a new serial or renderer initialization.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.cityNavigation, status]);
-  const go = (place: Place) => {
-    if (runtime.current && status === "ready") runtime.current.go(place);
+  // Preserve a destination selected while the 3D scene is loading.
+  useEffect(() => {
+    if (status !== 'ready' && status !== 'fallback') return;
+    const queued = pendingShopPlace.current;
+    if (!queued) return;
+    pendingShopPlace.current = null;
+    if (props.exploring) return;
+    if (status === 'ready' && runtime.current) runtime.current.go(queued);
     else {
+      setFallbackPlace(queued);
+      latest.current.onPosition(PLACES[queued]);
+      lastShopPlace.current = null;
+    }
+    // Navigation must not be replayed when unrelated game state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // A hung renderer OR a route that makes no progress must not softlock
+  // the tea-delivery interaction. This uses the existing 2D place fallback.
+  useEffect(() => {
+    if (status !== 'ready' || !runtime.current) return;
+    const start = performance.now();
+    let render = { frames: runtime.current.renderSamples, lastProgressAt: start };
+    let navigation = { place: null as Place | null, distance: Infinity, lastProgressAt: start };
+    const timer = window.setInterval(() => {
+      const live = runtime.current;
+      if (!live) return;
+      const now = performance.now();
+      const active = !document.hidden && live.visible;
+      const frame = observeRenderHeartbeat(render, live.renderSamples, now, active);
+      render = frame.heartbeat;
+      const place = lastShopPlace.current;
+      const navigating = active && !latest.current.paused && !latest.current.exploring;
+      const distance = place
+        ? Math.hypot(live.player.x - PLACES[place].x, live.player.z - PLACES[place].z)
+        : Infinity;
+      if (place && distance <= NAVIGATION_ARRIVAL_RADIUS) lastShopPlace.current = null;
+      const route = observeNavigationHeartbeat(
+        navigation, lastShopPlace.current, distance, now, navigating,
+      );
+      navigation = route.heartbeat;
+      if (!frame.stalled && !route.stalled) return;
+      const destination = lastShopPlace.current;
+      live.dispose();
+      runtime.current = null;
+      setStatus('fallback');
+      if (destination && !latest.current.exploring) {
+        setFallbackPlace(destination);
+        latest.current.onPosition(PLACES[destination]);
+        lastShopPlace.current = null;
+      }
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [status]);
+
+  const go = (place: Place) => {
+    lastShopPlace.current = place;
+    if (status === 'loading') {
+      pendingShopPlace.current = place;
+      setFallbackPlace(place);
+      return;
+    }
+    if (runtime.current && status === 'ready') runtime.current.go(place);
+    else {
+      pendingShopPlace.current = null;
       setFallbackPlace(place);
       props.onPosition(PLACES[place]);
+      lastShopPlace.current = null;
     }
   };
   const order = props.game.currentOrder,
@@ -244,7 +310,7 @@ export function StreetWorld(props: Props) {
               <small>
                 {overview ? "Chạm sàn để đi · kéo để xoay" : "Kéo núm tròn để đi · vuốt cảnh để xoay camera"}
               </small>
-              <MovementStick disabled={props.paused||status!=='ready'} onMove={stick=>{runtime.current?.analog(stick);if(stick.x||stick.y)setOverview(false);}}/>
+              <MovementStick disabled={props.paused||status!=='ready'} onMove={stick=>{runtime.current?.analog(stick);if(stick.x||stick.y){lastShopPlace.current=null;pendingShopPlace.current=null;setOverview(false);}}}/>
             </div>
           </div>
         </>
