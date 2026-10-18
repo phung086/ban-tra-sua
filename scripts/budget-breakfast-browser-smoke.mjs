@@ -106,6 +106,13 @@ try {
         }, { key: KEY, fixture: waterFixture });
         await waterPage.goto(process.env.PREVIEW_URL ?? 'http://127.0.0.1:5193',
           { waitUntil: 'domcontentloaded' });
+        // This is a fresh browser context: the real first-run coach is expected.
+        // Dismiss it through the visible UI before tapping the shift action.
+        const coach = waterPage.getByRole('dialog', { name: 'Hướng dẫn chơi' });
+        if (await coach.isVisible()) {
+          await coach.getByRole('button', { name: 'Bỏ qua' }).click();
+          await coach.waitFor({ state: 'hidden' });
+        }
         const drink = waterPage.getByRole('button', { name: /Uống nước lọc mang theo/ });
         await drink.click();
         await waterPage.waitForFunction(key =>
