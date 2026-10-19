@@ -104,3 +104,31 @@ describe('Hanh next-day promise', () => {
     expect(resolveHanhHelp(kept, 'carry')).toBe(kept);
   });
 });
+
+it('shows Hanh due choices in the live market and supports zero-cash fallback', () => {
+  const first = promiseHanhHelp(visitMorningMarket(ready(), 'chat'));
+  const due = chooseBreakfast(wakeMorning(nextDay(first)), 'skip');
+  const html = renderToStaticMarkup(createElement(MorningRoutine, { game: due, onGame: () => undefined }));
+  expect(html).toContain('Phụ xếp sạp');
+  expect(html).toContain('Mua túi giấy');
+  expect(html).toContain('Xin lỗi cô Hạnh');
+  const poor = { ...due, cash: 0, city: { ...due.city, energy: 0, minutes: 1260 } };
+  expect(pendingHanhHelp(resolveHanhHelp(poor, 'bags'))).not.toBeNull();
+  const apology = resolveHanhHelp(poor, 'apologize');
+  expect(apology.cash).toBe(0);
+  expect(apology.city.minutes).toBe(1260);
+  expect(pendingHanhHelp(apology)).toBeNull();
+  expect(startDay(apology).phase).toBe('open');
+});
+
+it('keeps the Hanh promise ledger across JSON save/reload and an overdue day', () => {
+  const first = promiseHanhHelp(visitMorningMarket(ready(), 'chat'));
+  const due = chooseBreakfast(wakeMorning(nextDay(first)), 'skip');
+  const overdue = chooseBreakfast(wakeMorning(nextDay(due)), 'skip');
+  expect(pendingHanhHelp(overdue)?.overdue).toBe(true);
+  const stored = JSON.parse(JSON.stringify(overdue));
+  const reloaded = { ...overdue, relationshipRewardIds: stored.relationshipRewardIds };
+  expect(pendingHanhHelp(reloaded)?.promisedDay).toBe(1);
+  const resolved = resolveHanhHelp(reloaded, 'carry');
+  expect(resolveHanhHelp(resolved, 'carry')).toBe(resolved);
+});
