@@ -52,6 +52,10 @@ describe('playable overnight stock preservation', () => {
     expect(getOvernightStockChoice(tomorrow, 1)).toBe('chill');
     expect(getOvernightStockCallback(tomorrow)).toBeNull();
     expect(getOvernightStockCallback(wakeMorning(tomorrow))).toMatch(/bảo quản kỹ/);
+    const tooOld = { ...baseline, freshness: { ...baseline.freshness, blackPearl: 1 } };
+    const spoiled = wakeMorning(nextDay(chooseOvernightStock(tooOld, 'chill')));
+    expect(spoiled.inventory.blackPearl).toBe(0);
+    expect(getOvernightStockCallback(spoiled)).toMatch(/quá hạn/);
   });
 
   it('offers a free fallback when short on money, energy or time', () => {

@@ -57,6 +57,10 @@ try {
     assert.equal(await page.getByRole('region', { name: 'Nhật ký kho sáng nay' }).count(), 0);
     await page.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click();
     await page.getByRole('region', { name: 'Nhật ký kho sáng nay' }).waitFor();
+    await page.waitForFunction(() => {
+      const s = JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3') || '{}');
+      return s.day === 2 && s.morning?.step === 'awake' && s.inventory?.blackPearl === 4;
+    }, null, { timeout: 15000 });
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
     const state = await page.evaluate(() => JSON.parse(localStorage.getItem('tiem-tra-chibi-save-v3') || '{}'));
     assert.equal(state.day, 2);

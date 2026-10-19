@@ -83,8 +83,12 @@ export function getOvernightStockCallback(game: GameState): string | null {
   if (game.phase !== 'prep' || game.day < 2 || game.morning.day !== game.day ||
     game.morning.step === 'asleep') return null;
   const choice = getOvernightStockChoice(game, game.day - 1);
-  if (choice === 'chill') return 'Hôm qua đã bảo quản kỹ. Kiểm tra kho: topping còn tươi hơn và có thể pha tiếp.';
-  if (choice === 'sort') return 'Hôm qua đã kiểm kê. Kho gọn gàng, nguyên liệu dễ hỏng được giữ tốt hơn.';
+  if (choice === 'chill') return perishableStock(game).length
+    ? 'Hôm qua đã bảo quản kỹ. Kiểm tra kho: nguyên liệu còn lại đã giữ được độ tươi tốt hơn.'
+    : 'Hôm qua đã bảo quản kỹ nhưng nguyên liệu quá hạn vẫn phải bỏ. Nhớ nhập thêm trước khi bán.';
+  if (choice === 'sort') return perishableStock(game).length
+    ? 'Hôm qua đã kiểm kê. Kho gọn gàng, nguyên liệu còn lại được giữ tốt hơn.'
+    : 'Hôm qua đã kiểm kê nhưng nguyên liệu quá hạn vẫn phải bỏ. Nhớ nhập thêm trước khi bán.';
   if (choice === 'leave') return 'Hôm qua đã về nghỉ sớm. Nhớ kiểm tra hạn dùng trước khi mở quầy.';
   return null;
 }
