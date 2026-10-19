@@ -52,7 +52,7 @@ export function canPromiseHanhHelp(game: GameState): boolean {
   const latest = Math.max(0, ...promises(game));
   return game.phase === 'prep' && game.morning.day === game.day &&
     game.morning.step === 'finished' && game.morning.marketVisit === 'chat' &&
-    game.day - latest >= 3 && !pendingHanhHelp(game);
+    (latest === 0 || game.day - latest >= 3) && !pendingHanhHelp(game);
 }
 
 export function promiseHanhHelp(game: GameState): GameState {
