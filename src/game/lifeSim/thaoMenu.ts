@@ -96,6 +96,24 @@ export function chooseThaoMenu(game: GameState, choice: ThaoMenuChoice): GameSta
   };
 }
 
+/** Storefront sign is derived from the durable v3 reward ledger, never storyLog
+ * (which is capped at 24 entries). Later weekly choices replace the old sign.
+ */
+export function getThaoMenuSign(game: GameState): { day: number; kind: 'print' | 'handwrite'; label: string } | null {
+  if (!Number.isSafeInteger(game.day) || game.day < 3) return null;
+  let latest: { day: number; kind: 'print' | 'handwrite'; label: string } | null = null;
+  for (const id of game.relationshipRewardIds) {
+    const match = /^thao-menu-(\d+)-(print|handwrite)$/.exec(id);
+    if (!match) continue;
+    const day = Number(match[1]);
+    if (!Number.isSafeInteger(day) || day < 3 || day > game.day ||
+      (day - 3) % 7 !== 0 || (latest && day <= latest.day)) continue;
+    const kind = match[2] as 'print' | 'handwrite';
+    latest = { day, kind, label: kind === 'print' ? 'Bảng in rõ giá' : 'Bảng viết tay' };
+  }
+  return latest;
+}
+
 /** A dialogue callback only; no extra rewards on the next morning. */
 export function getThaoMenuCallback(game: GameState): string | null {
   if (game.phase !== 'prep' || game.morning.day !== game.day ||
@@ -104,5 +122,6 @@ export function getThaoMenuCallback(game: GameState): string | null {
   if (choice === 'print') return 'Thảo nhắn: “Hôm qua khách đọc bảng giá rất nhanh. Nhớ giữ menu rõ ràng nhé!”';
   if (choice === 'handwrite') return 'Thảo gửi ảnh bảng viết tay: “Tự làm vẫn đẹp mà. Hôm nào mình sửa thêm nhé!”';
   if (choice === 'later') return 'Thảo: “Cứ bán hàng bình thường nhé, tuần sau mình lại bàn chuyện thực đơn.”';
+  if (choice === 'decline') return 'Thảo nhắn: “Không sao đâu, mình vẫn có thể giúp khi bạn sẵn sàng. Chúc tiệm một ngày vui!”';
   return null;
 }
