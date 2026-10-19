@@ -78,6 +78,22 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
                   onClick={() => onAction({ type: 'supplier', choice: 'hurry' })}>Về tiệm sớm · 5 phút · 2 sức lực</button>
               </div>}
           </article>}
+          {game.day === 17 && <article className="market-basket" aria-label="Ngày 17: Cô Hạnh giữ lạnh trà khi chợ mất điện">
+            <h4>🧊 Ngày 17 · Chợ Ngọc Hà mất điện</h4>
+            <p>Tủ mát ngừng chạy, cô Hạnh lo trà bị hỏng. Bạn mang 3 phần đá sạch từ tiệm, hay cùng cô nhờ quầy bên cạnh cho mượn thùng giữ nhiệt? Cô sẽ nhớ việc bạn làm khi nhập hàng Ngày 18.</p>
+            {game.relationshipRewardIds.some(id => id.startsWith('market.day17.'))
+              ? <p role="status">{game.relationshipRewardIds.includes('market.day17.ice')
+                ? 'Đã mang đá giúp cô Hạnh. Giỏ nguyên liệu Ngày 18 giảm 8.000 ₫.'
+                : 'Đã nhờ quầy bên cạnh giúp giữ nhiệt. Giỏ nguyên liệu Ngày 18 giảm 3.000 ₫.'}</p>
+              : <div className="market-day-actions">
+                <p>Mang đá cần 3 phần đá còn tươi. Không đủ đá vẫn có thể nhờ hàng xóm mà không mất tiền hay nguyên liệu.</p>
+                <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 8 || city.minutes + 15 > Math.min(1260, CITY_PLACES.market.hours[1]) || game.inventory.ice < 3 || game.freshness.ice < 20}
+                  onClick={() => onAction({ type: 'marketCooling', choice: 'ice' })}>Mang 3 phần đá · 15 phút · 8 sức</button>
+                <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 2 || city.minutes + 6 > Math.min(1260, CITY_PLACES.market.hours[1])}
+                  onClick={() => onAction({ type: 'marketCooling', choice: 'borrow' })}>Nhờ mượn thùng giữ nhiệt · 6 phút · 2 sức</button>
+              </div>}
+          </article>}
+          {game.day === 18 && game.relationshipRewardIds.some(id => id.startsWith('market.day17.')) && <p role="status" className="market-day-story">Cô Hạnh nhớ chuyện mất điện hôm qua: giỏ nguyên liệu hôm nay được giảm giá.</p>}
           {getMarketOffers(game).map(offer => <article className="market-basket" key={offer.id}>
             <h4>{offer.title} · {formatMoney(offer.cost)}</h4>
             <p>{offer.detail}</p>
