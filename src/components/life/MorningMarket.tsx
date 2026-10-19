@@ -3,6 +3,7 @@ import {formatMoney} from '../../game/engine';
 import {MARKET_OPTIONS,marketDialogue,visitMorningMarket} from '../../game/lifeSim/marketEncounter';
 import {MARKET_OPTIONS as KITCHEN_OPTIONS,visitMorningMarket as visitKitchenMarket,cookMarketMeal} from '../../game/lifeSim/morning';
 import {morningActionBlock} from '../../game/lifeSim/morningAction';
+import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp} from '../../game/lifeSim/hanhHelpPromise';
 
 export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameState)=>void}){
   const choice=game.morning.marketVisit;
@@ -15,6 +16,8 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
   const cookBlocked=morningActionBlock(game,0,18,3);
   return <section className="life-market life-market-unified" aria-label="Ghé chợ buổi sáng">
     <h4>Ghé chợ đầu ngõ · Cô Hạnh</h4>
+    {pendingHanhHelp(game)&&<button type="button" onClick={()=>onGame(resolveHanhHelp(game,'apologize'))}>Xin lỗi cô Hạnh vì lời hẹn · miễn phí</button>}
+    {canPromiseHanhHelp(game)&&<button type="button" onClick={()=>onGame(promiseHanhHelp(game))}>Hẹn mai phụ cô Hạnh xếp sạp</button>}
     <p>Một lần ghé chợ hôm nay: chọn trái cây ăn giữa ca hoặc mua rau về nấu cơm.</p>
     {choice==null?<div className="life-morning-options">
       {options.map(option=>{
