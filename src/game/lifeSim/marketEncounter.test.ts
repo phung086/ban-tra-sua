@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MorningRoutine } from '../../components/life/MorningRoutine';
 import { createInitialState, nextDay, startDay } from '../engine';
+import { hydrateCity } from '../city';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import { marketChoice, visitMorningMarket } from './marketEncounter';
 import { promiseHanhHelp, pendingHanhHelp, resolveHanhHelp } from './hanhHelpPromise';
@@ -127,7 +128,12 @@ it('keeps the Hanh promise ledger across JSON save/reload and an overdue day', (
   const overdue = chooseBreakfast(wakeMorning(nextDay(due)), 'skip');
   expect(pendingHanhHelp(overdue)?.overdue).toBe(true);
   const stored = JSON.parse(JSON.stringify(overdue));
-  const reloaded = { ...overdue, relationshipRewardIds: stored.relationshipRewardIds };
+  const reloaded = {
+    ...overdue,
+    relationshipRewardIds: stored.relationshipRewardIds,
+    city: hydrateCity(stored.city, stored.day),
+    morning: hydrateMorning(stored.morning, { day: stored.day, city: stored.city }, 'prep'),
+  };
   expect(pendingHanhHelp(reloaded)?.promisedDay).toBe(1);
   const resolved = resolveHanhHelp(reloaded, 'carry');
   expect(resolveHanhHelp(resolved, 'carry')).toBe(resolved);
