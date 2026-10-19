@@ -6,6 +6,7 @@ import { formatMoney } from '../../game/engine';
 import { chooseDayEpisode, getDayEpisode, getEpisodeCallback } from '../../game/lifeSim/dayEpisodes';
 import type { GameState } from '../../game/types';
 import { BreakfastCookingPanel } from './BreakfastCookingPanel';
+import { NeighborHaPanel } from './NeighborHaPanel';
 
 const titleForWake = {
   'on-time': 'Dậy đúng giờ, phố đã lên đèn nắng!',
@@ -191,6 +192,7 @@ export function MorningRoutine({ game, onGame, children }:{game:GameState;onGame
       </p>}
       <small className="life-lunch-note">Tùy chọn · Có thể mở tiệm ngay, không bắt buộc chuẩn bị.</small>
     </div>}
+    {finished&&game.phase==='prep'&&<NeighborHaPanel game={game} onGame={onGame}/>}
     {finished&&game.phase==='prep'&&<MorningMarket game={game} onGame={onGame}/>}
   </section>;
 }
