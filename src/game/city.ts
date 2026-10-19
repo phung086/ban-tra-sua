@@ -46,9 +46,11 @@ const DAY13_FAIR_PREFIX = 'school.day13.';
 const DAY14_APARTMENT_PREFIX = 'apartments.day14.';
 const DAY15_LIBRARY_PREFIX = 'library.day15.';
 const DAY16_LAKE_PREFIX = 'lake.day16.';
+const DAY17_MARKET_PREFIX = 'market.day17.';
 export type ApartmentChoice = 'carry' | 'coordinate';
 export type LibraryChoice = 'brew' | 'organize';
 export type LakeChoice = 'cover' | 'move';
+export type MarketCoolingChoice = 'ice' | 'borrow';
 export type SchoolChoice = 'gift' | 'sell' | 'reschedule';
 export type SchoolFairChoice = 'paint' | 'share';
 
@@ -59,14 +61,18 @@ export type SchoolFairChoice = 'paint' | 'share';
 export function getMarketOffers(state: Pick<GameState, 'day' | 'relationshipRewardIds'>): MarketOffer[] {
   const loyalDiscount = state.day === 11 && state.relationshipRewardIds.includes(DAY10_FULL_ID) ? 4000 : 0;
   const supplierDiscount = state.day === 12 && state.relationshipRewardIds.includes(DAY11_HELP_ID) ? 6000 : 0;
+  const coolingDiscount = state.day === 18 && state.relationshipRewardIds.includes('market.day17.ice')
+    ? 8000 : state.day === 18 && state.relationshipRewardIds.includes('market.day17.borrow') ? 3000 : 0;
   const regular: MarketOffer = {
     id: 'full', title: 'Gói nguyên liệu của cô Hạnh',
-    detail: loyalDiscount
-      ? 'Cô Hạnh nhớ bạn đã giữ đơn hôm qua, giảm 4.000 ₫ cho lần nhập hôm nay.'
+    detail: coolingDiscount
+      ? `Cô Hạnh nhớ bạn giúp giữ lạnh trà hôm qua, giảm ${coolingDiscount.toLocaleString('vi-VN')} ₫ giỏ hôm nay.`
+      : loyalDiscount
+        ? 'Cô Hạnh nhớ bạn đã giữ đơn hôm qua, giảm 4.000 ₫ cho lần nhập hôm nay.'
       : supplierDiscount
         ? 'Cô Hạnh cảm ơn bạn đã dọn quầy hôm qua: giảm 6.000 ₫ cho giỏ hôm nay.'
         : 'Đủ trà, ly, đường và đá để bổ sung cho ca bán.',
-    cost: 48000 - loyalDiscount - supplierDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
+    cost: 48000 - loyalDiscount - supplierDiscount - coolingDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
   };
   if (state.day !== 10) return [regular];
   return [
@@ -127,7 +133,7 @@ export type CityAction =
   | { type: 'pack'; base: BaseId; sugar: number; timing: number }
   | { type: 'deliver' } | { type: 'cancel' }
   | { type: 'market'; basket?: MarketBasket } | { type: 'supplier'; choice: 'help' | 'hurry' }
-  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'apartmentMeet'; choice: ApartmentChoice } | { type: 'libraryCorner'; choice: LibraryChoice } | { type: 'lakeRain'; choice: LakeChoice } | { type: 'talk'; place: CityPlace }
+  | { type: 'school'; choice: SchoolChoice } | { type: 'schoolFair'; choice: SchoolFairChoice } | { type: 'apartmentMeet'; choice: ApartmentChoice } | { type: 'libraryCorner'; choice: LibraryChoice } | { type: 'lakeRain'; choice: LakeChoice } | { type: 'marketCooling'; choice: MarketCoolingChoice } | { type: 'talk'; place: CityPlace }
   | { type: 'garden' } | { type: 'rest'; place?:CityPlace }
   | { type: 'bus' }
   | { type: 'project'; id: CityProject };
@@ -151,7 +157,7 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
     return result(state, { ...city, contract: { ...contract, deadline: city.minutes + contract.deadline } }, 'Đã nhận đơn. Về quầy pha đúng trà, đường và đóng túi.');
   }
   if (action.type === 'cancel') return result(state, { ...city, contract: null }, 'Đã hủy chuyến. Nguyên liệu đã pha không hoàn lại.');
-  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'apartmentMeet' ? 'apartments' : action.type === 'libraryCorner' ? 'library' : action.type === 'lakeRain' ? 'lake' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
+  const place: CityPlace = action.type === 'pack' ? 'shop' : action.type === 'deliver' ? city.contract?.destination ?? 'shop' : (action.type === 'market' || action.type === 'supplier' || action.type === 'marketCooling') ? 'market' : (action.type === 'school' || action.type === 'schoolFair') ? 'school' : action.type === 'apartmentMeet' ? 'apartments' : action.type === 'libraryCorner' ? 'library' : action.type === 'lakeRain' ? 'lake' : action.type === 'garden' || action.type === 'project' ? 'park' : action.type === 'rest' ? (action.place&&['lake','plaza','riverside','temple'].includes(action.place)?action.place:'lake') : action.type === 'bus' ? 'bus' : action.place;
   if (!nearCityPlace(position, place)) return { ...state, notice: `Đi đến ${CITY_PLACES[place].name} để thực hiện.` };
   if (city.minutes < CITY_PLACES[place].hours[0] || city.minutes > CITY_PLACES[place].hours[1]) return { ...state, notice: 'Địa điểm đã đóng cửa. Quay lại vào ngày mai.' };
   if (action.type === 'bus') {
@@ -317,6 +323,29 @@ export function cityAction(state: GameState, action: CityAction, position: Posit
       : 'Bạn nhắn mọi người chuyển buổi đi bộ vào mái hiên an toàn. Thêm 1 thiện cảm, 1 fan; ngày 17 có thêm đơn trà nhỏ.',
     { cash: state.cash - cost, fans: state.fans + (cover ? 2 : 1),
       relationshipRewardIds: [...state.relationshipRewardIds, `${DAY16_LAKE_PREFIX}${action.choice}`] });
+  }
+  if (action.type === 'marketCooling') {
+    // QG-13: Day-17 power outage at Ngoc Ha market. One choice, Day-18 discount only.
+    if (state.day !== 17 || state.relationshipRewardIds.some(id => id.startsWith(DAY17_MARKET_PREFIX))) return state;
+    if (city.contract) return { ...state, notice: 'Hãy hoàn tất chuyến giao đang nhận trước khi giúp cô Hạnh.' };
+    const ice = action.choice === 'ice';
+    const minutes = ice ? 15 : 6;
+    const energy = ice ? 8 : 2;
+    if (city.energy < energy || city.minutes + minutes > Math.min(1260, CITY_PLACES.market.hours[1])) {
+      return { ...state, notice: 'Chợ sắp đóng cửa hoặc bạn cần nghỉ lấy sức. Hãy quay lại sớm hơn.' };
+    }
+    if (ice && (state.inventory.ice < 3 || state.freshness.ice < 20)) {
+      return { ...state, notice: 'Cần 3 phần đá còn tươi để giữ lạnh trà. Bạn vẫn có thể nhờ quầy bên cạnh hỗ trợ.' };
+    }
+    return result(state, {
+      ...city, minutes: city.minutes + minutes, energy: city.energy - energy,
+      goodwill: city.goodwill + (ice ? 3 : 1),
+    }, ice
+      ? 'Bạn mang 3 phần đá sạch giúp cô Hạnh giữ lạnh trà khi chợ mất điện. Thêm 3 thiện cảm, 2 fan; ngày 18 giỏ hàng giảm 8.000 ₫.'
+      : 'Bạn cùng cô Hạnh nhờ quầy bên cạnh chia sẻ thùng giữ nhiệt. Thêm 1 thiện cảm, 1 fan; ngày 18 giỏ hàng giảm 3.000 ₫.',
+    { inventory: ice ? { ...state.inventory, ice: state.inventory.ice - 3 } : state.inventory,
+      fans: state.fans + (ice ? 2 : 1),
+      relationshipRewardIds: [...state.relationshipRewardIds, `${DAY17_MARKET_PREFIX}${action.choice}`] });
   }
   if (city.energy < 8) return { ...state, notice: 'Bạn mệt rồi. Ghé hồ nghỉ chân để hồi sức.' };
   if (action.type === 'pack') {
