@@ -15,6 +15,7 @@ import {WeekSixEpisodePanel} from '../life/WeekSixEpisodePanel';
 import {WeekSevenEpisodePanel} from '../life/WeekSevenEpisodePanel';
 import { canChooseWeekFive, chooseWeekFive, getWeekFiveCallback, getWeekFiveDecision, getWeekFiveEpisode } from '../../game/lifeSim/weekFiveEpisodes';
 import {FriendMealPanel} from '../life/FriendMealPanel';
+import { getSupplierMorningCallback } from '../../game/lifeSim/eveningSupplier';
 
 
 interface Props {
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function PrepWorld({ game, onGame, onNavigate }: Props) {
+  const supplierCallback = getSupplierMorningCallback(game);
   const fiveEpisode = getWeekFiveEpisode(game);
   const fiveCallback = getWeekFiveCallback(game);
   const fiveDecision = getWeekFiveDecision(game);
