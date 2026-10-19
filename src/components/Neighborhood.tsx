@@ -151,6 +151,21 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
             </div>}
         </article>}
         {selected === 'library' && game.day === 16 && game.relationshipRewardIds.some(id => id.startsWith('library.day15.')) && <p role="status" className="market-day-story">Anh Nam nhớ bạn đã giúp góc đọc: đơn hiệu sách hôm nay có giá trị cao hơn.</p>}
+        {selected === 'lake' && game.day === 16 && <article className="market-basket" aria-label="Ngày 16: Mưa phùn bên hồ An Hòa">
+          <h4>🌧️ Ngày 16 · Mưa phùn bên hồ An Hòa</h4>
+          <p>Bác Minh chuẩn bị buổi đi bộ khu phố nhưng ghế nghỉ bị mưa tạt. Bạn mua bạt che chỗ nghỉ, hay nhắn mọi người chuyển vào mái hiên? Cô Thu sẽ nhớ việc bạn làm khi đặt trà Ngày 17.</p>
+          {game.relationshipRewardIds.some(id => id.startsWith('lake.day16.'))
+            ? <p role="status">{game.relationshipRewardIds.includes('lake.day16.cover')
+              ? 'Đã che chỗ nghỉ cho bác Minh. Đơn khu tập thể Ngày 17 tăng 7.000 ₫.'
+              : 'Đã báo mọi người chuyển vào mái hiên. Đơn khu tập thể Ngày 17 tăng 3.000 ₫.'}</p>
+            : <div className="market-day-actions">
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || game.cash < 9000 || city.energy < 10 || city.minutes + 18 > Math.min(1260, CITY_PLACES.lake.hours[1])}
+                onClick={() => onAction({ type: 'lakeRain', choice: 'cover' })}>Mua bạt che ghế · 9.000 ₫ · 18 phút · 10 sức</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 2 || city.minutes + 6 > Math.min(1260, CITY_PLACES.lake.hours[1])}
+                onClick={() => onAction({ type: 'lakeRain', choice: 'move' })}>Chuyển vào mái hiên · 6 phút · 2 sức</button>
+            </div>}
+        </article>}
+        {selected === 'lake' && game.day === 17 && game.relationshipRewardIds.some(id => id.startsWith('lake.day16.')) && <p role="status" className="market-day-story">Bác Minh nhớ buổi đi bộ trong mưa: cô Thu đặt thêm trà khu tập thể hôm nay.</p>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}
