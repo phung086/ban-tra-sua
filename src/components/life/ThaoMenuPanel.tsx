@@ -1,18 +1,22 @@
+import '../../styles-thao-menu.css';
 import type { GameState } from '../../game/types';
+import { DRINKS } from '../../game/content';
 import {
-  THAO_MENU_OPTIONS, canChooseThaoMenu, chooseThaoMenu,
-  getThaoMenuCallback, getThaoMenuChoice,
-  getThaoMenuStage, type ThaoMenuChoice,
+  THAO_MENU_OPTIONS, canChooseThaoMenu, chooseThaoMenu, getThaoMenuCallback,
+  getThaoMenuChoice, getThaoMenuSign, getThaoMenuStage, type ThaoMenuChoice,
 } from '../../game/lifeSim/thaoMenu';
 
-/** Live pre-shop choices. The parent App persists every onGame state update. */
+/** Live pre-shop choices, persisted by App through the existing v3 save. */
 export function ThaoMenuPanel({ game, onGame }: {
   game: GameState;
   onGame: (state: GameState) => void;
 }) {
   const stage = getThaoMenuStage(game);
   const callback = getThaoMenuCallback(game);
-  if (!stage && !callback) return null;
+  const sign = game.phase === 'prep' && game.morning.day === game.day &&
+    game.morning.step !== 'asleep' ? getThaoMenuSign(game) : null;
+  if (!stage && !callback && !sign) return null;
+  const visibleDrinks = Object.values(DRINKS).filter(drink => game.unlockedBaseIds.includes(drink.id));
   const selected = getThaoMenuChoice(game);
   const choices: readonly ThaoMenuChoice[] = stage === 'invite'
     ? ['book', 'decline'] : ['print', 'handwrite', 'later'];
@@ -21,6 +25,15 @@ export function ThaoMenuPanel({ game, onGame }: {
     <span className="life-morning-label">BẠN BÈ · TIỆM TRÀ PHỐ NHỎ</span>
     <h3>🎨 Thảo và bảng thực đơn trước cửa tiệm</h3>
     {callback && <p role="status">💌 {callback}</p>}
+    {sign && <div className="life-thao-sign" role="group" aria-label="Bảng giá trước cửa tiệm">
+      <p>🪧 {sign.label} · từ ngày {sign.day} · Giá đã niêm yết</p>
+      <ul className="life-thao-prices">
+        {visibleDrinks.map(drink => <li key={drink.id}>
+          <span>{drink.emoji} {drink.name}</span>
+          <span>M {drink.priceM.toLocaleString('vi-VN')} ₫ · L {drink.priceL.toLocaleString('vi-VN')} ₫</span>
+        </li>)}
+      </ul>
+    </div>}
     {stage && <p>{selected
       ? THAO_MENU_OPTIONS[selected].text
       : stage === 'invite'
