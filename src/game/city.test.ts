@@ -439,3 +439,80 @@ describe('QG-10 day 14 apartment meeting with Co Thu', () => {
     expect(cityAction(nextDay(before), carry, CITY_PLACES.apartments).relationshipRewardIds).toEqual([]);
   });
 });
+
+describe('QG-11 day 15 reading corner with anh Nam', () => {
+  const dayFifteen = () => {
+    let game = { ...createInitialState(), xp: 160 };
+    for (let day = 1; day < 15; day++) game = nextDay(game);
+    return { ...game,
+      inventory: { ...game.inventory, oolongMilkTea: 4, cupsM: 4, sugar: 4, ice: 4 },
+      freshness: { ...game.freshness, oolongMilkTea: 100, cupsM: 100, sugar: 100, ice: 100 },
+    };
+  };
+
+  it('brews fresh tea once, saves the decision and increases only the day-16 library order', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = dayFifteen();
+    expect(before.unlockedBaseIds).toContain('oolong-milk-tea');
+    expect(cityContracts(before).find(c => c.destination === 'library')?.reward).toBe(96000);
+    const brewed = cityAction(before, { type: 'libraryCorner', choice: 'brew' }, CITY_PLACES.library);
+    expect(brewed.inventory.oolongMilkTea).toBe(before.inventory.oolongMilkTea - 2);
+    expect(brewed.inventory.cupsM).toBe(before.inventory.cupsM - 2);
+    expect(brewed.inventory.sugar).toBe(before.inventory.sugar - 1);
+    expect(brewed.inventory.ice).toBe(before.inventory.ice - 2);
+    expect(brewed.cash).toBe(before.cash);
+    expect(brewed.city.minutes).toBe(before.city.minutes + 18);
+    expect(brewed.city.energy).toBe(before.city.energy - 10);
+    expect(brewed.city.goodwill).toBe(before.city.goodwill + 3);
+    expect(brewed.fans).toBe(before.fans + 2);
+    expect(brewed.relationshipRewardIds).toContain('library.day15.brew');
+    expect(cityAction(brewed, { type: 'libraryCorner', choice: 'organize' }, CITY_PLACES.library)).toBe(brewed);
+    saveGame(brewed);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('library.day15.brew');
+    expect(cityAction(resumed, { type: 'libraryCorner', choice: 'brew' }, CITY_PLACES.library)).toBe(resumed);
+    const day16 = nextDay(resumed);
+    expect(cityContracts(day16).find(c => c.destination === 'library')?.reward).toBe(104000);
+    expect(cityContracts(nextDay(day16)).find(c => c.destination === 'library')?.reward).toBe(96000);
+  });
+
+  it('allows free book sorting without tea, cash or the unlocked oolong recipe', () => {
+    const start = dayFifteen();
+    const before = { ...start, cash: 0,
+      unlockedBaseIds: start.unlockedBaseIds.filter(id => id !== 'oolong-milk-tea'),
+      inventory: { ...start.inventory, oolongMilkTea: 0 },
+      city: { ...start.city, energy: 2 } };
+    expect(cityAction(before, { type: 'libraryCorner', choice: 'brew' }, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    const organized = cityAction(before, { type: 'libraryCorner', choice: 'organize' }, CITY_PLACES.library);
+    expect(organized.cash).toBe(0);
+    expect(organized.inventory).toEqual(before.inventory);
+    expect(organized.city.minutes).toBe(before.city.minutes + 6);
+    expect(organized.city.energy).toBe(0);
+    expect(organized.city.goodwill).toBe(before.city.goodwill + 1);
+    expect(organized.fans).toBe(before.fans + 1);
+    expect(organized.relationshipRewardIds).toContain('library.day15.organize');
+    const tomorrow = nextDay({ ...organized, unlockedBaseIds: start.unlockedBaseIds });
+    expect(cityContracts(tomorrow).find(c => c.destination === 'library')?.reward).toBe(99000);
+  });
+
+  it('guards day, location, shop shift, active contract, stock freshness, time and energy', () => {
+    const before = dayFifteen();
+    const brew = { type: 'libraryCorner' as const, choice: 'brew' as const };
+    expect(cityAction(createInitialState(), brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, brew, CITY_PLACES.shop).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'library' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    const stale = { ...before, freshness: { ...before.freshness, oolongMilkTea: 0 } };
+    expect(cityAction(stale, brew, CITY_PLACES.library).inventory).toEqual(stale.inventory);
+    const tired = { ...before, city: { ...before.city, energy: 9 } };
+    expect(cityAction(tired, brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.library.hours[1] - 10 } };
+    expect(cityAction(late, brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
+  });
+});
