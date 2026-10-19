@@ -5,6 +5,7 @@ import { MorningRoutine } from '../../components/life/MorningRoutine';
 import { createInitialState, nextDay, startDay } from '../engine';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import { marketChoice, visitMorningMarket } from './marketEncounter';
+import { promiseHanhHelp, pendingHanhHelp, resolveHanhHelp } from './hanhHelpPromise';
 
 const ready = () => chooseBreakfast(wakeMorning(createInitialState()), 'street');
 
@@ -86,5 +87,20 @@ describe('playable market encounter', () => {
     expect(marketChoice(next)).toBeNull();
     expect(next.morning.step).toBe('asleep');
     expect(next.city.stories.bonds.hanh).toBe(first.city.stories.bonds.hanh);
+  });
+});
+
+
+describe('Hanh next-day promise', () => {
+  it('shows the promise after chat, persists to tomorrow and resolves only once', () => {
+    const chatted = visitMorningMarket(ready(), 'chat');
+    const promised = promiseHanhHelp(chatted);
+    expect(promiseHanhHelp(promised)).toBe(promised);
+    const tomorrow = chooseBreakfast(wakeMorning(nextDay(promised)), 'skip');
+    expect(pendingHanhHelp(tomorrow)?.dueDay).toBe(2);
+    const kept = resolveHanhHelp(tomorrow, 'carry');
+    expect(kept.city.energy).toBe(tomorrow.city.energy - 7);
+    expect(kept.city.minutes).toBe(tomorrow.city.minutes + 14);
+    expect(resolveHanhHelp(kept, 'carry')).toBe(kept);
   });
 });
