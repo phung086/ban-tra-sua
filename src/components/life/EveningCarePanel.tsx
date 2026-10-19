@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { GameState } from '../../game/types';
 import { HaPackagingPanel } from './HaPackagingPanel';
+import { EveningMotherCallPanel } from './EveningMotherCallPanel';
 import { getHaPackagingCallback, isHaPackagingDue } from '../../game/lifeSim/haPackaging';
 import {
   canChooseEveningCare, chooseEveningCare, hasMissedHaPromise, hasUnresolvedHaPromise,
@@ -16,13 +17,13 @@ export function EveningCarePanel({ game, onGame }: {
 }) {
   if (game.phase === 'prep') {
     const callback = getEveningCareCallback(game) ?? getHaPackagingCallback(game);
-    return callback ? <section className="life-morning" aria-label="Lời nhắn từ Hà">
+    return <>{callback ? <section className="life-morning" aria-label="Lời nhắn từ Hà">
       <span className="life-morning-label">LỜI NHẮN SAU MỘT ĐÊM · NGÀY {game.day}</span>
       <p role="status">💌 {callback}</p>
-    </section> : null;
+    </section> : null}<EveningMotherCallPanel game={game} onGame={onGame}/></>;
   }
   if (game.phase !== 'summary' || game.summary?.day !== game.day) return null;
-  if (isHaPackagingDue(game)) return <HaPackagingPanel game={game} onGame={onGame} />;
+  if (isHaPackagingDue(game)) return <><HaPackagingPanel game={game} onGame={onGame} /><EveningMotherCallPanel game={game} onGame={onGame}/></>;
 
   const selected = getEveningCareChoice(game);
   const thankYouUnlocked = canChooseEveningCare(game, 'thanks');
@@ -34,7 +35,7 @@ export function EveningCarePanel({ game, onGame }: {
   const canReconcile = canChooseEveningCare(game, 'reconcile');
   const unresolvedDue = hasUnresolvedHaPromise(game);
   const canRepair = canChooseEveningCare(game, 'repair');
-  return <section className="life-morning" aria-label="Bữa tối sau ca">
+  return <><section className="life-morning" aria-label="Bữa tối sau ca">
     <span className="life-morning-label">CUỐI NGÀY · GÓC PHỐ</span>
     <h3>{!selected && unresolvedDue ? 'Hà vẫn muốn nghe bạn nói thật' : !selected && followupDue ? 'Hà vẫn ở đầu ngõ, ghé chào một chút nhé?' : !selected && missedPromise ? 'Hà đang chờ một lời xin lỗi' : thankYouUnlocked && !selected ? 'Hà nhớ lời hẹn cơm' : 'Hà rủ ghé quán cơm trước khi về'}</h3>
     <p>{selected
@@ -72,5 +73,5 @@ export function EveningCarePanel({ game, onGame }: {
       </div>}
     {!selected && !canChooseEveningCare(game, 'dinner') &&
       <p role="status">Nếu thiếu tiền hoặc quá giờ, bạn vẫn có thể nhắn Hà rồi nghỉ miễn phí.</p>}
-  </section>;
+  </section><EveningMotherCallPanel game={game} onGame={onGame}/></>;
 }
