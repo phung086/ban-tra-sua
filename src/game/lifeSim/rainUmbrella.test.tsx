@@ -59,8 +59,9 @@ describe('borrowed umbrella and rainy-day walk', () => {
   });
 
   it('halves walking stamina only; time and visits remain identical', () => {
-    const borrowed = wakeMorning(nextDay(chooseUmbrella(beforeRain(), 'borrow')));
-    const noUmbrella = wakeMorning(nextDay(chooseUmbrella(beforeRain(), 'message')));
+    const baseline = beforeRain();
+    const borrowed = wakeMorning(nextDay(chooseUmbrella(baseline, 'borrow')));
+    const noUmbrella = wakeMorning(nextDay(chooseUmbrella(baseline, 'message')));
     expect(hasUmbrellaToday(borrowed)).toBe(true);
     const position = { x: 0, z: 3.15 }, distance = 10;
     const regular = walkCity(noUmbrella, distance, position);
