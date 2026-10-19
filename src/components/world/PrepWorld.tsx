@@ -38,6 +38,10 @@ export function PrepWorld({ game, onGame, onNavigate }: Props) {
   return <section className="prep-foundation">
     <header><div><h2>{game.event.name}</h2><p>{game.event.description}</p></div><span className="prep-day">Ngày {game.day}</span></header>
     <MorningRoutine game={game} onGame={onGame}><RushShiftPanel game={game} onGame={onGame} onNavigate={onNavigate}/></MorningRoutine>
+    {supplierCallback && <section className="life-morning" aria-label="Lời hẹn chợ sáng">
+      <span className="life-morning-label">SÁNG NGÀY {game.day} · CÔ HẠNH</span>
+      <p role="status">💌 {supplierCallback}</p>
+    </section>}
     <StreetMomentPanel game={game} onGame={onGame}/>
     <SocialMorningPanel game={game} onGame={onGame}/>
     <ShopTastingPanel game={game} onGame={onGame}/>

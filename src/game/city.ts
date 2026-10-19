@@ -1,4 +1,5 @@
 import type { GameState, InventoryKey, BaseId } from './types';
+import { getSupplierReservationDiscount } from './lifeSim/eveningSupplier';
 import { CITY_PLACES, nearCityPlace, type CityPlace } from './cityMap';
 import type { Position } from './service';
 import {hydrateStories,initialStories,type NeighborhoodStories} from './neighborhoodStories';
@@ -51,14 +52,17 @@ export type SchoolChoice = 'gift' | 'sell' | 'reschedule';
 export function getMarketOffers(state: Pick<GameState, 'day' | 'relationshipRewardIds'>): MarketOffer[] {
   const loyalDiscount = state.day === 11 && state.relationshipRewardIds.includes(DAY10_FULL_ID) ? 4000 : 0;
   const supplierDiscount = state.day === 12 && state.relationshipRewardIds.includes(DAY11_HELP_ID) ? 6000 : 0;
+  const reservedDiscount = getSupplierReservationDiscount(state);
   const regular: MarketOffer = {
     id: 'full', title: 'Gói nguyên liệu của cô Hạnh',
-    detail: loyalDiscount
+    detail: reservedDiscount
+      ? 'Cô Hạnh đã giữ giỏ từ tối qua: giảm 6.000 ₫ cho giỏ đầy đủ hôm nay.'
+      : loyalDiscount
       ? 'Cô Hạnh nhớ bạn đã giữ đơn hôm qua, giảm 4.000 ₫ cho lần nhập hôm nay.'
       : supplierDiscount
         ? 'Cô Hạnh cảm ơn bạn đã dọn quầy hôm qua: giảm 6.000 ₫ cho giỏ hôm nay.'
         : 'Đủ trà, ly, đường và đá để bổ sung cho ca bán.',
-    cost: 48000 - loyalDiscount - supplierDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
+    cost: 48000 - loyalDiscount - supplierDiscount - reservedDiscount, minutes: 15, energy: 8, stock: FULL_MARKET_STOCK,
   };
   if (state.day !== 10) return [regular];
   return [

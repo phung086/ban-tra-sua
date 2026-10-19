@@ -17,6 +17,7 @@ import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
 import { RushShiftProgress } from "./components/world/RushShiftProgress";
 import { EveningCarePanel } from "./components/life/EveningCarePanel";
+import { EveningSupplierPanel } from "./components/life/EveningSupplierPanel";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
@@ -275,6 +276,7 @@ function App() {
                 ))}
               </div>
               <EveningCarePanel game={game} onGame={setGame} />
+              <EveningSupplierPanel game={game} onGame={setGame} />
               {claimable > 0 && (
                 <button onClick={() => setScreen("goals")}>
                   Nhận thưởng {claimable} mục tiêu đã xong →
