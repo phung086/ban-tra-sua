@@ -516,3 +516,66 @@ describe('QG-11 day 15 reading corner with anh Nam', () => {
     expect(cityAction(nextDay(before), brew, CITY_PLACES.library).relationshipRewardIds).toEqual([]);
   });
 });
+
+describe('QG-12 day 16 lake drizzle with bac Minh', () => {
+  const daySixteen = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 16; day++) game = nextDay(game);
+    return game;
+  };
+
+  it('covers the lakeside seats once and persists the day-17 apartment referral', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = daySixteen();
+    const helped = cityAction(before, { type: 'lakeRain', choice: 'cover' }, CITY_PLACES.lake);
+    expect(helped.cash).toBe(before.cash - 9000);
+    expect(helped.inventory).toEqual(before.inventory);
+    expect(helped.city.minutes).toBe(before.city.minutes + 18);
+    expect(helped.city.energy).toBe(before.city.energy - 10);
+    expect(helped.city.goodwill).toBe(before.city.goodwill + 3);
+    expect(helped.fans).toBe(before.fans + 2);
+    expect(helped.relationshipRewardIds).toContain('lake.day16.cover');
+    expect(cityAction(helped, { type: 'lakeRain', choice: 'move' }, CITY_PLACES.lake)).toBe(helped);
+    saveGame(helped);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('lake.day16.cover');
+    expect(cityAction(resumed, { type: 'lakeRain', choice: 'cover' }, CITY_PLACES.lake)).toBe(resumed);
+    const day17 = nextDay(resumed);
+    expect(cityContracts(day17).find(c => c.destination === 'apartments')?.reward).toBe(115000);
+    expect(cityContracts(nextDay(day17)).find(c => c.destination === 'apartments')?.reward).toBe(108000);
+  });
+
+  it('allows the no-cash shelter message without consuming ingredients', () => {
+    const start = daySixteen();
+    const before = { ...start, cash: 0, city: { ...start.city, energy: 2 } };
+    expect(cityAction(before, { type: 'lakeRain', choice: 'cover' }, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    const moved = cityAction(before, { type: 'lakeRain', choice: 'move' }, CITY_PLACES.lake);
+    expect(moved.cash).toBe(0);
+    expect(moved.inventory).toEqual(before.inventory);
+    expect(moved.city.minutes).toBe(before.city.minutes + 6);
+    expect(moved.city.energy).toBe(0);
+    expect(moved.city.goodwill).toBe(before.city.goodwill + 1);
+    expect(moved.fans).toBe(before.fans + 1);
+    expect(moved.relationshipRewardIds).toContain('lake.day16.move');
+    expect(cityContracts(nextDay(moved)).find(c => c.destination === 'apartments')?.reward).toBe(111000);
+  });
+
+  it('guards the day, location, open shift, active delivery, closing time and energy', () => {
+    const before = daySixteen();
+    const cover = { type: 'lakeRain' as const, choice: 'cover' as const };
+    expect(cityAction(createInitialState(), cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, cover, CITY_PLACES.shop).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'apartments' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    const tired = { ...before, city: { ...before.city, energy: 9 } };
+    expect(cityAction(tired, cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: 1250 } };
+    expect(cityAction(late, cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
+  });
+});
