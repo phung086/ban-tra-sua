@@ -30,6 +30,7 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
     </div>}
     {hanhHelpResolvedToday(game)&&<p role="status">✓ Đã giải quyết lời hẹn hôm nay. Cô Hạnh sẽ nhớ.</p>}
     {canPromiseHanhHelp(game)&&<button type="button" onClick={()=>onGame(promiseHanhHelp(game))}>Hẹn mai phụ cô Hạnh xếp sạp</button>}
+    {game.relationshipRewardIds.includes('hanh-market-help:promise:'+game.day)&&<p role="status">✓ Đã hẹn phụ cô Hạnh ngày mai. Cô sẽ nhớ lời mình.</p>}
     <p>Một lần ghé chợ hôm nay: chọn trái cây ăn giữa ca hoặc mua rau về nấu cơm.</p>
     {choice==null?<div className="life-morning-options">
       {options.map(option=>{
