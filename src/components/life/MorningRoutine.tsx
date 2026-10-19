@@ -25,6 +25,7 @@ const lunchChoices: {id:LunchPrepChoice;emoji:string;hint:string}[] = [
 
 const choices: {id:BreakfastChoice;emoji:string;hint:string}[] = [
   {id:'street',emoji:'🥖',hint:'Nhanh gọn đầu ngõ · 10 phút'},
+  {id:'leftovers',emoji:'🍚',hint:'Bữa cơm còn lại · 12 phút · no 55/100'},
   {id:'skip',emoji:'🚶',hint:'Chưa đói lắm · 0 phút'},
 ];
 

@@ -47,6 +47,27 @@ describe('playable morning routine', () => {
     expect(free.morning.satiety).toBe(30);
   });
 
+  it('eats a free leftover meal, persists it and resets breakfast on the next day', () => {
+    const awake = wakeMorning({ ...gameWithSeed(), cash: 0 });
+    const result = chooseBreakfast(awake, 'leftovers');
+    expect(result.cash).toBe(0);
+    expect(result.city.minutes).toBe(awake.city.minutes + 12);
+    expect(result.city.energy).toBe(Math.min(100, awake.city.energy + 1));
+    expect(result.morning.breakfast).toBe('leftovers');
+    expect(result.morning.satiety).toBe(55);
+    expect(result.city.journal[0]).toContain('cơm nguội');
+    const restored = hydrateMorning(JSON.parse(JSON.stringify(result.morning)),
+      { day: result.day, city: result.city }, 'prep');
+    expect(restored.breakfast).toBe('leftovers');
+    const replay = chooseBreakfast({ ...result, morning: restored }, 'leftovers');
+    expect(replay.cash).toBe(0);
+    expect(replay.city.minutes).toBe(result.city.minutes);
+    expect(replay.morning.satiety).toBe(55);
+    const tomorrow = nextDay(replay);
+    expect(tomorrow.morning.breakfast).toBeNull();
+    expect(tomorrow.morning.step).toBe('asleep');
+  });
+
   it('reloads the exact same decision and does not replay payment', () => {
     const bought = chooseBreakfast(wakeMorning(gameWithSeed()), 'cook');
     const saved = JSON.parse(JSON.stringify(bought.morning)) as unknown;
