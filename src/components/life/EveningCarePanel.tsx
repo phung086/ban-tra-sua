@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
+import { EveningWarmTeaPanel } from './EveningWarmTeaPanel';
 import type { GameState } from '../../game/types';
 import { HaPackagingPanel } from './HaPackagingPanel';
 import { getHaPackagingCallback, isHaPackagingDue } from '../../game/lifeSim/haPackaging';
@@ -10,7 +11,7 @@ import {
 
 const choices: readonly EveningCareChoice[] = ['dinner', 'help', 'rest', 'thanks', 'postpone', 'apologize', 'message', 'reconcile', 'repair'];
 
-export function EveningCarePanel({ game, onGame }: {
+function EveningCareContents({ game, onGame }: {
   game: GameState;
   onGame: Dispatch<SetStateAction<GameState>>;
 }) {
@@ -73,4 +74,10 @@ export function EveningCarePanel({ game, onGame }: {
     {!selected && !canChooseEveningCare(game, 'dinner') &&
       <p role="status">Nếu thiếu tiền hoặc quá giờ, bạn vẫn có thể nhắn Hà rồi nghỉ miễn phí.</p>}
   </section>;
+}
+
+
+/** Extend the existing Ha evening panel without changing its decision logic. */
+export function EveningCarePanel(props: { game: GameState; onGame: Dispatch<SetStateAction<GameState>> }) {
+  return <><EveningCareContents {...props} /><EveningWarmTeaPanel {...props} /></>;
 }
