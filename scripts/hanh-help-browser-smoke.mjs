@@ -24,20 +24,24 @@ try {
     throw new Error('Promise was not saved');
 
   // Synthetic valid v3 day-2 fixture. This does NOT replace a full sleep E2E.
-  await page.evaluate(key => {
-    const save = JSON.parse(localStorage.getItem(key));
-    save.day = 2;
-    save.phase = 'prep';
-    save.city.day = 2;
-    save.city.minutes = 480;
-    save.morning.day = 2;
-    save.morning.step = 'asleep';
-    save.morning.breakfast = null;
-    save.morning.marketVisit = null;
-    save.morning.plan.day = 2;
-    save.morning.plan.wakeMinute = 480;
-    localStorage.setItem(key, JSON.stringify(save));
-  }, SAVE);
+  const save = structuredClone(promised);
+  save.day = 2;
+  save.phase = 'prep';
+  save.city.day = 2;
+  save.city.minutes = 480;
+  save.morning.day = 2;
+  save.morning.step = 'asleep';
+  save.morning.breakfast = null;
+  save.morning.marketVisit = null;
+  save.morning.plan.day = 2;
+  save.morning.plan.wakeMinute = 480;
+  // Seed after pagehide has finished writing day 1; seed only once.
+  await page.addInitScript(fixture => {
+    if (!sessionStorage.getItem('__hanh_fixture_loaded')) {
+      localStorage.setItem('tiem-tra-chibi-save-v3', JSON.stringify(fixture));
+      sessionStorage.setItem('__hanh_fixture_loaded', '1');
+    }
+  }, save);
   await page.reload();
   await page.getByRole('button', { name: /Thức dậy bắt đầu ngày mới/ }).click();
   await page.getByRole('button', { name: /Đi làm luôn/ }).click();
