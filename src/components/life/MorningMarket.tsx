@@ -3,7 +3,7 @@ import {formatMoney} from '../../game/engine';
 import {MARKET_OPTIONS,marketDialogue,visitMorningMarket} from '../../game/lifeSim/marketEncounter';
 import {MARKET_OPTIONS as KITCHEN_OPTIONS,visitMorningMarket as visitKitchenMarket,cookMarketMeal} from '../../game/lifeSim/morning';
 import {morningActionBlock} from '../../game/lifeSim/morningAction';
-import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp} from '../../game/lifeSim/hanhHelpPromise';
+import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday} from '../../game/lifeSim/hanhHelpPromise';
 
 export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameState)=>void}){
   const choice=game.morning.marketVisit;
@@ -16,7 +16,19 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
   const cookBlocked=morningActionBlock(game,0,18,3);
   return <section className="life-market life-market-unified" aria-label="Ghé chợ buổi sáng">
     <h4>Ghé chợ đầu ngõ · Cô Hạnh</h4>
-    {pendingHanhHelp(game)&&<button type="button" onClick={()=>onGame(resolveHanhHelp(game,'apologize'))}>Xin lỗi cô Hạnh vì lời hẹn · miễn phí</button>}
+    {pendingHanhHelp(game)&&<div className="life-market-result" aria-label="Lời hẹn với cô Hạnh">
+      <p>{pendingHanhHelp(game)?.overdue?'Cô Hạnh vẫn nhớ lời hẹn cũ.':'Hôm qua mình hẹn phụ cô Hạnh xếp sạp.'}</p>
+      <div className="life-morning-options">
+        <button type="button" disabled={!!hanhHelpBlock(game,'carry')}
+          onClick={()=>onGame(resolveHanhHelp(game,'carry'))}>🧺 Phụ xếp sạp · 14 phút · −7 sức · +2 thân thiết</button>
+        <button type="button" disabled={!!hanhHelpBlock(game,'bags')}
+          onClick={()=>onGame(resolveHanhHelp(game,'bags'))}>🛍️ Mua túi giấy · 9.000 ₫ · 6 phút · +1 thân thiết</button>
+        <button type="button" onClick={()=>onGame(resolveHanhHelp(game,'apologize'))}>
+          💬 Xin lỗi cô Hạnh · miễn phí · không khóa tiến trình
+        </button>
+      </div>
+    </div>}
+    {hanhHelpResolvedToday(game)&&<p role="status">✓ Đã giải quyết lời hẹn hôm nay. Cô Hạnh sẽ nhớ.</p>
     {canPromiseHanhHelp(game)&&<button type="button" onClick={()=>onGame(promiseHanhHelp(game))}>Hẹn mai phụ cô Hạnh xếp sạp</button>}
     <p>Một lần ghé chợ hôm nay: chọn trái cây ăn giữa ca hoặc mua rau về nấu cơm.</p>
     {choice==null?<div className="life-morning-options">
