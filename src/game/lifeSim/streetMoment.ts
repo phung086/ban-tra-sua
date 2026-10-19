@@ -1,7 +1,7 @@
 import type { GameState } from '../types';
 import type { StreetHook } from './dayPlanner';
 
-export type StreetChoice = 'help' | 'message';
+export type StreetChoice = 'help' | 'team' | 'message';
 type ActiveHook = Exclude<StreetHook, 'none'>;
 type StreetOutcome = {
   label: string; minutes: number; energy: number; goodwill: number; fans: number;
@@ -9,7 +9,8 @@ type StreetOutcome = {
 };
 export type StreetMoment = {
   hook: ActiveHook; character: string; characterId: string; title: string;
-  prompt: string; deadline: number; help: StreetOutcome; message: StreetOutcome;
+  prompt: string; deadline: number; helperId: 'lan' | 'hanh'; helperName: string;
+  help: StreetOutcome; team: StreetOutcome; message: StreetOutcome;
 };
 
 const MOMENTS: Record<ActiveHook, StreetMoment> = {
@@ -17,11 +18,16 @@ const MOMENTS: Record<ActiveHook, StreetMoment> = {
     hook: 'forgotten-umbrella', character: 'Bác Minh', characterId: 'minh',
     title: 'Chiếc ô bên ghế đá',
     prompt: 'Bác Minh bỏ quên chiếc ô ở ghế đá cạnh hồ. Bác đang đi tìm mà vẫn chưa thấy.',
-    deadline: 660,
+    deadline: 660, helperId: 'lan', helperName: 'Lan',
     help: {
       label: '☂️ Mang ô trả bác', minutes: 15, energy: -3, goodwill: 3, fans: 1,
       reply: 'Bạn mang chiếc ô đến cho bác Minh. Bác kể thêm một kỷ niệm về khu phố và cảm ơn trước khi bạn mở tiệm.',
       callback: 'Bác Minh chào bạn từ bên hồ: “May mà hôm qua có cháu mang ô về!”',
+    },
+    team: {
+      label: '🤝 Nhờ Lan cùng tìm chiếc ô', minutes: 8, energy: -1, goodwill: 2, fans: 0,
+      reply: 'Bạn rủ Lan tìm chiếc ô quanh ghế đá. Lan phát hiện ô ở quán nước gần hồ, rồi hai người cùng mang trả bác Minh.',
+      callback: 'Lan nhắn: “Bác Minh vẫn kể chuyện hai đứa tìm được chiếc ô hôm qua đấy!”',
     },
     message: {
       label: '📱 Nhắn bác vị trí chiếc ô', minutes: 0, energy: 0, goodwill: 1, fans: 0,
@@ -33,11 +39,16 @@ const MOMENTS: Record<ActiveHook, StreetMoment> = {
     hook: 'neighbor-help', character: 'Bác Bình', characterId: 'binh',
     title: 'Góc cây trước ngõ',
     prompt: 'Bác Bình đang mang bình tưới và mấy chậu cây nhỏ ra đầu ngõ. Một chậu hơi nặng với bác.',
-    deadline: 690,
+    deadline: 690, helperId: 'hanh', helperName: 'cô Hạnh',
     help: {
       label: '🌿 Giúp bác mang chậu cây', minutes: 20, energy: -4, goodwill: 4, fans: 1,
       reply: 'Hai bác cháu đặt chậu cây vào chỗ râm mát. Người đi đường ghé nhìn góc xanh mới.',
       callback: 'Bác Bình chỉ chậu cây đã tươi hơn và nhớ bạn đã giúp bác hôm qua.',
+    },
+    team: {
+      label: '🤝 Nhờ cô Hạnh cùng chuyển chậu', minutes: 10, energy: -1, goodwill: 2, fans: 0,
+      reply: 'Bạn hỏi cô Hạnh có tiện ghé qua không. Cô đồng ý, cùng bạn đưa chậu cây đến chỗ râm cho bác Bình.',
+      callback: 'Cô Hạnh cười: “Hôm qua hai cô cháu giúp bác Bình, nay góc cây trông tươi hơn rồi!”',
     },
     message: {
       label: '💬 Hỏi thăm và hẹn giúp sau', minutes: 0, energy: 0, goodwill: 1, fans: 0,
@@ -47,7 +58,7 @@ const MOMENTS: Record<ActiveHook, StreetMoment> = {
   },
 };
 
-const choices: readonly StreetChoice[] = ['help', 'message'];
+const choices: readonly StreetChoice[] = ['help', 'team', 'message'];
 const key = (day: number, hook: ActiveHook, choice: StreetChoice) =>
   `street-moment-${day}-${hook}-${choice}`;
 const remembered = (game: GameState, id: string) =>
@@ -65,7 +76,8 @@ export function getStreetMomentChoice(game: GameState): StreetChoice | null {
 }
 
 export function getStreetMomentCallback(game: GameState): string | null {
-  if (game.phase !== 'prep' || game.day <= 1) return null;
+  if (game.phase !== 'prep' || game.day <= 1 ||
+      game.morning.day !== game.day || game.morning.step === 'asleep') return null;
   for (const moment of Object.values(MOMENTS))
     for (const choice of choices)
       if (remembered(game, key(game.day - 1, moment.hook, choice)))
@@ -80,7 +92,7 @@ export function canChooseStreetMoment(game: GameState, choice: StreetChoice): bo
   if (![game.city.minutes, game.city.energy, game.city.goodwill, game.fans].every(Number.isFinite))
     return false;
   if (choice === 'message') return true; // A late or tired player is never softlocked.
-  const outcome = moment.help;
+  const outcome = moment[choice];
   return game.city.minutes + outcome.minutes <= Math.min(1260, moment.deadline) &&
     game.city.energy >= -outcome.energy;
 }
@@ -98,6 +110,13 @@ export function chooseStreetMoment(game: GameState, choice: StreetChoice): GameS
       minutes: Math.min(1260, game.city.minutes + outcome.minutes),
       energy: Math.max(0, Math.min(100, game.city.energy + outcome.energy)),
       goodwill: game.city.goodwill + outcome.goodwill,
+      stories: choice === 'team' ? {
+        ...game.city.stories,
+        bonds: {
+          ...game.city.stories.bonds,
+          [moment.helperId]: Math.min(1000, (game.city.stories.bonds[moment.helperId] ?? 0) + 1),
+        },
+      } : game.city.stories,
       journal: [`Ngày ${game.day}: ${outcome.reply}`, ...game.city.journal].slice(0, 24),
     },
     relationshipRewardIds: [...(game.relationshipRewardIds ?? []), id],
