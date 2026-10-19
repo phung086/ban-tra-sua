@@ -1,0 +1,29 @@
+name: Evening supplier reservation browser
+on:
+  push:
+    branches: ['main', 'codex/life-evening-hanh-reservation-*']
+  pull_request:
+    branches: [main]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: |
+          npx vite preview --host 127.0.0.1 --port 5192 --strictPort &
+          sleep 5
+          node scripts/evening-supplier-browser-smoke.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supplier-browser-artifacts
+          path: supplier-browser-artifacts/
+          if-no-files-found: ignore

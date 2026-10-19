@@ -113,7 +113,7 @@ describe('evening supplier reservation and next-day market', () => {
     const invalid = { ...game, cash: Number.NaN };
     expect(chooseSupplierEvening(stale, 'reserve')).toBe(stale);
     expect(chooseSupplierEvening(invalid, 'reserve')).toBe(invalid);
-    expect(chooseSupplierEvening({ ...game, phase: 'open' }, 'reserve').cash).toBe(game.cash);
+    expect(chooseSupplierEvening({ ...game, phase: 'open' as const }, 'reserve').cash).toBe(game.cash);
     expect(chooseSupplierEvening(game, 'unknown' as 'reserve')).toBe(game);
     const day7 = { ...game, day: 7, summary: { ...game.summary!, day: 7 } };
     expect(canChooseSupplierEvening(day7, 'reserve')).toBe(false);
