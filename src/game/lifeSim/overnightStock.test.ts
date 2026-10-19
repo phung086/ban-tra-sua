@@ -63,7 +63,8 @@ describe('playable overnight stock preservation', () => {
     expect(rested.cash).toBe(0);
     expect(rested.city.minutes).toBe(1258);
     expect(nextDay(rested).inventory.blackPearl).toBe(0);
-    expect(chooseOvernightStock(createInitialState(), 'chill')).toEqual(createInitialState());
+    const initial = createInitialState();
+    expect(chooseOvernightStock(initial, 'chill')).toBe(initial);
   });
 
   it('cannot claim care with empty perishable stock or outside a completed shift', () => {
