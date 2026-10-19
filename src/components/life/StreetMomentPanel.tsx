@@ -20,13 +20,14 @@ export function StreetMomentPanel({ game, onGame }: {
       <p>{decision ? moment[decision].reply : moment.prompt}</p>
       {decision ? <p role="status">✓ Đã ghi vào nhật ký. Hàng xóm sẽ nhớ chuyện hôm nay.</p> :
         <div className="life-morning-options">
-          {(['help', 'message'] as const).map(choice => {
+          {(['help', 'team', 'message'] as const).map(choice => {
             const option = moment[choice];
             return <button key={choice} type="button" className="life-morning-option"
               disabled={!canChooseStreetMoment(game, choice)}
               onClick={() => onGame(chooseStreetMoment(game, choice))}>
               <strong>{option.label}</strong>
               <small>{option.minutes} phút · {option.energy} sức · +{option.goodwill} thiện cảm
+                {choice === 'team' ? ` · +1 gắn kết ${moment.helperName}` : ''}
                 {option.fans > 0 ? ` · +${option.fans} fan` : ''} · miễn phí</small>
             </button>;
           })}
