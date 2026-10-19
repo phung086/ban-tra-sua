@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { layoutIsMobile, selectPlayLayout } from "./game/playLayout";
 import { Neighborhood } from './components/Neighborhood';
-import { cityAction, walkCity, type CityAction } from './game/city';
+import { cityAction, type CityAction } from './game/city';
+import { walkCityWithUmbrella } from './game/lifeSim/rainUmbrella';
 import { CITY_PLACES, nearCityPlace, type CityPlace } from './game/cityMap';
 import {storyAction,nearbyTask,type ResidentId,type StoryAction} from './game/neighborhoodStories';
 import {NeighborhoodDialogue} from './components/NeighborhoodDialogue';
@@ -17,6 +18,7 @@ import { GoalsRoom } from "./components/world/GoalsRoom";
 import { PrepWorld } from "./components/world/PrepWorld";
 import { RushShiftProgress } from "./components/world/RushShiftProgress";
 import { EveningCarePanel } from "./components/life/EveningCarePanel";
+import { RainUmbrellaPanel } from "./components/life/RainUmbrellaPanel";
 import { ReviewsRoom } from "./components/world/ReviewsRoom";
 import { StockRoom } from "./components/world/StockRoom";
 import { UpgradesRoom } from "./components/world/UpgradesRoom";
@@ -108,7 +110,7 @@ function App() {
       walked.current += Math.hypot(p.x-previousPosition.current.x, p.z-previousPosition.current.z);
       if (walked.current >= 1 || Object.keys(CITY_PLACES).some(id=>nearCityPlace(p,id as CityPlace))) {
         const distance = walked.current; walked.current = 0;
-        if (distance > 0) setGame(state => walkCity(state, distance, p));
+        if (distance > 0) setGame(state => walkCityWithUmbrella(state, distance, p));
       }
     }
     riding.current = false;
@@ -247,6 +249,7 @@ function App() {
           {screen === "shop" && !exploring && game.phase === "prep" && (
             <>
               <EveningCarePanel game={game} onGame={setGame} />
+              <RainUmbrellaPanel game={game} onGame={setGame} />
               <PrepWorld game={game} onGame={setGame} onNavigate={setScreen} />
             </>
           )}
@@ -275,6 +278,7 @@ function App() {
                 ))}
               </div>
               <EveningCarePanel game={game} onGame={setGame} />
+              <RainUmbrellaPanel game={game} onGame={setGame} />
               {claimable > 0 && (
                 <button onClick={() => setScreen("goals")}>
                   Nhận thưởng {claimable} mục tiêu đã xong →
