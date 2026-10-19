@@ -1,7 +1,7 @@
 import type { GameState } from '../../game/types';
 import {
   THAO_MENU_OPTIONS, canChooseThaoMenu, chooseThaoMenu,
-  getThaoMenuCallback, getThaoMenuChoice, getThaoMenuSign,
+  getThaoMenuCallback, getThaoMenuChoice,
   getThaoMenuStage, type ThaoMenuChoice,
 } from '../../game/lifeSim/thaoMenu';
 
@@ -12,8 +12,7 @@ export function ThaoMenuPanel({ game, onGame }: {
 }) {
   const stage = getThaoMenuStage(game);
   const callback = getThaoMenuCallback(game);
-  const sign = getThaoMenuSign(game);
-  if (!stage && !callback && !sign) return null;
+  if (!stage && !callback) return null;
   const selected = getThaoMenuChoice(game);
   const choices: readonly ThaoMenuChoice[] = stage === 'invite'
     ? ['book', 'decline'] : ['print', 'handwrite', 'later'];
@@ -22,9 +21,6 @@ export function ThaoMenuPanel({ game, onGame }: {
     <span className="life-morning-label">BẠN BÈ · TIỆM TRÀ PHỐ NHỎ</span>
     <h3>🎨 Thảo và bảng thực đơn trước cửa tiệm</h3>
     {callback && <p role="status">💌 {callback}</p>}
-    {sign && <p className="life-thao-sign" aria-label="Bảng thực đơn hiện tại">
-      🪧 {sign.label} · từ ngày {sign.day}. Khách có thể xem giá trước khi gọi món.
-    </p>}
     {stage && <p>{selected
       ? THAO_MENU_OPTIONS[selected].text
       : stage === 'invite'
