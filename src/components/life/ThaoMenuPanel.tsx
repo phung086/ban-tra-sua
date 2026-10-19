@@ -1,4 +1,3 @@
-import '../../styles-thao-menu.css';
 import type { GameState } from '../../game/types';
 import { DRINKS } from '../../game/content';
 import {
@@ -25,12 +24,16 @@ export function ThaoMenuPanel({ game, onGame }: {
     <span className="life-morning-label">BẠN BÈ · TIỆM TRÀ PHỐ NHỎ</span>
     <h3>🎨 Thảo và bảng thực đơn trước cửa tiệm</h3>
     {callback && <p role="status">💌 {callback}</p>}
-    {sign && <div className="life-thao-sign" role="group" aria-label="Bảng giá trước cửa tiệm">
-      <p>🪧 {sign.label} · từ ngày {sign.day} · Giá đã niêm yết</p>
-      <ul className="life-thao-prices">
-        {visibleDrinks.map(drink => <li key={drink.id}>
+    {sign && <div className="life-thao-sign" role="group" aria-label="Bảng giá trước cửa tiệm"
+      style={{ margin: '12px 0', padding: 12, border: '1px solid #e7b5cf', borderRadius: 14,
+        background: '#fff9fc', color: '#58304a' }}>
+      <p style={{ margin: '0 0 8px', fontWeight: 700 }}>🪧 {sign.label} · từ ngày {sign.day} · Giá đã niêm yết</p>
+      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
+        {visibleDrinks.map(drink => <li key={drink.id} style={{ display: 'flex', flexWrap: 'wrap',
+          justifyContent: 'space-between', gap: '4px 12px', borderBottom: '1px solid #f1d8e4',
+          padding: '6px 0', fontSize: 13 }}>
           <span>{drink.emoji} {drink.name}</span>
-          <span>M {drink.priceM.toLocaleString('vi-VN')} ₫ · L {drink.priceL.toLocaleString('vi-VN')} ₫</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>M {drink.priceM.toLocaleString('vi-VN')} ₫ · L {drink.priceL.toLocaleString('vi-VN')} ₫</span>
         </li>)}
       </ul>
     </div>}
