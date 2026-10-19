@@ -82,11 +82,13 @@ describe('playable seeded street moments', () => {
   it('brings yesterday’s choice into tomorrow’s dialogue without repeating rewards', () => {
     const game = chooseStreetMoment(ready('forgotten-umbrella'), 'help');
     const tomorrow = nextDay(game);
-    expect(getStreetMomentCallback(tomorrow)).toContain('mang ô');
+    expect(getStreetMomentCallback(tomorrow)).toBeNull();
+    const awake = wakeMorning(tomorrow);
+    expect(getStreetMomentCallback(awake)).toContain('mang ô');
     expect(tomorrow.fans).toBe(game.fans);
     expect(tomorrow.city.goodwill).toBe(game.city.goodwill);
     const html = renderToStaticMarkup(createElement(PrepWorld, {
-      game: tomorrow, onGame: () => undefined, onNavigate: () => undefined,
+      game: awake, onGame: () => undefined, onNavigate: () => undefined,
     }));
     expect(html).toContain('Lời nhắn hôm nay');
   });
