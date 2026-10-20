@@ -4,6 +4,7 @@ import { morningActionBlock } from './morningAction';
 const PREFIX = 'hanh-market-help:';
 const PROMISE = PREFIX + 'promise:';
 const RESOLVED = PREFIX + 'resolved:';
+const POSTPONED = PREFIX + 'postponed:';
 
 export type HanhHelpChoice = 'carry' | 'bags' | 'apologize';
 
@@ -29,6 +30,11 @@ export interface HanhHelpPromise {
   promisedDay: number;
   dueDay: number;
   overdue: boolean;
+  postponed: boolean;
+}
+
+function postponed(game: Pick<GameState, 'relationshipRewardIds'>, promisedDay: number): boolean {
+  return game.relationshipRewardIds.includes(`${POSTPONED}${promisedDay}:${promisedDay + 1}`);
 }
 
 function promises(game: Pick<GameState, 'relationshipRewardIds'>): number[] {
@@ -45,7 +51,10 @@ function resolved(game: Pick<GameState, 'relationshipRewardIds'>, day: number): 
 /** Ledger survives sleep and v3 save/reload without a new save field. */
 export function pendingHanhHelp(game: Pick<GameState, 'day' | 'relationshipRewardIds'>): HanhHelpPromise | null {
   const day = promises(game).filter(value => value < game.day && !resolved(game, value)).sort((a, b) => a - b)[0];
-  return day === undefined ? null : { promisedDay: day, dueDay: day + 1, overdue: game.day > day + 1 };
+  if (day === undefined) return null;
+  const moved = postponed(game, day);
+  const dueDay = day + (moved ? 2 : 1);
+  return { promisedDay: day, dueDay, overdue: game.day > dueDay, postponed: moved };
 }
 
 export function canPromiseHanhHelp(game: GameState): boolean {
@@ -53,6 +62,39 @@ export function canPromiseHanhHelp(game: GameState): boolean {
   return game.phase === 'prep' && game.morning.day === game.day &&
     game.morning.step === 'finished' && game.morning.marketVisit === 'chat' &&
     (latest === 0 || game.day - latest >= 3) && !pendingHanhHelp(game);
+}
+
+/** Move one promise one day; persisted in save-v3 reward ledger. */
+export function canPostponeHanhHelp(game: GameState): boolean {
+  const pending = pendingHanhHelp(game);
+  return game.phase === 'prep' && game.morning.day === game.day &&
+    game.morning.step === 'finished' && pending !== null &&
+    !pending.postponed && pending.dueDay === game.day &&
+    [game.city.minutes, game.city.energy, game.cash].every(Number.isFinite) &&
+    morningActionBlock(game, 0, 2) === null;
+}
+
+export function postponeHanhHelp(game: GameState): GameState {
+  if (!canPostponeHanhHelp(game)) return game;
+  const pending = pendingHanhHelp(game)!;
+  const dueDay = game.day + 1;
+  return {
+    ...game,
+    relationshipRewardIds: [...game.relationshipRewardIds,
+      `${POSTPONED}${pending.promisedDay}:${game.day}`],
+    city: {
+      ...game.city,
+      minutes: game.city.minutes + 2,
+      stories: {
+        ...game.city.stories,
+        bonds: { ...game.city.stories.bonds,
+          hanh: Math.max(0, (game.city.stories.bonds.hanh ?? 0) - 1) },
+      },
+      journal: [`Ngày ${game.day} · Báo cô Hạnh dời lời hẹn sang ngày ${dueDay} (2 phút, -1 thân thiết).`,
+        ...game.city.journal].slice(0, 24),
+    },
+    notice: `Cô Hạnh: “Mai cháu ghé cũng được, cảm ơn đã báo trước. Cô chờ ngày ${dueDay} nhé.”`,
+  };
 }
 
 export function promiseHanhHelp(game: GameState): GameState {
@@ -79,7 +121,7 @@ export function resolveHanhHelp(game: GameState, choice: HanhHelpChoice): GameSt
   if (game.phase !== 'prep' || game.morning.day !== game.day ||
       game.morning.step !== 'finished') return game;
   const pending = pendingHanhHelp(game);
-  if (!pending) return game;
+  if (!pending || (pending.postponed && game.day < pending.dueDay)) return game;
   const option = HANH_HELP_OPTIONS[choice];
   if (!option) return game;
   if (![game.cash, game.city.minutes, game.city.energy].every(Number.isFinite)) return game;
@@ -116,7 +158,7 @@ export function resolveHanhHelp(game: GameState, choice: HanhHelpChoice): GameSt
 /** A saved promise resolution can change the next market greeting, without new rewards. */
 export function hanhHelpLastResolution(
   game: Pick<GameState, 'day' | 'relationshipRewardIds'>,
-): { promisedDay: number; resolvedDay: number; choice: HanhHelpChoice; overdue: boolean } | null {
+): { promisedDay: number; resolvedDay: number; choice: HanhHelpChoice; overdue: boolean; postponed: boolean } | null {
   const records = game.relationshipRewardIds.flatMap(id => {
     const match = /^hanh-market-help:resolved:(\d+):(carry|bags|apologize):(\d+)$/.exec(id);
     if (!match) return [];
@@ -125,8 +167,9 @@ export function hanhHelpLastResolution(
     if (!Number.isSafeInteger(promisedDay) || !Number.isSafeInteger(resolvedDay) ||
         promisedDay < 1 || resolvedDay <= promisedDay || resolvedDay >= game.day ||
         !game.relationshipRewardIds.includes(`hanh-market-help:promise:${promisedDay}`)) return [];
+    const moved = postponed(game, promisedDay);
     return [{ promisedDay, resolvedDay, choice: match[2] as HanhHelpChoice,
-      overdue: resolvedDay > promisedDay + 1 }];
+      overdue: resolvedDay > promisedDay + (moved ? 2 : 1), postponed: moved }];
   });
   records.sort((a, b) => b.resolvedDay - a.resolvedDay || b.promisedDay - a.promisedDay);
   return records[0] ?? null;
@@ -140,6 +183,8 @@ export function hanhHelpFollowup(game: Pick<GameState, 'day' | 'relationshipRewa
     return 'Cô Hạnh: “Hôm trước cháu nói không giúp được. Cô hiểu, lần sau cứ báo sớm là được.”';
   if (last.overdue)
     return 'Cô Hạnh: “Cháu đến muộn nhưng vẫn quay lại giúp, cô ghi nhận điều đó.”';
+  if (last.postponed)
+    return 'Cô Hạnh: “Hôm trước cháu báo dời hẹn, rồi vẫn quay lại đúng ngày. Cô quý điều đó.”';
   return last.choice === 'carry'
     ? 'Cô Hạnh: “Nhờ hôm trước cháu xếp sạp, cô đỡ cuống hẳn. Hôm nay cứ thong thả chọn hàng nhé.”'
     : 'Cô Hạnh: “Mấy chiếc túi giấy hôm trước dùng vừa khéo. Cô cảm ơn cháu lần nữa.”';
