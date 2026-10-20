@@ -3,8 +3,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MorningRoutine } from '../../components/life/MorningRoutine';
 import { createInitialState, nextDay, startDay } from '../engine';
+import { hydrateCity } from '../city';
 import { chooseBreakfast, hydrateMorning, wakeMorning } from './morning';
 import { marketChoice, visitMorningMarket } from './marketEncounter';
+import { promiseHanhHelp, pendingHanhHelp, resolveHanhHelp } from './hanhHelpPromise';
 
 const ready = () => chooseBreakfast(wakeMorning(createInitialState()), 'street');
 
@@ -87,4 +89,52 @@ describe('playable market encounter', () => {
     expect(next.morning.step).toBe('asleep');
     expect(next.city.stories.bonds.hanh).toBe(first.city.stories.bonds.hanh);
   });
+});
+
+
+describe('Hanh next-day promise', () => {
+  it('shows the promise after chat, persists to tomorrow and resolves only once', () => {
+    const chatted = visitMorningMarket(ready(), 'chat');
+    const promised = promiseHanhHelp(chatted);
+    expect(promiseHanhHelp(promised)).toBe(promised);
+    const tomorrow = chooseBreakfast(wakeMorning(nextDay(promised)), 'skip');
+    expect(pendingHanhHelp(tomorrow)?.dueDay).toBe(2);
+    const kept = resolveHanhHelp(tomorrow, 'carry');
+    expect(kept.city.energy).toBe(tomorrow.city.energy - 7);
+    expect(kept.city.minutes).toBe(tomorrow.city.minutes + 14);
+    expect(resolveHanhHelp(kept, 'carry')).toBe(kept);
+  });
+});
+
+it('shows Hanh due choices in the live market and supports zero-cash fallback', () => {
+  const first = promiseHanhHelp(visitMorningMarket(ready(), 'chat'));
+  const due = chooseBreakfast(wakeMorning(nextDay(first)), 'skip');
+  const html = renderToStaticMarkup(createElement(MorningRoutine, { game: due, onGame: () => undefined }));
+  expect(html).toContain('Phụ xếp sạp');
+  expect(html).toContain('Mua túi giấy');
+  expect(html).toContain('Xin lỗi cô Hạnh');
+  const poor = { ...due, cash: 0, city: { ...due.city, energy: 0, minutes: 1260 } };
+  expect(pendingHanhHelp(resolveHanhHelp(poor, 'bags'))).not.toBeNull();
+  const apology = resolveHanhHelp(poor, 'apologize');
+  expect(apology.cash).toBe(0);
+  expect(apology.city.minutes).toBe(1260);
+  expect(pendingHanhHelp(apology)).toBeNull();
+  expect(startDay(apology).phase).toBe('open');
+});
+
+it('keeps the Hanh promise ledger across JSON save/reload and an overdue day', () => {
+  const first = promiseHanhHelp(visitMorningMarket(ready(), 'chat'));
+  const due = chooseBreakfast(wakeMorning(nextDay(first)), 'skip');
+  const overdue = chooseBreakfast(wakeMorning(nextDay(due)), 'skip');
+  expect(pendingHanhHelp(overdue)?.overdue).toBe(true);
+  const stored = JSON.parse(JSON.stringify(overdue));
+  const reloaded = {
+    ...overdue,
+    relationshipRewardIds: stored.relationshipRewardIds,
+    city: hydrateCity(stored.city, stored.day),
+    morning: hydrateMorning(stored.morning, { day: stored.day, city: stored.city }, 'prep'),
+  };
+  expect(pendingHanhHelp(reloaded)?.promisedDay).toBe(1);
+  const resolved = resolveHanhHelp(reloaded, 'carry');
+  expect(resolveHanhHelp(resolved, 'carry')).toBe(resolved);
 });
