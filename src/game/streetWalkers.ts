@@ -21,7 +21,9 @@ export function initialStreetWalkers(state:Pick<GameState,'day'|'morning'>,count
   for(let i=0;i<count;i++){
     const random=createDayRandom({worldSeed:state.morning.worldSeed,day:state.day,channel:'street-walker-v1',slot:i});
     const position=safeStreetPoint(ANCHORS[i%ANCHORS.length],people.map(p=>p.position));
-    const goal=plan.kind==='delivery'&&i<2?{x:-26,z:-9}:ANCHORS[(i%2?i-1:i+1)%ANCHORS.length];
+    const goal=plan.kind==='delivery'&&i<2?{x:-26,z:-9}:
+      plan.kind!=='crossing'&&i===4?ANCHORS[1]:plan.kind!=='crossing'&&i===5?ANCHORS[3]:
+      ANCHORS[(i%2?i-1:i+1)%ANCHORS.length];
     people.push({position,path:[],goal:safeStreetPoint(goal),heading:random()*Math.PI*2,speed:.85+random()*.55,
       pause:i*.28,blocked:0,cycle:0,injured:0,down:0,seed:random()});
   }

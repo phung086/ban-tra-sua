@@ -199,7 +199,7 @@ export function StreetWorld(props: Props) {
               <button disabled={onCarriageway(props.position)} onClick={props.onStreetRest}>Nghỉ và chăm sóc · miễn phí · 20 phút</button>
               {onCarriageway(props.position)&&<small>Đi chậm ra vỉa hè để nghỉ.</small>}</>:
               <><strong>{incident.title}</strong><span>{incidentResolved?'Bạn đã lựa chọn cách xử lý hôm nay.':incident.detail}</span>
-              {!incidentResolved&&incidentDistance<=3.2&&<div><button disabled={props.game.city.energy<4||props.game.city.minutes>1252} onClick={()=>props.onStreetChoice('help')}>Giúp hàng xóm · 8 phút · 4 sức lực</button>
+              {!incidentResolved&&incidentDistance<=3.2&&<div><button disabled={props.game.city.energy<4||props.game.city.minutes>1252} onClick={()=>props.onStreetChoice('help')}>{incident.help} · 8 phút · 4 sức lực</button>
                 <button onClick={()=>props.onStreetChoice('pass')}>Tiếp tục công việc</button></div>}</>}
           </aside>}
           {props.exploring&&<CityCompass position={props.position} onOpen={props.onOpenMap}/>}

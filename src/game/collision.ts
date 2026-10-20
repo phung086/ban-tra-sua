@@ -32,6 +32,11 @@ export function advanceTraffic(index:number,progress:number,dt:number,motion:boo
 /** Continuous SAT for translating oriented rectangles; null means no contact. */
 export function sweepFootprints(a:Footprint,b:Footprint,delta:{x:number;z:number}):number|null {
   if(![a.x,a.z,a.width,a.depth,a.yaw??0,b.x,b.z,b.width,b.depth,b.yaw??0,delta.x,delta.z].every(Number.isFinite))return 0;
+  // Reject distant pairs before allocating SAT axes. The half-perimeter
+  // conservatively bounds either orientation, including balconies/thin walls.
+  const ar=(a.width+a.depth)/2,br=(b.width+b.depth)/2;
+  if(Math.max(a.x,a.x+delta.x)+ar<b.x-br||Math.min(a.x,a.x+delta.x)-ar>b.x+br||
+     Math.max(a.z,a.z+delta.z)+ar<b.z-br||Math.min(a.z,a.z+delta.z)-ar>b.z+br)return null;
   const axes=(yaw=0)=>[{x:Math.cos(yaw),z:-Math.sin(yaw)},{x:Math.sin(yaw),z:Math.cos(yaw)}];
   const aa=axes(a.yaw),bb=axes(b.yaw);
   let enter=0,leave=1;

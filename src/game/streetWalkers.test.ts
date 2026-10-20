@@ -2,6 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {createInitialState} from './engine';
 import {canWalk} from './service';
 import {initialStreetWalkers,advanceStreetWalker} from './streetWalkers';
+import {initialTraffic,stepStreetTraffic} from './streetTraffic';
 import {overlapsFootprint,vehicleFootprint} from './collision';
 
 describe('physical residents',()=>{
@@ -18,6 +19,18 @@ describe('physical residents',()=>{
       expect(canWalk(walker.position,true)).toBe(true);expect(overlapsFootprint(walker.position,body)).toBe(false);
     }
   });
+  it('keeps residents and vehicles on navigable ground through a busy crossing',()=>{
+    let people=initialStreetWalkers(createInitialState()),road=initialTraffic();
+    for(let frame=0;frame<400;frame++){
+      road=stepStreetTraffic(road,1/30,people.map((p,i)=>({id:'walker-'+i,...p.position})),false).vehicles;
+      const bodies=road.map(v=>vehicleFootprint(v.index,v.x,v.z));
+      people=people.map(p=>advanceStreetWalker(p,1/30,bodies));
+      for(const p of people){
+        expect(canWalk(p.position,true)).toBe(true);
+        expect(bodies.some(b=>overlapsFootprint(p.position,b))).toBe(false);
+      }
+    }
+  },15000);
   it('stays down after impact, then can limp toward safety and recover',()=>{
     const base=initialStreetWalkers(createInitialState())[0],hurt={...base,down:2,injured:30,pause:0};
     const next=advanceStreetWalker(hurt,.05,[]);

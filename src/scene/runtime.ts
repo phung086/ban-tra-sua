@@ -491,7 +491,7 @@ export class StreetRuntime {
         Number(this.keys.has("d") || this.keys.has("arrowright")) -
         Number(this.keys.has("a") || this.keys.has("arrowleft"));
       if (forward || side || this.stick.x || this.stick.y) {
-        const walkingSpeed=this.input.exploring?(game.city.energy<8?1.6:rainy?2.5:2.9):2.3;
+        const walkingSpeed=this.input.exploring?(game.city.energy<8?.9:rainy?1.5:1.8):1.45;
         const delta=movementVector(this.stick.x||this.stick.y?this.stick:{x:side,y:-forward},this.yaw,walkingSpeed*injury.speedScale,dt);
         dx=delta.x;dz=delta.z;
       } else if (this.path.length) {
@@ -504,7 +504,7 @@ export class StreetRuntime {
             this.pitch = -0.18;
           }
         } else {
-          const speed = this.input.exploring ? (game.city.energy < 8 ? 1.6 : rainy ? 2.5 : 2.9) : 2.4;
+          const speed = this.input.exploring ? (game.city.energy < 8 ? .9 : rainy ? 1.5 : 1.8) : 1.45;
           const step = Math.min(distance, dt * speed * injury.speedScale);
           dx = ((next.x - this.player.x) / distance) * step;
           dz = ((next.z - this.player.z) / distance) * step;
@@ -547,7 +547,7 @@ export class StreetRuntime {
       cup.root.visible=i<game.city.contract!.count;
       cup.update({size:'M',base:game.city.contract!.base,sugar:game.city.contract!.sugar,ice:50,topping:'none',fill:70,shake:70,sealed:true});
     });
-    this.avatarPhase+=Math.hypot(dx,dz)*5.2;
+    this.avatarPhase+=Math.hypot(dx,dz)*3.6;
     pose(this.avatar, this.sceneTime, !!(dx || dz), this.parcel.root.visible||item?0.45:0, this.city.clock<this.stumbleUntil, this.motion,this.avatarPhase);
     this.avatar.body.rotation.z=injury.severity>0?.06+(this.motion&&(dx||dz)?Math.sin(this.avatarPhase)*.035:0):0;
     if(this.avatar.imported&&(this.parcel.root.visible||item)){
