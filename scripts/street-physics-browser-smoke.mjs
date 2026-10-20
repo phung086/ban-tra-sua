@@ -54,7 +54,7 @@ for(const engine of ['three','babylon']){
   report.checks.push(engine+': real joystick drives Walk; notebook pause freezes traffic');
   for(const [width,height] of [[360,800],[390,844],[844,390],[1280,800]]){
     await page.setViewportSize({width,height});await page.waitForTimeout(1200);
-    const boxes=await page.evaluate(()=>{const r=document.querySelector('.movement-stick').getBoundingClientRect();return {viewport:[innerWidth,innerHeight],scrollWidth:document.documentElement.scrollWidth,stickRect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},overflow:document.documentElement.scrollWidth>innerWidth+2,stick:r.left>=-.5&&r.right<=innerWidth+.5&&r.bottom<=innerHeight+.5};});
+    const boxes=await page.evaluate(()=>{const r=document.querySelector('.movement-stick').getBoundingClientRect();return {viewport:[innerWidth,innerHeight],visualHeight:visualViewport?.height,sceneHeight:document.querySelector('.street-world').getBoundingClientRect().height,appHeight:document.querySelector('.app-shell').getBoundingClientRect().height,scrollWidth:document.documentElement.scrollWidth,stickRect:{left:r.left,right:r.right,top:r.top,bottom:r.bottom},overflow:document.documentElement.scrollWidth>innerWidth+2,stick:r.left>=-.5&&r.right<=innerWidth+.5&&r.bottom<=innerHeight+.5};});
     await page.screenshot({path:out+'/'+engine+'-'+width+'x'+height+'.png',timeout:60000});
     assert(!boxes.overflow&&boxes.stick,engine+': viewport layout '+width+'x'+height+' '+JSON.stringify(boxes));
     report.checks.push(engine+': '+width+'x'+height+' screenshot and layout');
