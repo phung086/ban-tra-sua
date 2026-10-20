@@ -13,3 +13,7 @@ try {
   await page.getByRole('button',{name:/Mua trái cây cô Hạnh/}).click();
   await page.getByText('Đã ghé chợ hôm nay').waitFor();
 } finally { await browser.close(); }
+
+// PR #43 regression: the market's live promise callback and next-day fruit
+// price must pass in the same four-viewport browser job, not just unit tests.
+await import('./hanh-followup-browser-smoke.mjs');
