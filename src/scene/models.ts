@@ -727,7 +727,7 @@ export function pose(
   strideScale=1,
   greeting=0,
 ) {
-  if(person.imported){poseImported(person,time,walking,holdingCup||gesture>0,sitting,motion);return;}
+  if(person.imported){poseImported(person,time,walking,holdingCup||gesture>.4,sitting,motion);return;}
   // Blend locomotion instead of snapping all limbs when a step starts/stops.
   // The 50ms dt cap prevents background-tab gaps from jumping the skeleton.
   const anim=person.animation;

@@ -1,3 +1,4 @@
+import {recordStreetImpact,restStreetInjury,resolveStreetEvent} from './game/streetLife';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { layoutIsMobile, selectPlayLayout } from "./game/playLayout";
 import { Neighborhood } from './components/Neighborhood';
@@ -228,6 +229,9 @@ function App() {
           onStory={doStory}
           onOpenTasks={()=>{setCityPanel('orders');setSheetOpen(true);}}
           onOpenMap={()=>{setCityPanel('map');setSheetOpen(true);}}
+          onStreetImpact={speed=>setGame(state=>recordStreetImpact(state,speed))}
+          onStreetRest={()=>setGame(state=>restStreetInjury(state,position))}
+          onStreetChoice={choice=>setGame(state=>resolveStreetEvent(state,choice,position))}
           nearbyTask={nearbyTask(game.city.stories,position)}
         />
         <section

@@ -1,3 +1,4 @@
+import {streetInjury} from '../game/streetLife';
 import {clearCameraFraction,easeCameraClearance,clearOrbitYaw} from './followCamera';
 import * as T from "three";
 import {ThreeSceneRenderer} from './threeRenderer';
@@ -45,6 +46,7 @@ type Input = {
   exploring: boolean;
   paused:boolean;
   onTalk:(id:ResidentId)=>void;
+  onStreetImpact?:(speed:number)=>void;
 };
 type Actor = { person: Person; cup: ReturnType<typeof makeCup>; locomotion:NpcLocomotion };
 export class StreetRuntime {
@@ -92,6 +94,8 @@ export class StreetRuntime {
   path: Position[] = [];
   blockedTime=0;
   avatarPhase=0;
+  stumbleUntil=0;
+  sceneTime=0;
   input: Input;
   raf = 0;
   previous = 0;
@@ -409,7 +413,16 @@ export class StreetRuntime {
     const dt = Math.min(0.05, frameInterval/1000);
     this.previous = now;
     const { game, screen, carrying } = this.input;
-    this.city.update(game, dt, this.motion, this.player);
+    const worldDt=this.input.paused?0:dt;
+    this.sceneTime+=worldDt;
+    this.city.update(game, worldDt, this.motion, this.player);
+    const impact=Math.max(0,...this.city.impacts.filter(hit=>hit.id==='player').map(hit=>hit.speed));
+    if(impact>0&&this.input.exploring&&!this.input.paused){
+      this.stumbleUntil=this.city.clock+.85;this.path=[];this.keys.clear();this.stick={x:0,y:0};
+      this.input.onStreetImpact?.(impact);
+    }
+    const injury=streetInjury(game);
+    const streetBodies=[...this.city.trafficBodies,...this.city.pedestrianBodies];
     const night = game.city.minutes >= 1080;
     const rainy = cityWeather(game.day).rain;
     this.sceneColor.set(night?'#38445c':rainy?'#b7c9cf':'#c8dde9');
@@ -452,7 +465,7 @@ export class StreetRuntime {
       actor.person.root.rotation.y = locomotion.next.heading;
       pose(
         actor.person,
-        now / 1000,
+        this.sceneTime,
         locomotion.stepping,
         state.gesture,
         state.sitting,
@@ -470,7 +483,7 @@ export class StreetRuntime {
     }
     let dx = 0,
       dz = 0;
-    if (screen === "shop" && !this.input.paused) {
+    if (screen === "shop" && !this.input.paused && this.city.clock>=this.stumbleUntil) {
       const forward =
         Number(this.keys.has("w") || this.keys.has("arrowup")) -
         Number(this.keys.has("s") || this.keys.has("arrowdown"));
@@ -478,8 +491,8 @@ export class StreetRuntime {
         Number(this.keys.has("d") || this.keys.has("arrowright")) -
         Number(this.keys.has("a") || this.keys.has("arrowleft"));
       if (forward || side || this.stick.x || this.stick.y) {
-        const walkingSpeed=this.input.exploring?(game.city.energy<8?1.6:rainy?2.5:2.9):2.3;
-        const delta=movementVector(this.stick.x||this.stick.y?this.stick:{x:side,y:-forward},this.yaw,walkingSpeed,dt);
+        const walkingSpeed=this.input.exploring?(game.city.energy<8?.9:rainy?1.5:1.8):1.45;
+        const delta=movementVector(this.stick.x||this.stick.y?this.stick:{x:side,y:-forward},this.yaw,walkingSpeed*injury.speedScale,dt);
         dx=delta.x;dz=delta.z;
       } else if (this.path.length) {
         const next = this.path[0],
@@ -491,19 +504,19 @@ export class StreetRuntime {
             this.pitch = -0.18;
           }
         } else {
-          const speed = this.input.exploring ? (game.city.energy < 8 ? 1.6 : rainy ? 2.5 : 2.9) : 2.4;
-          const step = Math.min(distance, dt * speed);
+          const speed = this.input.exploring ? (game.city.energy < 8 ? .9 : rainy ? 1.5 : 1.8) : 1.45;
+          const step = Math.min(distance, dt * speed * injury.speedScale);
           dx = ((next.x - this.player.x) / distance) * step;
           dz = ((next.z - this.player.z) / distance) * step;
           if (!this.overview && !this.input.exploring) this.yaw = Math.atan2(-dx, -dz);
         }
       }
-      const next=slideMove(this.player,{x:dx,z:dz},this.input.exploring,this.input.exploring?this.city.trafficBodies:[]);
+      const next=slideMove(this.player,{x:dx,z:dz},this.input.exploring,this.input.exploring?streetBodies:[]);
       const wanted=Math.hypot(dx,dz),actual=Math.hypot(next.x-this.player.x,next.z-this.player.z);
       this.blockedTime=this.path.length&&wanted>.001&&actual<wanted*.2?this.blockedTime+dt:0;
       if(this.input.exploring&&this.blockedTime>.45){
         const destination=this.path.at(-1)!;
-        const detour=routeAcross(next,destination,true,this.city.trafficBodies);
+        const detour=routeAcross(next,destination,true,streetBodies);
         if(detour.length)this.path=detour;
         this.blockedTime=0;
       }
@@ -518,7 +531,7 @@ export class StreetRuntime {
     }
     // Publish the final snapped arrival as well as moving samples.
     if(this.path.length===1&&Math.hypot(this.path[0].x-this.player.x,this.path[0].z-this.player.z)<0.06){
-      const goal=this.path[0],arrival=slideMove(this.player,{x:goal.x-this.player.x,z:goal.z-this.player.z},this.input.exploring,this.input.exploring?this.city.trafficBodies:[]);
+      const goal=this.path[0],arrival=slideMove(this.player,{x:goal.x-this.player.x,z:goal.z-this.player.z},this.input.exploring,this.input.exploring?streetBodies:[]);
       if(Math.hypot(arrival.x-goal.x,arrival.z-goal.z)<.001){this.player={...goal};this.path=[];if(!this.input.exploring){this.yaw=0;this.pitch=-.18;}this.notify({...this.player});this.lastPosition=now;}
     }
     this.avatar.root.position.set(this.player.x, 0, this.player.z);
@@ -534,8 +547,9 @@ export class StreetRuntime {
       cup.root.visible=i<game.city.contract!.count;
       cup.update({size:'M',base:game.city.contract!.base,sugar:game.city.contract!.sugar,ice:50,topping:'none',fill:70,shake:70,sealed:true});
     });
-    this.avatarPhase+=Math.hypot(dx,dz)*5.2;
-    pose(this.avatar, now / 1000, !!(dx || dz), this.parcel.root.visible||item?0.45:0, false, this.motion,this.avatarPhase);
+    this.avatarPhase+=Math.hypot(dx,dz)*3.6;
+    pose(this.avatar, this.sceneTime, !!(dx || dz), this.parcel.root.visible||item?0.45:0, this.city.clock<this.stumbleUntil, this.motion,this.avatarPhase);
+    this.avatar.body.rotation.z=injury.severity>0?.06+(this.motion&&(dx||dz)?Math.sin(this.avatarPhase)*.035:0):0;
     if(this.avatar.imported&&(this.parcel.root.visible||item)){
       this.avatar.root.updateMatrixWorld(true);
       const socket=this.avatar.root.worldToLocal(this.avatar.hand.getWorldPosition(this.target));

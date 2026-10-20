@@ -53,3 +53,19 @@ describe('bundled production people',()=>{
     scene.dispose();engine.dispose();w.dispose();
   });
 });
+
+describe('distance driven imported people',()=>{
+  it('runs a slow step slower, freezes a blocked foot, and idles during a neighbor greeting',()=>{
+    const w=new Workshop(),person=makePerson(w,CUSTOMERS.find(c=>c.id==='miu')!);
+    pose(person,0,true,0,false,true);
+    person.root.position.x=.07;pose(person,.05,true,0,false,true);
+    const walk=person.imported!.actions.get('Walk')!;
+    expect(walk.getEffectiveTimeScale()).toBeCloseTo(1,4);
+    person.root.position.x+=.0175;pose(person,.10,true,0,false,true);
+    expect(walk.getEffectiveTimeScale()).toBeCloseTo(.25,4);
+    const at=walk.time;pose(person,.15,true,0,false,true);
+    expect(walk.getEffectiveTimeScale()).toBe(0);expect(walk.time).toBeCloseTo(at,5);
+    pose(person,.2,false,.35,false,true);expect(person.imported!.active).toBe('Idle');
+    w.dispose();
+  });
+});

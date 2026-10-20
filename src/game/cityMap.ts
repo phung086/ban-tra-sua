@@ -9,7 +9,7 @@ export const CITY_PLACES = {
   library: { x: -26, z: -29, name: 'Hiệu sách bên phố', detail: 'Trà ô long cho câu lạc bộ đọc sách', hours: [480, 1200] },
   lake: { x: 25, z: -27, name: 'Hồ An Hòa', detail: 'Nghỉ chân bên hồ · gặp bác Minh', hours: [360, 1320] },
   park: { x: -6, z: -28, name: 'Vườn hoa tổ dân phố', detail: 'Chăm cây · góp sức cho khu phố', hours: [360, 1260] },
-  bus: { x: -15, z: -23, name: 'Điểm xe buýt 09', detail: 'Tuyến về tiệm · 7.000 ₫ một lượt', hours: [360, 1260] },
+  bus: { x: -18.7, z: -28.3, name: 'Điểm xe buýt 09', detail: 'Tuyến về tiệm · 7.000 ₫ một lượt', hours: [360, 1260] },
   oldtown: { x: -57, z: -46, name: 'Phố Lò Gốm', detail: 'Phố cổ, hàng thủ công và những mái ngói', hours: [360, 1260] },
   plaza: { x: 0, z: -69, name: 'Quảng trường Đông Phong', detail: 'Hội chợ cuối tuần · sân chơi của thành phố', hours: [360, 1260] },
   riverside: { x: 56, z: -43, name: 'Đường ven sông', detail: 'Đường dạo dưới hàng cây · gặp gỡ và chụp ảnh', hours: [360, 1260] },
@@ -41,7 +41,7 @@ export const CITY_SOLID_PROPS=[
   ...Array.from({length:4},(_,i)=>({x:-30.5+i*3,z:-11.4,width:2.4,depth:1.3})),
   ...[20.2,31.8].map(x=>({x,z:-11.3,width:.55,depth:.6})),
   {x:6.2,z:-38.4,width:2.5,depth:2.5},
-  {x:-17.5,z:-23,width:.1,depth:3.1},
+  {x:-20,z:-28.5,width:.1,depth:3.1},
   {x:-34.5,z:-12,width:1.5,depth:.8},
   ...[-35,-34].map(x=>({x,z:-11.15,width:.45,depth:.42})),
   ...[-7,7].map(x=>({x,z:-71.1,width:2.2,depth:.8})),
@@ -49,8 +49,10 @@ export const CITY_SOLID_PROPS=[
   ...[21,29].map(x=>({x,z:-27.85,width:2.6,depth:.85})),
 ];
 export function cityArea(p:Position){return p.x<-42?'Phố Lò Gốm':p.x>43?'Đường ven sông':p.z<-65&&p.x<-16?'Sân đình Hạ':p.z<-46?'Đông Phong':'An Hòa';}
+// Trees flank the road; remove the two rows that previously grew in traffic.
+export const STREET_TREE_POSITIONS=Array.from({length:9},(_,i)=>[-1,1].map(side=>({x:side*10.7,z:-16-i*3.1,radius:.32,size:.75+i%3*.08}))).flat().filter(p=>p.z>=-20||p.z<=-28);
 export const STREET_OBSTACLES = [
-  ...Array.from({length:9},(_,i)=>[-1,1].map(side=>({x:side*10.7,z:-16-i*3.1,radius:0.32}))).flat(),
+  ...STREET_TREE_POSITIONS,
   ...Array.from({length:5},(_,i)=>[-1,1].map(side=>({x:side*34.5,z:-7-i*7,radius:0.35}))).flat(),
   ...Array.from({length:11},(_,i)=>({x:60,z:-9-i*7.5,radius:.3})),
   ...Array.from({length:6},(_,i)=>[-1,1].map(side=>({x:side*48,z:-50-i*7.2,radius:.3}))).flat(),

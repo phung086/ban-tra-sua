@@ -2,7 +2,7 @@ import * as T from 'three';
 import type {Workshop} from './models';
 
 /** Shared 1.8 m scooter: bodywork follows a side profile, wheels stay on the road. */
-export function makeScooter(w:Workshop,color:string){
+export function makeScooter(w:Workshop,color:string,parked=true){
   const root=new T.Group();
   const shell=(key:string,points:number[][],width:number,tint:string)=>{
     const shape=new T.Shape();points.forEach(([z,y],i)=>i?shape.lineTo(-z,y):shape.moveTo(-z,y));shape.closePath();
@@ -16,10 +16,13 @@ export function makeScooter(w:Workshop,color:string){
   shell('shield',[[.26,.25],[.35,.53],[.38,.96],[.49,1.10],[.64,1.06],[.66,.86],[.53,.40],[.46,.25]],.30,color);
   w.box(root,'#353937',[0,.25,.13],[.45,.07,.69]);
   w.ball(root,'#39352f',[0,.76,-.36],[.21,.055,.37]);
+  const wheels:T.Group[]=[];root.userData.wheels=wheels;
   for(const z of [-.64,.61]){
-    const tire=w.mesh(root,w.geometry('scooter-tire',()=>new T.TorusGeometry(.205,.052,10,24)),'#252a29',[0,.25,z]);tire.rotation.y=Math.PI/2;
-    const rim=w.cylinder(root,'#b7b9b4',[0,.25,z],.156,.11,.65);rim.rotation.z=Math.PI/2;
-    const hub=w.cylinder(root,'#515e5b',[0,.25,z],.055,.125,.65);hub.rotation.z=Math.PI/2;
+    const wheel=new T.Group();wheel.position.set(0,.25,z);root.add(wheel);wheels.push(wheel);
+    const tire=w.mesh(wheel,w.geometry('scooter-tire',()=>new T.TorusGeometry(.205,.052,10,24)),'#252a29',[0,0,0]);tire.rotation.y=Math.PI/2;
+    const rim=w.cylinder(wheel,'#b7b9b4',[0,0,0],.156,.11,.65);rim.rotation.z=Math.PI/2;
+    const hub=w.cylinder(wheel,'#515e5b',[0,0,0],.055,.125,.65);hub.rotation.z=Math.PI/2;
+    for(let spoke=0;spoke<6;spoke++)w.line(wheel,'#d1d1c7',[[.065,0,0],[.065,Math.sin(spoke*Math.PI/3)*.15,Math.cos(spoke*Math.PI/3)*.15]],.009);
     for(const side of [-1,1])w.line(root,'#b9c1bb',[[side*.07,.25,z],[side*.07,.39,z+.05]],.014);
   }
   for(const side of [-1,1]){
@@ -31,8 +34,11 @@ export function makeScooter(w:Workshop,color:string){
     w.ball(root,'#c29a4c',[side*.16,.94,.632],[.036,.025,.018]);
   }
   w.ball(root,'#d9e2d6',[0,1.04,.64],[.115,.068,.028]);
-  w.box(root,'#943b2d',[0,.56,-.80],[.21,.06,.04]);
+  const brake=w.box(root,'#943b2d',[0,.56,-.80],[.21,.06,.04]);
+  const brakeMaterial=(brake.material as T.MeshStandardMaterial).clone();
+  brakeMaterial.emissive.set('#c23b20');brakeMaterial.emissiveIntensity=.12;
+  w.materials.set('scooter-brake:'+root.uuid,brakeMaterial);brake.material=brakeMaterial;root.userData.brake=brake;
   w.label(root,'29 · HN',[0,.39,-.815],.22,.12,'#ecebda','#333b37',32).rotation.y=Math.PI;
-  w.line(root,'#4b534c',[[.11,.29,-.28],[.26,.01,-.4]],.018);
+  if(parked)w.line(root,'#4b534c',[[.11,.29,-.28],[.26,.01,-.4]],.018);
   return root;
 }
