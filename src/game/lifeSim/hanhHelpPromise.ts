@@ -6,7 +6,7 @@ const PROMISE = PREFIX + 'promise:';
 const RESOLVED = PREFIX + 'resolved:';
 const POSTPONED = PREFIX + 'postponed:';
 
-export type HanhHelpChoice = 'carry' | 'bags' | 'apologize';
+export type HanhHelpChoice = 'carry' | 'bags' | 'labels' | 'apologize';
 
 export const HANH_HELP_OPTIONS = {
   carry: {
@@ -18,6 +18,11 @@ export const HANH_HELP_OPTIONS = {
     label: 'Mua túi giấy giúp cô',
     cost: 9000, minutes: 6, energy: 0, bond: 1,
     description: 'Cô Hạnh: “Đúng thứ cô đang thiếu. Để cô nhớ phần tốt cho cháu!”',
+  },
+  labels: {
+    label: 'Viết bảng giá giúp cô',
+    cost: 0, minutes: 10, energy: 1, bond: 1,
+    description: 'Cô Hạnh: “Bảng giá rõ ràng thế này khách dễ chọn hơn. Cảm ơn cháu nhé!”',
   },
   apologize: {
     label: 'Nói thật hôm nay không giúp được',
@@ -160,7 +165,7 @@ export function hanhHelpLastResolution(
   game: Pick<GameState, 'day' | 'relationshipRewardIds'>,
 ): { promisedDay: number; resolvedDay: number; choice: HanhHelpChoice; overdue: boolean; postponed: boolean } | null {
   const records = game.relationshipRewardIds.flatMap(id => {
-    const match = /^hanh-market-help:resolved:(\d+):(carry|bags|apologize):(\d+)$/.exec(id);
+    const match = /^hanh-market-help:resolved:(\d+):(carry|bags|labels|apologize):(\d+)$/.exec(id);
     if (!match) return [];
     const promisedDay = Number(match[1]);
     const resolvedDay = Number(match[3]);
@@ -185,9 +190,11 @@ export function hanhHelpFollowup(game: Pick<GameState, 'day' | 'relationshipRewa
     return 'Cô Hạnh: “Cháu đến muộn nhưng vẫn quay lại giúp, cô ghi nhận điều đó.”';
   if (last.postponed)
     return 'Cô Hạnh: “Hôm trước cháu báo dời hẹn, rồi vẫn quay lại đúng ngày. Cô quý điều đó.”';
-  return last.choice === 'carry'
-    ? 'Cô Hạnh: “Nhờ hôm trước cháu xếp sạp, cô đỡ cuống hẳn. Hôm nay cứ thong thả chọn hàng nhé.”'
-    : 'Cô Hạnh: “Mấy chiếc túi giấy hôm trước dùng vừa khéo. Cô cảm ơn cháu lần nữa.”';
+  if (last.choice === 'carry')
+    return 'Cô Hạnh: “Nhờ hôm trước cháu xếp sạp, cô đỡ cuống hẳn. Hôm nay cứ thong thả chọn hàng nhé.”';
+  if (last.choice === 'labels')
+    return 'Cô Hạnh: “Bảng giá cháu viết hôm trước khách khen dễ đọc. Cô cảm ơn cháu!”';
+  return 'Cô Hạnh: “Mấy chiếc túi giấy hôm trước dùng vừa khéo. Cô cảm ơn cháu lần nữa.”';
 }
 
 /** One-day discount for a kept promise; no reward for late help or apology. */
@@ -196,7 +203,8 @@ export function hanhFruitDiscount(
 ): number {
   const last = hanhHelpLastResolution(game);
   if (!last || last.overdue || game.day !== last.resolvedDay + 1) return 0;
-  return last.choice === 'carry' ? 2000 : last.choice === 'bags' ? 1000 : 0;
+  return last.choice === 'carry' ? 2000 :
+    last.choice === 'bags' || last.choice === 'labels' ? 1000 : 0;
 }
 
 export function hanhHelpResolvedToday(game: Pick<GameState, 'day' | 'relationshipRewardIds'>): boolean {
