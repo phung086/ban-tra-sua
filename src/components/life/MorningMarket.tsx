@@ -29,6 +29,8 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
           onClick={()=>onGame(resolveHanhHelp(game,'carry'))}>🧺 Phụ xếp sạp · 14 phút · −7 sức · +2 thân thiết</button>
         <button type="button" disabled={!!hanhHelpBlock(game,'bags')}
           onClick={()=>onGame(resolveHanhHelp(game,'bags'))}>🛍️ Mua túi giấy · 9.000 ₫ · 6 phút · +1 thân thiết</button>
+        <button type="button" disabled={!!hanhHelpBlock(game,'labels')}
+          onClick={()=>onGame(resolveHanhHelp(game,'labels'))}>✍️ Viết bảng giá giúp cô · miễn phí · 10 phút · −1 sức · +1 thân thiết</button>
         <button type="button" onClick={()=>onGame(resolveHanhHelp(game,'apologize'))}>
           💬 Xin lỗi cô Hạnh · miễn phí · không khóa tiến trình
         </button>
