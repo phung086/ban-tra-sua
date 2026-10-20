@@ -49,8 +49,10 @@ export const CITY_SOLID_PROPS=[
   ...[21,29].map(x=>({x,z:-27.85,width:2.6,depth:.85})),
 ];
 export function cityArea(p:Position){return p.x<-42?'Phố Lò Gốm':p.x>43?'Đường ven sông':p.z<-65&&p.x<-16?'Sân đình Hạ':p.z<-46?'Đông Phong':'An Hòa';}
+// Trees flank the road; remove the two rows that previously grew in traffic.
+export const STREET_TREE_POSITIONS=Array.from({length:9},(_,i)=>[-1,1].map(side=>({x:side*10.7,z:-16-i*3.1,radius:.32,size:.75+i%3*.08}))).flat().filter(p=>p.z>=-20||p.z<=-28);
 export const STREET_OBSTACLES = [
-  ...Array.from({length:9},(_,i)=>[-1,1].map(side=>({x:side*10.7,z:-16-i*3.1,radius:0.32}))).flat(),
+  ...STREET_TREE_POSITIONS,
   ...Array.from({length:5},(_,i)=>[-1,1].map(side=>({x:side*34.5,z:-7-i*7,radius:0.35}))).flat(),
   ...Array.from({length:11},(_,i)=>({x:60,z:-9-i*7.5,radius:.3})),
   ...Array.from({length:6},(_,i)=>[-1,1].map(side=>({x:side*48,z:-50-i*7.2,radius:.3}))).flat(),

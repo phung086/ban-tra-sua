@@ -3,7 +3,7 @@ import * as T from 'three';
 import { Workshop, makePerson, pose, type Person } from './models';
 import { mergeRigid } from './batching';
 import { CUSTOMERS } from '../game/content';
-import { CITY_PLACES } from '../game/cityMap';
+import { CITY_PLACES, STREET_TREE_POSITIONS } from '../game/cityMap';
 import { cityWeather } from '../game/city';
 import type { GameState } from '../game/types';
 import { livedInHouse, streetFurniture } from './cityDetails';
@@ -125,7 +125,7 @@ export class CityWorld {
     for (let i = 0; i < 12; i++) w.ball(root, ['#c490a5', '#d4b77a', '#819869'][i % 3], [-11 + i, 0.2, -31.2], [0.38, 0.24, 0.32]);
     w.label(root, 'VƯỜN HOA TỔ DÂN PHỐ', [-6, 1.4, -29.2], 5, 0.65, '#6b7c5e', '#fff0d6', 65);
     for(const x of [-8,-4]) w.cylinder(root,'#6b7659',[x,0.65,-29.22],0.045,1.3);
-    for (let i = 0; i < 9; i++) for (const side of [-1, 1]) tree(w, root, side * 10.7, -16 - i * 3.1, 0.75 + i % 3 * 0.08);
+    for(const p of STREET_TREE_POSITIONS)tree(w,root,p.x,p.z,p.size);
     for (const x of [-34.5, 34.5]) for (let i = 0; i < 5; i++) tree(w, root, x, -7 - i * 7, 0.9);
     // Electricity poles, sagging utility wires, tactile curb and street lamps.
     for (const x of [-17.8, 17.8]) {

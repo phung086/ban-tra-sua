@@ -1,0 +1,56 @@
+name: Physical street browser
+on:
+  push:
+    branches: ['codex/physical-street-life-*']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/game/street*'
+      - 'src/scene/city.ts'
+      - 'src/scene/peopleAssets.ts'
+      - 'src/scene/scooter.ts'
+      - 'scripts/street-physics-browser-smoke.mjs'
+      - '.github/workflows/street-physics-browser.yml'
+permissions:
+  contents: read
+concurrency:
+  group: street-physics-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project and browser
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Production build and smoke syntax
+        run: |
+          npm run build
+          node --check scripts/street-physics-browser-smoke.mjs
+      - name: Physics, saved injury, joystick, pause and four viewports
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vite preview --host 127.0.0.1 --port 5188 --strictPort > /tmp/street-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:5188/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5188/ >/dev/null
+          node scripts/street-physics-browser-smoke.mjs
+      - name: Screenshots and browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physical-street-${{ github.sha }}
+          path: street-physics-artifacts/
+          retention-days: 14

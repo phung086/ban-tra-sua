@@ -64,7 +64,7 @@ describe('continuous street bodies',()=>{
         for(const other of road.filter(o=>o.index!==v.index))expect(footprintsOverlap(body,vehicleFootprint(other.index,other.x,other.z))).toBe(false);
       }
     }
-    for(const v of road)distance+=v.distance;
+    for(const v of road){distance+=v.distance;expect(v.distance).toBeGreaterThan(40);}
     expect(distance).toBeGreaterThan(150);
     expect(canWalk(CITY_PLACES.bus,true)).toBe(true);
     expect(CITY_PLACES.bus.z).toBeLessThan(-27.5);
