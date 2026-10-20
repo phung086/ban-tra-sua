@@ -10,7 +10,11 @@ import { livedInHouse, streetFurniture } from './cityDetails';
 import {RESIDENTS,missionFor,type ResidentId} from '../game/neighborhoodStories';
 import {urbanExpansion,detailedTree,texturedGround} from './urbanExpansion';
 import {contactShadow,lakeSurface} from './worldAtmosphere';
-import {advanceTraffic,vehicleFootprint,type Footprint} from '../game/collision';
+import {vehicleFootprint,type Footprint} from '../game/collision';
+import {initialTraffic,stepStreetTraffic,type TrafficVehicle,type TrafficImpact} from '../game/streetTraffic';
+import {initialStreetWalkers,advanceStreetWalker,type StreetWalker} from '../game/streetWalkers';
+import {streetPlan,hydrateStreet} from '../game/streetLife';
+import {advanceNpcLocomotion,initialNpcLocomotion,type NpcLocomotion} from './npcLocomotion';
 
 function tree(w:Workshop,root:T.Group,x:number,z:number,size=1){return detailedTree(w,root,x,z,size);}
 function house(w: Workshop, root: T.Group, x: number, z: number, width: number, floors: number, color: string, name?: string) {
@@ -37,16 +41,22 @@ function house(w: Workshop, root: T.Group, x: number, z: number, width: number, 
   livedInHouse(w, group, width, floors, color, Math.abs(Math.round(x+z)));
   return group;
 }
-function scooter(w:Workshop,color:string){return makeScooter(w,color);}
+function scooter(w:Workshop,color:string){return makeScooter(w,color,false);}
 export class CityWorld {
   root = new T.Group(); traffic: T.Group[] = []; residents: Person[] = [];
   readonly staticMergeSector=32; // light-overview batching experiment; baseline CI substitutes 16
   lamps = new T.Group(); projects = new Map<string, T.Group>();
   storyProps=new Map<string,T.Group>();
   neighbors=new Map<ResidentId,{person:Person;marker:T.Group;label:T.Mesh}>();
+  road:TrafficVehicle[]=initialTraffic();
+  walkers:StreetWalker[]=[];
+  locomotion:NpcLocomotion[]=[];
+  worldKey='';
+  impacts:TrafficImpact[]=[];
   rain: T.Points; clock = 0;
   ripples:T.Group;
-  get trafficBodies():Footprint[]{return this.traffic.map((vehicle,i)=>vehicleFootprint(i,vehicle.position.x,vehicle.position.z));}
+  get trafficBodies():Footprint[]{return this.road.map(v=>vehicleFootprint(v.index,v.x,v.z));}
+  get pedestrianBodies():Footprint[]{return [...this.residents.map(p=>p.root),...[...this.neighbors.values()].map(n=>n.person.root)].map(p=>({x:p.position.x,z:p.position.z,width:.44,depth:.44}));}
   constructor(public w: Workshop) {
     const root = this.root;
     streetFurniture(w,root);
@@ -129,9 +139,11 @@ export class CityWorld {
       }
     }
     root.add(this.lamps);
-    w.box(root, '#597d71', [-16.7, 2.5, -23], [0.11, 0.16, 3]);
-    w.box(root, '#c1c9bd', [-17.5, 1.25, -23], [0.1, 2.5, 3.1]);
-    w.label(root, 'XE BUÝT 09\nAN HÒA • PHỐ NHỎ', [-17.42, 1.7, -23], 2, 0.7, '#497267', '#fff4df', 58).rotation.y = Math.PI / 2;
+    // The shelter belongs on the pavement, outside both traffic lanes.
+    const busStop=new T.Group();busStop.position.set(-2.5,0,-5.5);root.add(busStop);
+    w.box(busStop, '#597d71', [-16.7, 2.5, -23], [0.11, 0.16, 3]);
+    w.box(busStop, '#c1c9bd', [-17.5, 1.25, -23], [0.1, 2.5, 3.1]);
+    w.label(busStop, 'XE BUÝT 09\nAN HÒA • PHỐ NHỎ', [-17.42, 1.7, -23], 2, 0.7, '#497267', '#fff4df', 58).rotation.y = Math.PI / 2;
     for (let i = 0; i < 5; i++) {
       const bike = scooter(w, ['#997d83', '#62888c', '#b6ad8e'][i % 3]); this.traffic.push(bike); root.add(bike);
     }
@@ -171,7 +183,11 @@ export class CityWorld {
     const material = new T.PointsMaterial({ color: '#c1d5dc', size: 0.055, transparent: true, opacity: 0.65 });
     this.rain = new T.Points(geometry, material); root.add(this.rain);
     const register=(key:string,factory:()=>T.BufferGeometry)=>w.geometry(key,factory);
-    this.traffic.forEach((vehicle,i)=>mergeRigid(vehicle,[],register,`traffic:${i}`));
+    this.traffic.forEach((vehicle,i)=>{
+      const wheels=(vehicle.userData.wheels??[]) as T.Group[];
+      wheels.forEach((wheel,j)=>mergeRigid(wheel,[],register,`traffic-wheel:${i}:${j}`));
+      mergeRigid(vehicle,[...wheels,...(vehicle.userData.brake?[vehicle.userData.brake]:[])],register,`traffic:${i}`);
+    });
     // Keep the near-shop and adjacent storefronts in smaller culling cells
     // when distant streets use sector 32. Extending the near radius from 35
     // to 48 reduced follow triangles but raised balanced overview calls; M1.1u
@@ -183,29 +199,53 @@ export class CityWorld {
     mergeRigid(root, [...this.traffic, ...this.residents.map(p => p.root), ...[...this.neighbors.values()].flatMap(n=>[n.person.root,n.marker]), this.lamps, ...this.projects.values(),...this.storyProps.values(),this.ripples],register,'city-static',this.staticMergeSector,nearShop);
   }
   update(game: GameState, dt: number, motion: boolean, player: {x: number; z: number}) {
-    if (motion) this.clock += dt;
+    this.clock += dt;
     const time = this.clock;
     this.ripples.children.forEach((r,i)=>{const pulse=1+Math.sin(time*.6+i)*.12;r.scale.set(1.1*pulse,.48*pulse,1);});
-    this.traffic.forEach((vehicle, i) => {
-      const direction = i % 2 ? -1 : 1;
-      const last = vehicle.userData.roadProgress ?? i*15%76;
-      vehicle.userData.roadProgress=advanceTraffic(i,last,dt,motion,player);
-      const x=(vehicle.userData.roadProgress-38)*direction;
-      vehicle.position.set(x, 0, i % 2 ? -25.7 : -22.5); vehicle.rotation.y = direction * Math.PI / 2;
-    });
-    this.residents.forEach((person, i) => {
-      if (i < 4) {
-        const phase = (time * 0.7 + i * 11) % 56;
-        const x = phase < 28 ? -14 + phase : 42 - phase;
-        person.root.position.set(x, 0, i % 2 ? -28.2 : -19.6);
-        person.root.rotation.y = phase < 28 ? Math.PI / 2 : -Math.PI / 2;
-        pose(person, time + i, true, 0, false, motion);
-      } else {
-        const destinations=['oldtown','plaza','riverside'] as const,p=CITY_PLACES[destinations[(i-4)%3]];
-        const phase=time*.18+i,dx=Math.sin(phase)*2.1,dz=Math.cos(phase)*1.3;
-        person.root.position.set(p.x+dx,0,p.z+dz);person.root.rotation.y=Math.atan2(Math.cos(phase)*2.1,-Math.sin(phase)*1.3);
-        pose(person,time+i,true,0,false,motion);
+    const key=game.morning.worldSeed+':'+game.day,plan=streetPlan(game);
+    if(key!==this.worldKey){
+      this.worldKey=key;this.clock=0;this.road=initialTraffic(plan.speed);
+      this.walkers=initialStreetWalkers(game,this.residents.length);
+      this.locomotion=this.residents.map(()=>initialNpcLocomotion());
+      if(plan.kind==='breakdown')this.road[0].x=-12;
+      if(plan.kind==='crossing'){
+        this.walkers[4].goal={x:15,z:-28.2};
+        this.walkers[5].goal={x:15,z:-19.4};
       }
+    }
+    const street=hydrateStreet(game.city.street);
+    this.road[0].held=plan.kind==='breakdown'&&this.clock<35&&!(street.eventDay===game.day&&street.choice==='help');
+    const people=[{id:'player',...player},...this.walkers.map((p,i)=>({id:'walker-'+i,...p.position})),
+      ...[...this.neighbors].map(([id,n])=>({id:'neighbor-'+id,x:n.person.root.position.x,z:n.person.root.position.z}))];
+    const road=stepStreetTraffic(this.road,dt,people,cityWeather(game.day).rain);
+    this.road=road.vehicles;this.impacts=road.impacts;
+    for(const hit of road.impacts){
+      if(hit.id.startsWith('walker-')){
+        const walker=this.walkers[Number(hit.id.slice(7))];
+        walker.injured=Math.max(walker.injured,45+hit.speed*10);walker.down=Math.max(walker.down,2.5);
+      }
+    }
+    this.traffic.forEach((vehicle,i)=>{
+      const state=this.road[i],direction=i%2?-1:1;
+      vehicle.position.set(state.x,0,state.z);vehicle.rotation.y=direction*Math.PI/2;
+      for(const wheel of (vehicle.userData.wheels??[]) as T.Group[])wheel.rotation.x=state.distance/.25;
+      const light=vehicle.userData.brake as T.Mesh|undefined;
+      if(light)(light.material as T.MeshStandardMaterial).emissiveIntensity=state.speed<.8?1.2:.12;
+    });
+    this.residents.forEach((person,i)=>{
+      const before=this.walkers[i];
+      const dynamic=[...this.trafficBodies,{...player,width:.44,depth:.44},
+        ...this.walkers.filter((_,j)=>j!==i).map(p=>({...p.position,width:.44,depth:.44})),
+        ...[...this.neighbors.values()].map(n=>({x:n.person.root.position.x,z:n.person.root.position.z,width:.44,depth:.44}))];
+      const walker=advanceStreetWalker(before,dt,dynamic);this.walkers[i]=walker;
+      const moving=Math.hypot(walker.position.x-before.position.x,walker.position.z-before.position.z)>.0001;
+      const locomotion=advanceNpcLocomotion(this.locomotion[i],walker.position.x,walker.position.z,walker.heading,moving,motion,dt);
+      this.locomotion[i]=locomotion.next;
+      person.root.position.set(walker.position.x,0,walker.position.z);
+      person.root.rotation.y=locomotion.next.heading;
+      pose(person,time+i,moving,0,walker.down>0,motion,locomotion.next.gaitPhase,false,locomotion.strideScale);
+      if(walker.injured>0)person.body.rotation.z=.06+(motion&&moving?Math.sin(locomotion.next.gaitPhase)*.035:0);
+      else person.body.rotation.z=0;
     });
     this.neighbors.forEach(({person,marker,label},id)=>{
       const distance=Math.hypot(player.x-person.root.position.x,player.z-person.root.position.z);

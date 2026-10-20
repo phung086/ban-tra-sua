@@ -28,3 +28,24 @@ export function advanceTraffic(index:number,progress:number,dt:number,motion:boo
   if(overlapsFootprint(player,p,PLAYER_RADIUS+.2)||Math.abs(player.z-p.z)<p.width/2+PLAYER_RADIUS+.28&&approach>0&&approach<safety)return progress;
   return next;
 }
+
+/** Continuous SAT for translating oriented rectangles; null means no contact. */
+export function sweepFootprints(a:Footprint,b:Footprint,delta:{x:number;z:number}):number|null {
+  if(![a.x,a.z,a.width,a.depth,a.yaw??0,b.x,b.z,b.width,b.depth,b.yaw??0,delta.x,delta.z].every(Number.isFinite))return 0;
+  const axes=(yaw=0)=>[{x:Math.cos(yaw),z:-Math.sin(yaw)},{x:Math.sin(yaw),z:Math.cos(yaw)}];
+  const aa=axes(a.yaw),bb=axes(b.yaw);
+  let enter=0,leave=1;
+  for(const axis of [...aa,...bb]){
+    const dot=(v:{x:number;z:number})=>v.x*axis.x+v.z*axis.z;
+    const radius=(body:Footprint,basis:{x:number;z:number}[])=>Math.abs(dot(basis[0]))*body.width/2+Math.abs(dot(basis[1]))*body.depth/2;
+    const separation=dot({x:a.x-b.x,z:a.z-b.z}),reach=radius(a,aa)+radius(b,bb),speed=dot(delta);
+    if(Math.abs(speed)<1e-10){if(Math.abs(separation)>reach)return null;continue;}
+    const first=(-reach-separation)/speed,last=(reach-separation)/speed;
+    enter=Math.max(enter,Math.min(first,last));leave=Math.min(leave,Math.max(first,last));
+    if(enter>leave)return null;
+  }
+  return leave<0||enter>1?null:Math.max(0,enter);
+}
+export function footprintsOverlap(a:Footprint,b:Footprint):boolean {
+  return sweepFootprints(a,b,{x:0,z:0})!==null;
+}

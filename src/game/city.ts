@@ -1,3 +1,4 @@
+import {hydrateStreet,type StreetState} from './streetLife';
 import type { GameState, InventoryKey, BaseId } from './types';
 import { CITY_PLACES, nearCityPlace, type CityPlace } from './cityMap';
 import type { Position } from './service';
@@ -16,6 +17,7 @@ export interface CityState {
   deliveries: number; income: number; journal: string[];
   stories:NeighborhoodStories;
   life:CityLife;
+  street?:StreetState;
 }
 export const CITY_PROJECTS = [
   { id: 'trees' as const, name: 'Hàng cây trước tiệm', cost: 90000, detail: 'Trồng thêm cây sấu. Chăm vườn nhận thêm 2 thiện cảm.' },
@@ -88,6 +90,7 @@ export function hydrateCity(value: Partial<CityState> | undefined, day: number):
   const city: CityState = { ...initial, minutes: finite(value.minutes, 480, 360, 1260), energy: finite(value.energy, 100, 0, 100), goodwill: finite(value.goodwill, 0, 0, 100000), deliveries: finite(value.deliveries, 0, 0, 100000), income: finite(value.income, 0, 0, 1e12), visited: places(value.visited, ['shop']), talked: places(value.talked), completed: places(value.completed), projects, contract, errands: Array.isArray(value.errands) ? value.errands.filter(e => e === 'market' || e === 'garden') : [], journal: Array.isArray(value.journal) ? value.journal.filter(s => typeof s === 'string').slice(0, 24) : initial.journal };
   city.stories=hydrateStories(value.stories);
   city.life=hydrateLife(value.life);
+  city.street=hydrateStreet(value.street);
   return value.day !== day ? newCityDay(city, day) : city;
 }
 export function cityTime(minutes: number) {

@@ -1,3 +1,4 @@
+import {travelPlayback,type TravelSample} from './travelAnimation';
 import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import * as T from 'three';
 import {GLTFLoader,type GLTF} from 'three/addons/loaders/GLTFLoader.js';
@@ -19,7 +20,7 @@ export function loadPeopleAssets(){
   })).then(()=>undefined);
 }
 
-export type ImportedMotion={mixer:T.AnimationMixer;actions:Map<string,T.AnimationAction>;active:string;time:number|null};
+export type ImportedMotion={mixer:T.AnimationMixer;actions:Map<string,T.AnimationAction>;active:string;time:number|null;travel?:TravelSample};
 export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|null{
   const female=['miu','lan','lyly','hanh','mai','thu','thao'].includes(customer.id);
   const key=look.old?'elder':female?'female':'male',template=templates.get(key);
@@ -68,16 +69,20 @@ export function importedPerson(w:Workshop,customer:Customer,look:Look):Person|nu
 export function poseImported(person:Person,time:number,walking:boolean,carrying:boolean,sitting:boolean,motion:boolean){
   const rig=person.imported!;
   const dt=rig.time===null?0:Math.max(0,Math.min(.05,time-rig.time));rig.time=time;
+  const current={x:person.root.position.x,z:person.root.position.z,time};
+  const playback=travelPlayback(rig.travel,current,walking);rig.travel=current;
   const next=sitting?'SitDown':carrying?'Walk_Carry':walking&&motion?'Walk':'Idle';
   if(next!==rig.active){
     const action=rig.actions.get(next),old=rig.actions.get(rig.active);
-    if(action){action.reset().play();if(next==='SitDown'){action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;}
+    if(action){action.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).play();if(next==='SitDown'){action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;}
       else action.setLoop(T.LoopRepeat,Infinity);
-      if(motion)old?action.crossFadeFrom(old,.2,true):action.fadeIn(.2);else old?.stop();
+      if(motion)old?action.crossFadeFrom(old,.2,false):action.fadeIn(.2);else old?.stop();
     }
     rig.active=next;
   }
-  const carry=rig.actions.get('Walk_Carry');if(carry)carry.timeScale=walking&&motion?1:0;
+  // Both walk clips follow metres travelled, including slow analog input,
+  // braking, carrying and injured movement; idle remains independent.
+  for(const name of ['Walk','Walk_Carry'])rig.actions.get(name)?.setEffectiveTimeScale(motion?playback:0);
   rig.mixer.update(motion?dt:0);
   if(!motion&&sitting){const action=rig.actions.get('SitDown');if(action){action.time=action.getClip().duration;rig.mixer.update(0);}}
 }

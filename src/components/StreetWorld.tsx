@@ -1,3 +1,4 @@
+import {streetInjury,streetPlan,hydrateStreet,onCarriageway,type StreetChoice} from '../game/streetLife';
 import { useEffect, useRef, useState } from "react";
 import {
   deliveryFor,
@@ -35,6 +36,9 @@ interface Props {
   onOpenTasks:()=>void;
   onOpenMap:()=>void;
   nearbyTask:NeighborhoodMission|undefined;
+  onStreetImpact:(speed:number)=>void;
+  onStreetRest:()=>void;
+  onStreetChoice:(choice:StreetChoice)=>void;
 }
 export function StreetWorld(props: Props) {
   const container = useRef<HTMLDivElement>(null),
@@ -111,6 +115,10 @@ export function StreetWorld(props: Props) {
       props.onPosition(PLACES[place]);
     }
   };
+  const injury=streetInjury(props.game),incident=streetPlan(props.game);
+  const street=hydrateStreet(props.game.city.street);
+  const incidentDistance=Math.hypot(props.position.x-incident.point.x,props.position.z-incident.point.z);
+  const incidentResolved=street.eventDay===props.game.day;
   const order = props.game.currentOrder,
     location = order ? deliveryFor(order) : null;
   const near = location
@@ -186,8 +194,16 @@ export function StreetWorld(props: Props) {
               <GameIcon name={overview?'person':'camera'}/><span>{props.exploring ? overview ? 'Theo chân nhân vật' : 'Nhìn toàn khu phố' : overview ? "Đứng tại quầy" : "Nhìn toàn tiệm"}</span>
             </button>
           </div>
+          {props.exploring&&!props.paused&&(injury.severity>0||(!incidentResolved&&incidentDistance<7))&&<aside className="street-situation" aria-label="Tình huống trên phố">
+            {injury.severity>0?<><strong>Đau chân · đi chậm</strong><span>Còn {Math.ceil(injury.remaining)} phút trong game</span>
+              <button disabled={onCarriageway(props.position)} onClick={props.onStreetRest}>Nghỉ và chăm sóc · miễn phí · 20 phút</button>
+              {onCarriageway(props.position)&&<small>Đi chậm ra vỉa hè để nghỉ.</small>}</>:
+              <><strong>{incident.title}</strong><span>{incidentResolved?'Bạn đã lựa chọn cách xử lý hôm nay.':incident.detail}</span>
+              {!incidentResolved&&incidentDistance<=3.2&&<div><button disabled={props.game.city.energy<4||props.game.city.minutes>1252} onClick={()=>props.onStreetChoice('help')}>Giúp hàng xóm · 8 phút · 4 sức lực</button>
+                <button onClick={()=>props.onStreetChoice('pass')}>Tiếp tục công việc</button></div>}</>}
+          </aside>}
           {props.exploring&&<CityCompass position={props.position} onOpen={props.onOpenMap}/>}
-          {props.exploring && <><div className="city-scene-caption"><h2>{cityArea(props.position)}</h2><p>Hà Nội · ngày {props.game.day}</p><div className="city-vitals"><span><GameIcon name="sun"/>{cityTime(props.game.city.minutes)}</span><span><GameIcon name="leaf"/><b>{Math.ceil(props.game.city.energy)}</b><small>/100</small></span></div><meter min="0" max="100" value={props.game.city.energy} aria-label="Sức lực"/><small>{cityWeather(props.game.day).name}</small></div>{showNotice&&!props.paused&&<p className="city-play-notice" role="status">{props.game.notice}</p>}<div className="city-context-actions">
+          {props.exploring && <><div className="city-scene-caption"><h2>{cityArea(props.position)}</h2><p>Hà Nội · ngày {props.game.day}</p><div className="city-vitals"><span><GameIcon name="sun"/>{cityTime(props.game.city.minutes)}</span><span><GameIcon name="leaf"/><b>{Math.ceil(props.game.city.energy)}</b><small>/100</small></span></div><meter min="0" max="100" value={props.game.city.energy} aria-label="Sức lực"/><small>{cityWeather(props.game.day).name}</small></div>{showNotice&&!props.paused&&injury.severity===0&&<p className="city-play-notice" role="status">{props.game.notice}</p>}<div className="city-context-actions">
             {task&&step?<HoldTask key={`${task.id}-${task.step}`} label={step.verb} disabled={props.paused||props.game.city.energy<step.energy} onComplete={()=>props.onStory({type:'task',mission:task.id,step:task.step})}/>:npc?<button className="primary-button" disabled={props.paused} onClick={()=>props.onTalk(npc.id)}>Nói chuyện với {npc.name}</button>:props.game.city.contract?.packed&&nearCityPlace(props.position,props.game.city.contract.destination)?<button onClick={props.onOpenTasks}>Mở sổ để giao trà</button>:null}
             {task&&npc&&<button disabled={props.paused} onClick={()=>props.onTalk(npc.id)}>Nói chuyện với {npc.name}</button>}
           </div></>}
