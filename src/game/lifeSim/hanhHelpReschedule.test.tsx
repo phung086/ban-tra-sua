@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { MorningMarket } from '../../components/life/MorningMarket';
 import { createInitialState, nextDay } from '../engine';
 import type { GameState } from '../types';
 import { chooseBreakfast, wakeMorning } from './morning';
@@ -52,5 +55,46 @@ describe('Hanh reschedules one market promise', () => {
     const apologized = resolveHanhHelp(poor, 'apologize');
     expect(apologized.cash).toBe(0);
     expect(pendingHanhHelp(apologized)).toBeNull();
+  });
+});
+
+describe('Hanh postponement controls in live MorningMarket', () => {
+  const markup = (game: GameState) => renderToStaticMarkup(createElement(MorningMarket, {game, onGame: () => undefined}));
+  it('exposes postponement once and hides early help after reload', () => {
+    const second = tomorrow(first());
+    expect(markup(second)).toContain('Báo cô Hạnh dời hẹn sang ngày 3');
+    const moved = reload(postponeHanhHelp(second));
+    expect(markup(moved)).toContain('Cô Hạnh chờ ngày 3');
+    expect(markup(moved)).not.toContain('Báo cô Hạnh dời hẹn sang ngày');
+    expect(markup(moved)).not.toContain('Phụ xếp sạp');
+    expect(markup(moved)).not.toContain('Mua túi giấy');
+    expect(resolveHanhHelp(moved, 'carry')).toBe(moved);
+    expect(resolveHanhHelp(moved, 'apologize')).toBe(moved);
+  });
+
+  it('restores help on the new due date and offers free apology when overdue', () => {
+    const third = tomorrow(reload(postponeHanhHelp(tomorrow(first()))));
+    expect(markup(third)).toContain('Phụ xếp sạp');
+    expect(markup(third)).not.toContain('Báo cô Hạnh dời hẹn sang ngày');
+    const fourth = tomorrow(third);
+    const poor = { ...fourth, cash: 0, city: { ...fourth.city, energy: 0 } };
+    expect(markup(poor)).toContain('Xin lỗi cô Hạnh');
+    expect(markup(poor)).toContain('disabled');
+    expect(resolveHanhHelp(poor, 'apologize').cash).toBe(0);
+  });
+
+  it('rejects invalid resources and duplicate postponement markers', () => {
+    const second = tomorrow(first());
+    for (const field of ['cash', 'minutes', 'energy'] as const) {
+      const broken = field === 'cash'
+        ? { ...second, cash: Number.NaN }
+        : { ...second, city: { ...second.city, [field]: Number.NaN } };
+      expect(canPostponeHanhHelp(broken)).toBe(false);
+      expect(postponeHanhHelp(broken)).toBe(broken);
+    }
+    const moved = reload(postponeHanhHelp(second));
+    expect(canPostponeHanhHelp(moved)).toBe(false);
+    expect(postponeHanhHelp(moved)).toBe(moved);
+    expect(moved.relationshipRewardIds.filter(id => id.startsWith('hanh-market-help:postponed:'))).toHaveLength(1);
   });
 });
