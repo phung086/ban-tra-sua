@@ -579,3 +579,76 @@ describe('QG-12 day 16 lake drizzle with bac Minh', () => {
     expect(cityAction(nextDay(before), cover, CITY_PLACES.lake).relationshipRewardIds).toEqual([]);
   });
 });
+
+describe('QG-13 day 17 market cooling with co Hanh', () => {
+  const daySeventeen = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 17; day++) game = nextDay(game);
+    return { ...game,
+      inventory: { ...game.inventory, ice: 5 },
+      freshness: { ...game.freshness, ice: 100 },
+    };
+  };
+
+  it('spends fresh ice once, persists the choice and discounts only the day-18 market basket', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = daySeventeen();
+    expect(getMarketOffers(before)[0].cost).toBe(48000);
+    const cooled = cityAction(before, { type: 'marketCooling', choice: 'ice' }, CITY_PLACES.market);
+    expect(cooled.inventory.ice).toBe(before.inventory.ice - 3);
+    expect(cooled.cash).toBe(before.cash);
+    expect(cooled.city.minutes).toBe(before.city.minutes + 15);
+    expect(cooled.city.energy).toBe(before.city.energy - 8);
+    expect(cooled.city.goodwill).toBe(before.city.goodwill + 3);
+    expect(cooled.fans).toBe(before.fans + 2);
+    expect(cooled.relationshipRewardIds).toContain('market.day17.ice');
+    expect(cityAction(cooled, { type: 'marketCooling', choice: 'borrow' }, CITY_PLACES.market)).toBe(cooled);
+    saveGame(cooled);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('market.day17.ice');
+    expect(cityAction(resumed, { type: 'marketCooling', choice: 'ice' }, CITY_PLACES.market)).toBe(resumed);
+    const day18 = nextDay(resumed);
+    expect(getMarketOffers(day18)[0].cost).toBe(40000);
+    const purchase = cityAction({ ...day18, cash: 50000 }, { type: 'market', basket: 'full' }, CITY_PLACES.market);
+    expect(purchase.cash).toBe(10000);
+    expect(purchase.city.errands).toContain('market');
+    expect(getMarketOffers(nextDay(day18))[0].cost).toBe(48000);
+  });
+
+  it('allows the free borrowed cooler without cash or fresh ice', () => {
+    const start = daySeventeen();
+    const before = { ...start, cash: 0, inventory: { ...start.inventory, ice: 0 },
+      city: { ...start.city, energy: 2 } };
+    expect(cityAction(before, { type: 'marketCooling', choice: 'ice' }, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    const borrowed = cityAction(before, { type: 'marketCooling', choice: 'borrow' }, CITY_PLACES.market);
+    expect(borrowed.cash).toBe(0);
+    expect(borrowed.inventory).toEqual(before.inventory);
+    expect(borrowed.city.energy).toBe(0);
+    expect(borrowed.city.minutes).toBe(before.city.minutes + 6);
+    expect(borrowed.city.goodwill).toBe(before.city.goodwill + 1);
+    expect(borrowed.fans).toBe(before.fans + 1);
+    expect(borrowed.relationshipRewardIds).toContain('market.day17.borrow');
+    expect(getMarketOffers(nextDay(borrowed))[0].cost).toBe(45000);
+  });
+
+  it('guards day, location, shop shift, active delivery, stale ice, closing time and energy', () => {
+    const before = daySeventeen();
+    const ice = { type: 'marketCooling' as const, choice: 'ice' as const };
+    expect(cityAction(createInitialState(), ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, ice, CITY_PLACES.shop).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'school' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    const stale = { ...before, freshness: { ...before.freshness, ice: 0 } };
+    expect(cityAction(stale, ice, CITY_PLACES.market).inventory).toEqual(stale.inventory);
+    const tired = { ...before, city: { ...before.city, energy: 7 } };
+    expect(cityAction(tired, ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.market.hours[1] - 10 } };
+    expect(cityAction(late, ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
+  });
+});
