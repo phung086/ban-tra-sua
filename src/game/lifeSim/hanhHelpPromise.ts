@@ -113,6 +113,38 @@ export function resolveHanhHelp(game: GameState, choice: HanhHelpChoice): GameSt
   };
 }
 
+/** A saved promise resolution can change the next market greeting, without new rewards. */
+export function hanhHelpLastResolution(
+  game: Pick<GameState, 'day' | 'relationshipRewardIds'>,
+): { promisedDay: number; resolvedDay: number; choice: HanhHelpChoice; overdue: boolean } | null {
+  const records = game.relationshipRewardIds.flatMap(id => {
+    const match = /^hanh-market-help:resolved:(\d+):(carry|bags|apologize):(\d+)$/.exec(id);
+    if (!match) return [];
+    const promisedDay = Number(match[1]);
+    const resolvedDay = Number(match[3]);
+    if (!Number.isSafeInteger(promisedDay) || !Number.isSafeInteger(resolvedDay) ||
+        promisedDay < 1 || resolvedDay <= promisedDay || resolvedDay >= game.day ||
+        !game.relationshipRewardIds.includes(`hanh-market-help:promise:${promisedDay}`)) return [];
+    return [{ promisedDay, resolvedDay, choice: match[2] as HanhHelpChoice,
+      overdue: resolvedDay > promisedDay + 1 }];
+  });
+  records.sort((a, b) => b.resolvedDay - a.resolvedDay || b.promisedDay - a.promisedDay);
+  return records[0] ?? null;
+}
+
+/** Read-only NPC memory; old save-v3 ledgers remain compatible. */
+export function hanhHelpFollowup(game: Pick<GameState, 'day' | 'relationshipRewardIds'>): string | null {
+  const last = hanhHelpLastResolution(game);
+  if (!last || game.day - last.resolvedDay > 3) return null;
+  if (last.choice === 'apologize')
+    return 'Cô Hạnh: “Hôm trước cháu nói không giúp được. Cô hiểu, lần sau cứ báo sớm là được.”';
+  if (last.overdue)
+    return 'Cô Hạnh: “Cháu đến muộn nhưng vẫn quay lại giúp, cô ghi nhận điều đó.”';
+  return last.choice === 'carry'
+    ? 'Cô Hạnh: “Nhờ hôm trước cháu xếp sạp, cô đỡ cuống hẳn. Hôm nay cứ thong thả chọn hàng nhé.”'
+    : 'Cô Hạnh: “Mấy chiếc túi giấy hôm trước dùng vừa khéo. Cô cảm ơn cháu lần nữa.”';
+}
+
 export function hanhHelpResolvedToday(game: Pick<GameState, 'day' | 'relationshipRewardIds'>): boolean {
   return game.relationshipRewardIds.some(id =>
     id.startsWith(RESOLVED) && id.endsWith(':' + game.day));
