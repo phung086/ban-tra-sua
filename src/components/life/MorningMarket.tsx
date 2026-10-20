@@ -1,15 +1,15 @@
 import type {GameState} from '../../game/types';
 import {formatMoney} from '../../game/engine';
-import {MARKET_OPTIONS,marketDialogue,visitMorningMarket} from '../../game/lifeSim/marketEncounter';
+import {MARKET_OPTIONS,marketDialogue,visitMorningMarket,marketPrice} from '../../game/lifeSim/marketEncounter';
 import {MARKET_OPTIONS as KITCHEN_OPTIONS,visitMorningMarket as visitKitchenMarket,cookMarketMeal} from '../../game/lifeSim/morning';
 import {morningActionBlock} from '../../game/lifeSim/morningAction';
-import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday,hanhHelpFollowup} from '../../game/lifeSim/hanhHelpPromise';
+import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday,hanhHelpFollowup,hanhFruitDiscount} from '../../game/lifeSim/hanhHelpPromise';
 
 export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameState)=>void}){
   const choice=game.morning.marketVisit;
   const followup=hanhHelpFollowup(game);
   const options=[
-    {...MARKET_OPTIONS.fruit,id:'fruit',emoji:'🍎',energy:0,act:()=>visitMorningMarket(game,'fruit')},
+    {...MARKET_OPTIONS.fruit,cost:marketPrice(game,'fruit'),id:'fruit',emoji:'🍎',energy:0,act:()=>visitMorningMarket(game,'fruit')},
     {...KITCHEN_OPTIONS.basket,id:'basket',emoji:'🥬',act:()=>visitKitchenMarket(game,'basket')},
     {...MARKET_OPTIONS.chat,id:'chat',emoji:'💬',energy:0,act:()=>visitMorningMarket(game,'chat')},
     {...MARKET_OPTIONS.leave,id:'leave',emoji:'🏪',energy:0,act:()=>visitMorningMarket(game,'leave')},
@@ -42,6 +42,8 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
           <span aria-hidden="true">{option.emoji}</span><strong>{option.label}</strong>
           <small>{option.minutes} phút{option.energy?` · −${option.energy} sức`:''}</small>
           <b>{option.cost?formatMoney(option.cost):'Miễn phí'}</b>
+          {option.id==='fruit'&&hanhFruitDiscount(game)>0&&
+            <small>Giữ lời hẹn: cô giảm {formatMoney(hanhFruitDiscount(game))} hôm nay</small>}
           {blocked&&<small>{blocked}</small>}
         </button>;
       })}

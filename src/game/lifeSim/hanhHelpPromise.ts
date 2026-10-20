@@ -145,6 +145,15 @@ export function hanhHelpFollowup(game: Pick<GameState, 'day' | 'relationshipRewa
     : 'Cô Hạnh: “Mấy chiếc túi giấy hôm trước dùng vừa khéo. Cô cảm ơn cháu lần nữa.”';
 }
 
+/** One-day discount for a kept promise; no reward for late help or apology. */
+export function hanhFruitDiscount(
+  game: Pick<GameState, 'day' | 'relationshipRewardIds'>,
+): number {
+  const last = hanhHelpLastResolution(game);
+  if (!last || last.overdue || game.day !== last.resolvedDay + 1) return 0;
+  return last.choice === 'carry' ? 2000 : last.choice === 'bags' ? 1000 : 0;
+}
+
 export function hanhHelpResolvedToday(game: Pick<GameState, 'day' | 'relationshipRewardIds'>): boolean {
   return game.relationshipRewardIds.some(id =>
     id.startsWith(RESOLVED) && id.endsWith(':' + game.day));

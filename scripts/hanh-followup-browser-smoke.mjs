@@ -1,7 +1,10 @@
 import { chromium } from 'playwright';
 
 const SAVE = 'tiem-tra-chibi-save-v3';
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: [
+  '--no-sandbox', '--disable-dev-shm-usage', '--enable-webgl',
+  '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
@@ -86,11 +89,25 @@ try {
     await page.getByText(/Nhờ hôm trước cháu xếp sạp/).waitFor();
     await page.screenshot({ path: `hanh-followup-${width}x${height}.png` });
   }
+  const fruit = page.getByRole('button', { name: /Mua trái cây cô Hạnh/ });
+  await fruit.waitFor();
+  if (!(await fruit.innerText()).includes('10.000'))
+    throw new Error('Kept-promise fruit discount missing from live market UI');
+  const beforeFruit = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).cash, SAVE);
+  await fruit.click();
+  await page.waitForFunction(key => JSON.parse(localStorage.getItem(key) || '{}')
+    .morning?.marketVisit === 'fruit', SAVE);
+  const afterFruit = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).cash, SAVE);
+  if (afterFruit !== beforeFruit - 10000) throw new Error('Fruit charged wrong discounted price');
+  await page.reload();
+  await page.getByText(/Đã ghé chợ hôm nay/).waitFor();
+  const afterReload = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).cash, SAVE);
+  if (afterReload !== afterFruit) throw new Error('Fruit charged again after reload');
   const savedDayThree = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), SAVE);
   if (savedDayThree.relationshipRewardIds.filter(id => id.startsWith('hanh-market-help:resolved:')).length !== 1)
     throw new Error('Hanh callback duplicated resolution reward');
   if (errors.length) throw new Error('Browser console/page errors: ' + errors.join(' | '));
-  console.log('Hanh callback browser smoke: four viewports, synthetic day 3, once-only resolution');
+  console.log('Hanh callback + discounted fruit: four viewports, synthetic day 3, save/reload; not full sleep E2E');
 } finally {
   await browser.close();
 }
