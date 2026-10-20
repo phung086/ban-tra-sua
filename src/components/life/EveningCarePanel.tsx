@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { GameState } from '../../game/types';
+import { RecurringBillsPanel } from './RecurringBillsPanel';
 import { HaPackagingPanel } from './HaPackagingPanel';
 import { getHaPackagingCallback, isHaPackagingDue } from '../../game/lifeSim/haPackaging';
 import {
@@ -72,5 +73,6 @@ export function EveningCarePanel({ game, onGame }: {
       </div>}
     {!selected && !canChooseEveningCare(game, 'dinner') &&
       <p role="status">Nếu thiếu tiền hoặc quá giờ, bạn vẫn có thể nhắn Hà rồi nghỉ miễn phí.</p>}
+    <RecurringBillsPanel game={game} onGame={onGame} />
   </section>;
 }
