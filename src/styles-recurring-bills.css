@@ -1,0 +1,23 @@
+.utilities-bill{margin-top:14px;padding:14px;border:1px solid #e6c6a2;border-radius:16px;background:linear-gradient(135deg,#fffdf7,#fff1e5);color:#594433}
+.utilities-bill-heading{display:flex;align-items:center;gap:10px}
+.utilities-bill-heading>span{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:12px;background:#fff0d7;font-size:21px}
+.utilities-bill-heading>div{flex:1;min-width:0}
+.utilities-bill-heading small{display:block;font-size:10px;letter-spacing:.06em;color:#8a6b4f}
+.utilities-bill-heading h4{margin:3px 0 0;font-size:15px;line-height:1.35}
+.utilities-bill-heading>strong{font-size:13px;text-align:right;white-space:nowrap}
+.utilities-bill-heading>strong small{font-size:10px;display:inline;color:#8a6b4f}
+.utilities-bill-copy{margin:10px 0;font-size:12px;line-height:1.55}
+.utilities-bill-totals{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 0;color:#7a604c;font-size:11px}
+.utilities-bill-totals span{display:flex;gap:5px;align-items:baseline}
+.utilities-bill-totals strong{color:#503c2b;font-variant-numeric:tabular-nums}
+.utilities-bill-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.utilities-bill-button{min-height:48px;padding:10px 12px;border:1px solid #d6b38d;border-radius:12px;background:#fff;color:#594433;font:inherit;font-size:12px;font-weight:700;text-align:center;cursor:pointer;overflow-wrap:anywhere}
+.utilities-bill-button:focus-visible{outline:3px solid #a66b39;outline-offset:2px}
+.utilities-bill-button:disabled{opacity:.48;cursor:not-allowed}
+.utilities-bill-save{width:100%;background:#fff7e8;border-color:#c99b61}
+.utilities-bill-pay{background:#f0f8ec;border-color:#9ebc8e;color:#355b35}
+.utilities-bill-defer{background:#fff;color:#74563e}
+.utilities-bill-status{margin:8px 0 0;padding:9px 10px;border-radius:9px;background:#fffaf1;font-size:11px;line-height:1.5}
+.utilities-bill-footnote{margin:10px 0 0;color:#8b7663;font-size:10px;line-height:1.45}
+@media(max-width:580px){.utilities-bill{padding:12px;border-radius:14px}.utilities-bill-heading{gap:8px}.utilities-bill-heading>span{width:36px;height:36px}.utilities-bill-heading>strong{font-size:11px}.utilities-bill-actions{grid-template-columns:1fr}.utilities-bill-button{width:100%}}
+@media(prefers-reduced-motion:reduce){.utilities-bill *{animation:none!important;transition:none!important}}
