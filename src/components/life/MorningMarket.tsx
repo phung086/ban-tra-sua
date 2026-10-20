@@ -3,10 +3,11 @@ import {formatMoney} from '../../game/engine';
 import {MARKET_OPTIONS,marketDialogue,visitMorningMarket} from '../../game/lifeSim/marketEncounter';
 import {MARKET_OPTIONS as KITCHEN_OPTIONS,visitMorningMarket as visitKitchenMarket,cookMarketMeal} from '../../game/lifeSim/morning';
 import {morningActionBlock} from '../../game/lifeSim/morningAction';
-import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday} from '../../game/lifeSim/hanhHelpPromise';
+import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday,hanhHelpFollowup} from '../../game/lifeSim/hanhHelpPromise';
 
 export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameState)=>void}){
   const choice=game.morning.marketVisit;
+  const followup=hanhHelpFollowup(game);
   const options=[
     {...MARKET_OPTIONS.fruit,id:'fruit',emoji:'🍎',energy:0,act:()=>visitMorningMarket(game,'fruit')},
     {...KITCHEN_OPTIONS.basket,id:'basket',emoji:'🥬',act:()=>visitKitchenMarket(game,'basket')},
@@ -16,6 +17,7 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
   const cookBlocked=morningActionBlock(game,0,18,3);
   return <section className="life-market life-market-unified" aria-label="Ghé chợ buổi sáng">
     <h4>Ghé chợ đầu ngõ · Cô Hạnh</h4>
+    {followup&&<p className="life-market-reply" aria-label="Cô Hạnh nhớ lời hẹn" aria-live="polite">{followup}</p>}
     {pendingHanhHelp(game)&&<div className="life-market-result" aria-label="Lời hẹn với cô Hạnh">
       <p>{pendingHanhHelp(game)?.overdue?'Cô Hạnh vẫn nhớ lời hẹn cũ.':'Hôm qua mình hẹn phụ cô Hạnh xếp sạp.'}</p>
       <div className="life-morning-options">
