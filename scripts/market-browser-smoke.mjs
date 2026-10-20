@@ -1,6 +1,14 @@
 import { chromium } from 'playwright';
-const browser = await chromium.launch({headless:true});
+const browser = await chromium.launch({headless:true,args:[
+  '--no-sandbox','--disable-dev-shm-usage','--enable-webgl',
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader',
+]});
 const page = await browser.newPage({viewport:{width:390,height:844}});
+const browserErrors=[];
+page.on('pageerror',error=>browserErrors.push(error.message));
+page.on('console',message=>{
+  if(message.type()==='error')browserErrors.push(message.text());
+});
 try {
   await page.addInitScript(()=>localStorage.setItem('tiem-tra-chibi-ui-v1',JSON.stringify({renderEngine:'three',graphics:'light',coachCompleted:true,motion:false,sound:false,music:false})));
   await page.goto('http://127.0.0.1:5192');
@@ -14,12 +22,22 @@ try {
   await page.getByText('Đã ghé chợ hôm nay').waitFor();
 
   // Hanh postponement: real UI click and persisted ledger, synthetic day-2 fixture.
-  const p = await browser.newPage({viewport:{width:390,height:844}});
+  // Reuse the existing tab instead of keeping two live WebGL scenes on CI.
+  // Seed a clean day-1 save before React initializes on the next navigation;
+  // deleting storage before unload risks the old page writing its save back.
+  const p = page;
+  await p.setViewportSize({width:390,height:844});
+  await p.addInitScript(()=>{
+    if(!sessionStorage.getItem('__market_clean_start')){
+      localStorage.removeItem('tiem-tra-chibi-save-v3');
+      sessionStorage.setItem('__market_clean_start','1');
+    }
+  });
+  await p.reload();
   try {
     await p.addInitScript(()=>localStorage.setItem('tiem-tra-chibi-ui-v1',JSON.stringify({
       renderEngine:'three',graphics:'light',coachCompleted:true,motion:false,sound:false,music:false
     })));
-    await p.goto('http://127.0.0.1:5192');
     await p.getByRole('button',{name:/Thức dậy bắt đầu ngày mới/}).click();
     await p.getByRole('button',{name:/Đi làm luôn/}).click();
     await p.getByRole('button',{name:/Hỏi thăm cô Hạnh/}).click();
@@ -53,7 +71,13 @@ try {
     await p.getByText(/Cô Hạnh chờ ngày 3/).waitFor();
     if(await p.getByRole('button',{name:/Báo cô Hạnh dời hẹn/}).count())
       throw Error('Duplicate Hanh postponement after reload');
-  } finally { await p.close(); }
+  } finally {
+    // Shared page is owned by the outer browser; do not close it here.
+  }
+} catch(error) {
+  await page.screenshot({path:'market-failure.png'}).catch(()=>{});
+  console.error('Market browser diagnostics:',browserErrors.join(' | ')||'no page/console errors captured');
+  throw error;
 } finally { await browser.close(); }
 
 // PR #43 regression: the market's live promise callback and next-day fruit
