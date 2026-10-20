@@ -3,11 +3,12 @@ import {formatMoney} from '../../game/engine';
 import {MARKET_OPTIONS,marketDialogue,visitMorningMarket,marketPrice} from '../../game/lifeSim/marketEncounter';
 import {MARKET_OPTIONS as KITCHEN_OPTIONS,visitMorningMarket as visitKitchenMarket,cookMarketMeal} from '../../game/lifeSim/morning';
 import {morningActionBlock} from '../../game/lifeSim/morningAction';
-import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,hanhHelpBlock,hanhHelpResolvedToday,hanhHelpFollowup,hanhFruitDiscount} from '../../game/lifeSim/hanhHelpPromise';
+import {pendingHanhHelp,canPromiseHanhHelp,promiseHanhHelp,resolveHanhHelp,canPostponeHanhHelp,postponeHanhHelp,hanhHelpBlock,hanhHelpResolvedToday,hanhHelpFollowup,hanhFruitDiscount} from '../../game/lifeSim/hanhHelpPromise';
 
 export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameState)=>void}){
   const choice=game.morning.marketVisit;
   const followup=hanhHelpFollowup(game);
+  const pending=pendingHanhHelp(game);
   const options=[
     {...MARKET_OPTIONS.fruit,cost:marketPrice(game,'fruit'),id:'fruit',emoji:'🍎',energy:0,act:()=>visitMorningMarket(game,'fruit')},
     {...KITCHEN_OPTIONS.basket,id:'basket',emoji:'🥬',act:()=>visitKitchenMarket(game,'basket')},
@@ -18,9 +19,12 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
   return <section className="life-market life-market-unified" aria-label="Ghé chợ buổi sáng">
     <h4>Ghé chợ đầu ngõ · Cô Hạnh</h4>
     {followup&&<p className="life-market-reply" aria-label="Cô Hạnh nhớ lời hẹn" aria-live="polite">{followup}</p>}
-    {pendingHanhHelp(game)&&<div className="life-market-result" aria-label="Lời hẹn với cô Hạnh">
-      <p>{pendingHanhHelp(game)?.overdue?'Cô Hạnh vẫn nhớ lời hẹn cũ.':'Hôm qua mình hẹn phụ cô Hạnh xếp sạp.'}</p>
-      <div className="life-morning-options">
+    {pending&&<div className="life-market-result" aria-label="Lời hẹn với cô Hạnh">
+      <p role="status" aria-live="polite">{pending.postponed && game.day < pending.dueDay
+        ? `Cô Hạnh chờ ngày ${pending.dueDay}; hôm nay không cần phụ sạp.`
+        : pending.overdue ? 'Cô Hạnh vẫn nhớ lời hẹn cũ.'
+        : `Hôm nay là ngày hẹn giúp cô Hạnh (${pending.dueDay}).`}</p>
+      {(!pending.postponed || game.day >= pending.dueDay)&&<div className="life-morning-options">
         <button type="button" disabled={!!hanhHelpBlock(game,'carry')}
           onClick={()=>onGame(resolveHanhHelp(game,'carry'))}>🧺 Phụ xếp sạp · 14 phút · −7 sức · +2 thân thiết</button>
         <button type="button" disabled={!!hanhHelpBlock(game,'bags')}
@@ -28,7 +32,10 @@ export function MorningMarket({game,onGame}:{game:GameState;onGame:(state:GameSt
         <button type="button" onClick={()=>onGame(resolveHanhHelp(game,'apologize'))}>
           💬 Xin lỗi cô Hạnh · miễn phí · không khóa tiến trình
         </button>
-      </div>
+      </div>}
+      {canPostponeHanhHelp(game)&&<button type="button" className="life-morning-option" onClick={()=>onGame(postponeHanhHelp(game))}>
+        Báo cô Hạnh dời hẹn sang ngày {game.day+1} · 2 phút · −1 thân thiết
+      </button>}
     </div>}
     {hanhHelpResolvedToday(game)&&<p role="status">✓ Đã giải quyết lời hẹn hôm nay. Cô Hạnh sẽ nhớ.</p>}
     {canPromiseHanhHelp(game)&&<button type="button" onClick={()=>onGame(promiseHanhHelp(game))}>Hẹn mai phụ cô Hạnh xếp sạp</button>}
