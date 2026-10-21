@@ -14,7 +14,7 @@ export interface LifeSimCommandResult {
 }
 
 const COMMAND_PART = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
-const EVENT_ID = /^day:([1-9]\\d*):[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}:[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+const EVENT_ID = /^day:([1-9][0-9]*):[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}:[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 
 function isValidEventId(value: string, currentDay: number): boolean {
   const match = EVENT_ID.exec(value);

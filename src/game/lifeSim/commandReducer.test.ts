@@ -116,7 +116,7 @@ describe('life-sim command reducer', () => {
 
     const trailingNewlineKey = {
       ...initial,
-      lifeSimEventLedger: ['day:1:home-meal:cook-breakfast\\n'],
+      lifeSimEventLedger: ['day:1:home-meal:cook-breakfast\n'],
     };
     const invalidTrailingNewline = reduceLifeSimCommand(trailingNewlineKey, command, apply);
     expect(invalidTrailingNewline.status).toBe('invalid');
