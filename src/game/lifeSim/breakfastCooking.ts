@@ -34,12 +34,26 @@ export function canBeginBreakfastCooking(game: GameState): boolean {
     game.city.minutes + 25 <= 1260;
 }
 
+const INVALID_SAVE_NOTICE =
+  'Không thể thực hiện hành động vì dữ liệu lưu không hợp lệ. Tiền và tiến trình chưa thay đổi; hãy tải lại bản lưu.';
+
+function reduceBreakfastCommand(
+  game: GameState,
+  command: { day: number; type: string; id: string },
+  apply: (current: GameState) => GameState,
+): GameState {
+  const result = reduceLifeSimCommand(game, command, apply);
+  if (result.status !== 'invalid') return result.state;
+  // Keep gameplay/economy state untouched, but never fail silently on a corrupt save.
+  return { ...game, notice: INVALID_SAVE_NOTICE };
+}
+
 export function beginBreakfastCooking(game: GameState): GameState {
-  return reduceLifeSimCommand(
+  return reduceBreakfastCommand(
     game,
     { day: game.day, type: 'breakfast', id: 'prepare' },
     beginBreakfastCookingOnce,
-  ).state;
+  );
 }
 
 function beginBreakfastCookingOnce(game: GameState): GameState {
@@ -67,11 +81,11 @@ export function canFinishBreakfastCooking(game: GameState, heat: CookingHeat): b
 }
 
 export function finishBreakfastCooking(game: GameState, heat: CookingHeat): GameState {
-  return reduceLifeSimCommand(
+  return reduceBreakfastCommand(
     game,
     { day: game.day, type: 'breakfast', id: `finish-${heat}` },
     (current) => finishBreakfastCookingOnce(current, heat),
-  ).state;
+  );
 }
 
 function finishBreakfastCookingOnce(game: GameState, heat: CookingHeat): GameState {
