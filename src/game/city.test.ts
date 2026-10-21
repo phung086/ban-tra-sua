@@ -652,3 +652,66 @@ describe('QG-13 day 17 market cooling with co Hanh', () => {
     expect(cityAction(nextDay(before), ice, CITY_PLACES.market).relationshipRewardIds).toEqual([]);
   });
 });
+
+describe('QG-14 day 18 bus 09 lost meeting documents for co Thu', () => {
+  const dayEighteen = () => {
+    let game = createInitialState();
+    for (let day = 1; day < 18; day++) game = nextDay(game);
+    return game;
+  };
+
+  it('pays for a single retrieval ride, survives reload and rewards only day 19', () => {
+    const memory = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    });
+    const before = dayEighteen();
+    const retrieved = cityAction(before, { type: 'busParcel', choice: 'ride' }, CITY_PLACES.bus);
+    expect(retrieved.cash).toBe(before.cash - 7000);
+    expect(retrieved.inventory).toEqual(before.inventory);
+    expect(retrieved.city.minutes).toBe(before.city.minutes + 16);
+    expect(retrieved.city.energy).toBe(before.city.energy - 8);
+    expect(retrieved.city.goodwill).toBe(before.city.goodwill + 3);
+    expect(retrieved.fans).toBe(before.fans + 2);
+    expect(retrieved.relationshipRewardIds).toContain('bus.day18.ride');
+    expect(cityAction(retrieved, { type: 'busParcel', choice: 'call' }, CITY_PLACES.bus)).toBe(retrieved);
+    saveGame(retrieved);
+    const resumed = loadGame();
+    expect(resumed.relationshipRewardIds).toContain('bus.day18.ride');
+    expect(cityAction(resumed, { type: 'busParcel', choice: 'ride' }, CITY_PLACES.bus)).toBe(resumed);
+    const day19 = nextDay(resumed);
+    expect(cityContracts(day19).find(c => c.destination === 'apartments')?.reward).toBe(115000);
+    expect(cityContracts(nextDay(day19)).find(c => c.destination === 'apartments')?.reward).toBe(108000);
+  });
+
+  it('allows a free dispatcher call with no cash or ingredients', () => {
+    const start = dayEighteen();
+    const before = { ...start, cash: 0, city: { ...start.city, energy: 2 } };
+    expect(cityAction(before, { type: 'busParcel', choice: 'ride' }, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    const called = cityAction(before, { type: 'busParcel', choice: 'call' }, CITY_PLACES.bus);
+    expect(called.cash).toBe(0);
+    expect(called.inventory).toEqual(before.inventory);
+    expect(called.city.minutes).toBe(before.city.minutes + 6);
+    expect(called.city.energy).toBe(0);
+    expect(called.city.goodwill).toBe(before.city.goodwill + 1);
+    expect(called.fans).toBe(before.fans + 1);
+    expect(called.relationshipRewardIds).toContain('bus.day18.call');
+    expect(cityContracts(nextDay(called)).find(c => c.destination === 'apartments')?.reward).toBe(111000);
+  });
+
+  it('guards day, bus location, open shift, active delivery, cash, time and energy', () => {
+    const before = dayEighteen();
+    const ride = { type: 'busParcel' as const, choice: 'ride' as const };
+    expect(cityAction(createInitialState(), ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    expect(cityAction(before, ride, CITY_PLACES.shop).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, phase: 'open' }, ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    const contracted = cityAction(before, { type: 'accept', destination: 'school' }, CITY_PLACES.shop);
+    expect(cityAction(contracted, ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, cash: 0 }, ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    expect(cityAction({ ...before, city: { ...before.city, energy: 7 } }, ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    const late = { ...before, city: { ...before.city, minutes: CITY_PLACES.bus.hours[1] - 10 } };
+    expect(cityAction(late, ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+    expect(cityAction(nextDay(before), ride, CITY_PLACES.bus).relationshipRewardIds).toEqual([]);
+  });
+});
