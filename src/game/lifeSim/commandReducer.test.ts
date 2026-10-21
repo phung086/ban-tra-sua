@@ -86,6 +86,42 @@ describe('life-sim command reducer', () => {
     expect(invalidEntry.status).toBe('invalid');
     expect(invalidEntry.state).toBe(corruptEntry);
     expect(invalidEntry.state.cash).toBe(initial.cash);
+
+    const malformedKey = {
+      ...initial,
+      lifeSimEventLedger: ['not-an-event-key'] as unknown as string[],
+    };
+    const invalidKey = reduceLifeSimCommand(malformedKey, command, apply);
+    expect(invalidKey.status).toBe('invalid');
+    expect(invalidKey.state).toBe(malformedKey);
+    expect(invalidKey.state.cash).toBe(initial.cash);
+
+    const unsafeDayKey = {
+      ...initial,
+      lifeSimEventLedger: ['day:999999999999999999999999:home-meal:cook-breakfast'],
+    };
+    const invalidDayKey = reduceLifeSimCommand(unsafeDayKey, command, apply);
+    expect(invalidDayKey.status).toBe('invalid');
+    expect(invalidDayKey.state).toBe(unsafeDayKey);
+    expect(invalidDayKey.state.cash).toBe(initial.cash);
+
+    const futureDayKey = {
+      ...initial,
+      lifeSimEventLedger: ['day:2:home-meal:cook-breakfast'],
+    };
+    const invalidFutureDay = reduceLifeSimCommand(futureDayKey, command, apply);
+    expect(invalidFutureDay.status).toBe('invalid');
+    expect(invalidFutureDay.state).toBe(futureDayKey);
+    expect(invalidFutureDay.state.cash).toBe(initial.cash);
+
+    const trailingNewlineKey = {
+      ...initial,
+      lifeSimEventLedger: ['day:1:home-meal:cook-breakfast\\n'],
+    };
+    const invalidTrailingNewline = reduceLifeSimCommand(trailingNewlineKey, command, apply);
+    expect(invalidTrailingNewline.status).toBe('invalid');
+    expect(invalidTrailingNewline.state).toBe(trailingNewlineKey);
+    expect(invalidTrailingNewline.state.cash).toBe(initial.cash);
   });
 
   it('does not consume no-op commands and compacts the ledger on day rollover', () => {

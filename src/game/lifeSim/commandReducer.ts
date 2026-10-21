@@ -14,6 +14,15 @@ export interface LifeSimCommandResult {
 }
 
 const COMMAND_PART = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+const EVENT_ID = /^day:([1-9]\\d*):[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}:[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+
+function isValidEventId(value: string, currentDay: number): boolean {
+  const match = EVENT_ID.exec(value);
+  // JavaScript's $ may match before a final newline; require a full-string match.
+  if (!match || match[0] !== value) return false;
+  const eventDay = Number(match[1]);
+  return Number.isSafeInteger(eventDay) && eventDay <= currentDay;
+}
 
 export function reduceLifeSimCommand(
   state: GameState,
@@ -39,7 +48,9 @@ export function reduceLifeSimCommand(
   // Treating corruption as an empty ledger could replay a charge or reward.
   if (rawLedger !== undefined && (
     !Array.isArray(rawLedger) ||
-    rawLedger.some((entry: unknown) => typeof entry !== 'string')
+    rawLedger.some((entry: unknown) =>
+      typeof entry !== 'string' || !isValidEventId(entry, state.day)
+    )
   )) return { state, status: 'invalid' };
 
   if (command.day !== state.day) return { state, status: 'stale' };
