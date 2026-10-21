@@ -323,6 +323,8 @@ export interface GameState {
   researchedIds: ResearchId[];
   customerBond: Record<string, number>;
   customerVisits: Record<string, number>;
+  /** Optional save-v3-compatible once-only ledger, compacted to the current day. */
+  lifeSimEventLedger?: string[];
   relationshipRewardIds: string[];
   storyLog: StoryMoment[];
   quests: Quest[];

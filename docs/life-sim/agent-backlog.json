@@ -139,9 +139,9 @@
         "T1-03"
       ],
       "track": "core",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": "CI SHA green, scope-specific tests, no regressions",
-      "branch": null,
+      "branch": "codex/life-command-reducer-20261021",
       "pr": null
     },
     {
@@ -949,8 +949,8 @@
         "playable": false,
         "released": false
       }
-    }
-    ,{
+    },
+    {
       "id": "UX-POUR-01",
       "owner": "A07",
       "title": "Make short manual pour presses responsive in production brewing",

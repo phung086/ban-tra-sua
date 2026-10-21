@@ -1,4 +1,5 @@
 import type { GameState } from '../types';
+import { reduceLifeSimCommand } from './commandReducer';
 import { BREAKFAST_OPTIONS, chooseBreakfast } from './morning';
 
 export type CookingHeat = 'gentle' | 'quick';
@@ -34,6 +35,14 @@ export function canBeginBreakfastCooking(game: GameState): boolean {
 }
 
 export function beginBreakfastCooking(game: GameState): GameState {
+  return reduceLifeSimCommand(
+    game,
+    { day: game.day, type: 'breakfast', id: 'prepare' },
+    beginBreakfastCookingOnce,
+  ).state;
+}
+
+function beginBreakfastCookingOnce(game: GameState): GameState {
   if (!canBeginBreakfastCooking(game)) return game;
   const prepared: CookingMorning = { ...game.morning, cookingStage: 'pan' };
   return {
@@ -58,6 +67,14 @@ export function canFinishBreakfastCooking(game: GameState, heat: CookingHeat): b
 }
 
 export function finishBreakfastCooking(game: GameState, heat: CookingHeat): GameState {
+  return reduceLifeSimCommand(
+    game,
+    { day: game.day, type: 'breakfast', id: `finish-${heat}` },
+    (current) => finishBreakfastCookingOnce(current, heat),
+  ).state;
+}
+
+function finishBreakfastCookingOnce(game: GameState, heat: CookingHeat): GameState {
   if (!canFinishBreakfastCooking(game, heat)) return game;
   const style = COOKING_STYLES[heat];
   const paid = chooseBreakfast(game, 'cook');

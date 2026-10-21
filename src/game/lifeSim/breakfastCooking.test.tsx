@@ -46,4 +46,17 @@ describe('playable home cooking', () => {
     expect(isCookingBreakfast(skipped)).toBe(false);
     expect(nextDay(skipped).morning.breakfast).toBeNull();
   });
+
+  it('keeps a finished cooking command idempotent after a save-shaped reload', () => {
+    const game = ready();
+    const done = finishBreakfastCooking(beginBreakfastCooking(game), 'gentle');
+    expect(done.lifeSimEventLedger).toContain(`day:${game.day}:breakfast:finish-gentle`);
+
+    const restored = JSON.parse(JSON.stringify(done)) as typeof done;
+    const replay = finishBreakfastCooking(restored, 'gentle');
+    expect(replay).toBe(restored);
+    expect(replay.cash).toBe(done.cash);
+    expect(replay.city.minutes).toBe(done.city.minutes);
+  });
+
 });
