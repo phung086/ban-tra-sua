@@ -56,14 +56,10 @@ function getDeferredAmount(ids: readonly string[], period: number): number | nul
   return null;
 }
 
-function getOutstandingBalance(ids: readonly string[], duePeriod: number, paidThrough: number): number {
-  let outstanding = 0;
-  for (let period = 1; period <= duePeriod; period += 1) {
-    if (period <= paidThrough) continue;
-    const deferred = getDeferredAmount(ids, period);
-    outstanding = deferred === null ? outstanding + UTILITIES_BILL_AMOUNT : deferred;
-  }
-  return outstanding;
+function getOutstandingBalance(duePeriod: number, paidThrough: number): number {
+  // Bills have a fixed amount and no late fees; deferral IDs are audit markers,
+  // not authority to reduce or inflate the deterministic unpaid balance.
+  return Math.max(0, duePeriod - paidThrough) * UTILITIES_BILL_AMOUNT;
 }
 
 interface ReservationEntry {
@@ -131,10 +127,10 @@ export function getUtilitiesBillStatus(game: GameState): UtilitiesBillStatus {
   const dueDay = period * UTILITIES_BILL_CYCLE_DAYS;
   const ids = Array.isArray(game.relationshipRewardIds) ? game.relationshipRewardIds : [];
   const paidThrough = getPaidThrough(ids, duePeriod);
-  const amountDue = getOutstandingBalance(ids, duePeriod, paidThrough);
+  const amountDue = getOutstandingBalance(duePeriod, paidThrough);
   const due = duePeriod > paidThrough && amountDue > 0;
   const paid = duePeriod > 0 && paidThrough >= duePeriod;
-  const deferred = due && getDeferredAmount(ids, duePeriod) !== null;
+  const deferred = due && getDeferredAmount(ids, duePeriod) === amountDue;
   const reservedForDue = getReservedAmount(ids, paidThrough, duePeriod, day);
   const reservedThisPeriod = getReservedInPeriod(ids, period, paidThrough, day);
   const shortfall = due ? Math.max(0, amountDue - reservedForDue) : 0;

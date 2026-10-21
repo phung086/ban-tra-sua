@@ -170,4 +170,36 @@ describe('recurring household utilities bill', () => {
     expect(status.canDefer).toBe(true);
   });
 
+  it('rejects inconsistent positive deferral snapshots without changing the true debt', () => {
+    const small = {
+      ...summaryForDay(30), cash: 0,
+      relationshipRewardIds: ['utilities-deferred-through-1-1'],
+    };
+    let status = getUtilitiesBillStatus(small);
+    expect(status.amountDue).toBe(UTILITIES_BILL_AMOUNT);
+    expect(status.deferred).toBe(false);
+    expect(status.canDefer).toBe(true);
+
+    const understated = {
+      ...summaryForDay(60), cash: 0,
+      relationshipRewardIds: [
+        'utilities-deferred-through-1-150000',
+        'utilities-deferred-through-2-150000',
+      ],
+    };
+    status = getUtilitiesBillStatus(understated);
+    expect(status.amountDue).toBe(2 * UTILITIES_BILL_AMOUNT);
+    expect(status.deferred).toBe(false);
+    expect(status.canDefer).toBe(true);
+
+    const inflated = {
+      ...summaryForDay(30), cash: 0,
+      relationshipRewardIds: ['utilities-deferred-through-1-999999'],
+    };
+    status = getUtilitiesBillStatus(inflated);
+    expect(status.amountDue).toBe(UTILITIES_BILL_AMOUNT);
+    expect(status.deferred).toBe(false);
+    expect(status.canDefer).toBe(true);
+  });
+
 });
