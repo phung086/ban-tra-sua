@@ -114,4 +114,60 @@ describe('recurring household utilities bill', () => {
     expect(game.phase).toBe('summary');
     expect(game.cash).toBeGreaterThanOrEqual(0);
   });
+  it('deduplicates reservations and ignores malformed dates and future paid markers', () => {
+    const due = {
+      ...summaryForDay(30),
+      cash: 0,
+      relationshipRewardIds: [
+        'utilities-reserve-1-1',
+        'utilities-reserve-1-1',
+        'utilities-reserve-1-31',
+        'utilities-reserve-1-0',
+        'utilities-reserve-2-31',
+        'utilities-paid-through-2',
+      ],
+    };
+    const status = getUtilitiesBillStatus(due);
+    expect(status.due).toBe(true);
+    expect(status.paid).toBe(false);
+    expect(status.amountDue).toBe(UTILITIES_BILL_AMOUNT);
+    expect(status.reservedForDue).toBe(UTILITIES_DAILY_RESERVE);
+    expect(status.reservedThisPeriod).toBe(UTILITIES_DAILY_RESERVE);
+    expect(status.shortfall).toBe(UTILITIES_BILL_AMOUNT - UTILITIES_DAILY_RESERVE);
+  });
+
+  it('does not count future days or cross-period reservation IDs', () => {
+    const current = {
+      ...summaryForDay(31),
+      relationshipRewardIds: [
+        'utilities-reserve-2-31',
+        'utilities-reserve-2-31',
+        'utilities-reserve-2-32',
+        'utilities-reserve-2-61',
+      ],
+    };
+    const status = getUtilitiesBillStatus(current);
+    expect(status.reservedToday).toBe(true);
+    expect(status.reservedThisPeriod).toBe(UTILITIES_DAILY_RESERVE);
+    expect(status.reservedForDue).toBe(0);
+    expect(status.due).toBe(true);
+  });
+
+  it('does not let zero or unsafe deferred ledger amounts erase a due bill', () => {
+    const due = {
+      ...summaryForDay(30),
+      cash: 0,
+      relationshipRewardIds: [
+        'utilities-deferred-through-1-0',
+        'utilities-deferred-through-1-999999999999999999999999',
+      ],
+    };
+    const status = getUtilitiesBillStatus(due);
+    expect(status.due).toBe(true);
+    expect(status.deferred).toBe(false);
+    expect(status.amountDue).toBe(UTILITIES_BILL_AMOUNT);
+    expect(status.shortfall).toBe(UTILITIES_BILL_AMOUNT);
+    expect(status.canDefer).toBe(true);
+  });
+
 });

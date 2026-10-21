@@ -31,11 +31,16 @@ function isSummaryDay(game: GameState): boolean {
     Number.isSafeInteger(game.day) && game.day >= 1;
 }
 
-function getPaidThrough(ids: readonly string[]): number {
+function getPaidThrough(ids: readonly string[], maxDuePeriod: number): number {
   let paidThrough = 0;
   for (const id of ids) {
     const match = /^utilities-paid-through-(\d+)$/.exec(id);
-    if (match) paidThrough = Math.max(paidThrough, Number(match[1]));
+    if (!match) continue;
+    const period = Number(match[1]);
+    // A future/corrupt marker must never suppress a bill that is due today.
+    if (Number.isSafeInteger(period) && period >= 1 && period <= maxDuePeriod) {
+      paidThrough = Math.max(paidThrough, period);
+    }
   }
   return paidThrough;
 }
@@ -46,7 +51,7 @@ function getDeferredAmount(ids: readonly string[], period: number): number | nul
     const id = ids[index];
     if (!id.startsWith(prefix)) continue;
     const amount = Number(id.slice(prefix.length));
-    if (Number.isSafeInteger(amount) && amount >= 0) return amount;
+    if (Number.isSafeInteger(amount) && amount > 0) return amount;
   }
   return null;
 }
@@ -61,28 +66,61 @@ function getOutstandingBalance(ids: readonly string[], duePeriod: number, paidTh
   return outstanding;
 }
 
-function reservationPeriod(id: string): number | null {
+interface ReservationEntry {
+  period: number;
+  day: number;
+}
+
+function reservationEntry(id: string): ReservationEntry | null {
   const match = /^utilities-reserve-(\d+)-(\d+)$/.exec(id);
   if (!match) return null;
   const period = Number(match[1]);
   const day = Number(match[2]);
-  return Number.isSafeInteger(period) && period >= 1 &&
-    Number.isSafeInteger(day) && day >= 1 ? period : null;
+  if (!Number.isSafeInteger(period) || period < 1 ||
+      !Number.isSafeInteger(day) || day < 1) return null;
+  // Every global day belongs to exactly one 30-day period.
+  if (Math.floor((day - 1) / UTILITIES_BILL_CYCLE_DAYS) + 1 !== period) return null;
+  return { period, day };
 }
 
-function getReservedAmount(ids: readonly string[], afterPeriod: number, throughPeriod: number): number {
-  return ids.reduce((total, id) => {
-    const period = reservationPeriod(id);
-    return period !== null && period > afterPeriod && period <= throughPeriod
-      ? total + UTILITIES_DAILY_RESERVE
-      : total;
-  }, 0);
+function getReservedAmount(
+  ids: readonly string[],
+  afterPeriod: number,
+  throughPeriod: number,
+  currentDay: number,
+): number {
+  const seen = new Set<string>();
+  let total = 0;
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const entry = reservationEntry(id);
+    if (entry && entry.day <= currentDay &&
+        entry.period > afterPeriod && entry.period <= throughPeriod) {
+      total += UTILITIES_DAILY_RESERVE;
+    }
+  }
+  return total;
 }
 
-function getReservedInPeriod(ids: readonly string[], period: number, paidThrough: number): number {
+function getReservedInPeriod(
+  ids: readonly string[],
+  period: number,
+  paidThrough: number,
+  currentDay: number,
+): number {
   if (period <= paidThrough) return 0;
-  return ids.reduce((total, id) =>
-    reservationPeriod(id) === period ? total + UTILITIES_DAILY_RESERVE : total, 0);
+  const seen = new Set<string>();
+  let total = 0;
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const entry = reservationEntry(id);
+    if (entry && entry.period === period && entry.day <= currentDay) {
+      total += UTILITIES_DAILY_RESERVE;
+    }
+  }
+  return total;
 }
 
 /** Deterministic 30-day household utility cycle using the existing v3 save ledger. */
@@ -92,13 +130,13 @@ export function getUtilitiesBillStatus(game: GameState): UtilitiesBillStatus {
   const duePeriod = Math.floor(day / UTILITIES_BILL_CYCLE_DAYS);
   const dueDay = period * UTILITIES_BILL_CYCLE_DAYS;
   const ids = Array.isArray(game.relationshipRewardIds) ? game.relationshipRewardIds : [];
-  const paidThrough = getPaidThrough(ids);
+  const paidThrough = getPaidThrough(ids, duePeriod);
   const amountDue = getOutstandingBalance(ids, duePeriod, paidThrough);
   const due = duePeriod > paidThrough && amountDue > 0;
   const paid = duePeriod > 0 && paidThrough >= duePeriod;
   const deferred = due && getDeferredAmount(ids, duePeriod) !== null;
-  const reservedForDue = getReservedAmount(ids, paidThrough, duePeriod);
-  const reservedThisPeriod = getReservedInPeriod(ids, period, paidThrough);
+  const reservedForDue = getReservedAmount(ids, paidThrough, duePeriod, day);
+  const reservedThisPeriod = getReservedInPeriod(ids, period, paidThrough, day);
   const shortfall = due ? Math.max(0, amountDue - reservedForDue) : 0;
   const reservedToday = ids.includes(reserveId(period, day));
   const summary = isSummaryDay(game);
