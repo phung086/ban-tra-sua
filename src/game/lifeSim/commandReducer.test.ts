@@ -65,6 +65,29 @@ describe('life-sim command reducer', () => {
     expect(initial.lifeSimEventLedger).toBeUndefined();
   });
 
+  it('fails closed on a corrupt persisted ledger instead of risking a duplicate charge', () => {
+    const initial = createInitialState();
+    const apply = (state: typeof initial) => ({ ...state, cash: state.cash - 100 });
+
+    const corruptShape = {
+      ...initial,
+      lifeSimEventLedger: { damaged: true } as unknown as string[],
+    };
+    const invalidShape = reduceLifeSimCommand(corruptShape, command, apply);
+    expect(invalidShape.status).toBe('invalid');
+    expect(invalidShape.state).toBe(corruptShape);
+    expect(invalidShape.state.cash).toBe(initial.cash);
+
+    const corruptEntry = {
+      ...initial,
+      lifeSimEventLedger: ['day:1:home-meal:cook-breakfast', null] as unknown as string[],
+    };
+    const invalidEntry = reduceLifeSimCommand(corruptEntry, command, apply);
+    expect(invalidEntry.status).toBe('invalid');
+    expect(invalidEntry.state).toBe(corruptEntry);
+    expect(invalidEntry.state.cash).toBe(initial.cash);
+  });
+
   it('does not consume no-op commands and compacts the ledger on day rollover', () => {
     const initial = createInitialState();
     const noOp = reduceLifeSimCommand(initial, command, (state) => state);

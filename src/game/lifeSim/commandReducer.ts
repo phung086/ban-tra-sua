@@ -34,13 +34,19 @@ export function reduceLifeSimCommand(
   if (!Number.isSafeInteger(state.day) || state.day < 1) {
     return { state, status: 'invalid' };
   }
+  const rawLedger: unknown = state.lifeSimEventLedger;
+  // Missing is valid for legacy v3 saves; a present corrupt ledger must fail closed.
+  // Treating corruption as an empty ledger could replay a charge or reward.
+  if (rawLedger !== undefined && (
+    !Array.isArray(rawLedger) ||
+    rawLedger.some((entry: unknown) => typeof entry !== 'string')
+  )) return { state, status: 'invalid' };
+
   if (command.day !== state.day) return { state, status: 'stale' };
 
   const prefix = `day:${state.day}:`;
-  const ledger = Array.isArray(state.lifeSimEventLedger)
-    ? [...new Set(state.lifeSimEventLedger.filter(
-        (entry): entry is string => typeof entry === 'string' && entry.startsWith(prefix),
-      ))]
+  const ledger = Array.isArray(rawLedger)
+    ? [...new Set(rawLedger.filter((entry: string) => entry.startsWith(prefix)))]
     : [];
   const eventId = `${prefix}${command.type}:${command.id}`;
 
