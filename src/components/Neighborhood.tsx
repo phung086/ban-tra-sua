@@ -151,6 +151,7 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
             </div>}
         </article>}
         {selected === 'apartments' && game.day === 15 && game.relationshipRewardIds.some(id => id.startsWith('apartments.day14.')) && <p role="status" className="market-day-story">Cô Thu nhớ buổi họp hôm qua: đơn trà khu tập thể trong mục Giao trà hôm nay có giá trị cao hơn.</p>}
+        {selected === 'apartments' && game.day === 19 && game.relationshipRewardIds.some(id => id.startsWith('bus.day18.')) && <p role="status" className="market-day-story">Cô Thu đã nhận lại túi tài liệu xe buýt 09: đơn khu tập thể Ngày 19 được cộng thêm tiền cảm ơn.</p>}
         {selected === 'library' && game.day === 15 && <article className="market-basket" aria-label="Ngày 15: Anh Nam chuẩn bị góc đọc sách">
           <h4>📚 Ngày 15 · Góc đọc sách của anh Nam</h4>
           <p>Anh Nam đang kê lại góc đọc cho trẻ trong xóm. Bạn pha 2 ly ô long mời nhóm hay giúp anh xếp sách và dán lịch đọc? Đơn hiệu sách Ngày 16 sẽ thay đổi.</p>
@@ -184,6 +185,20 @@ export function Neighborhood({game, position, onNavigate, onAction, onReturn, on
         {selected === 'lake' && game.day === 17 && game.relationshipRewardIds.some(id => id.startsWith('lake.day16.')) && <p role="status" className="market-day-story">Bác Minh nhớ buổi đi bộ trong mưa: cô Thu đặt thêm trà khu tập thể hôm nay.</p>}
         {['lake','plaza','riverside','temple'].includes(selected) && <button disabled={!near || city.energy>=100} onClick={() => onAction({type:'rest',place:selected})}>Nghỉ 20 phút · hồi 35 sức lực</button>}
         {selected === 'park' && <button disabled={!near || city.errands.includes('garden')} onClick={() => onAction({type:'garden'})}>{city.errands.includes('garden') ? 'Vườn đã được chăm' : 'Chăm vườn hoa · 15 phút'}</button>}
+        {selected === 'bus' && game.day === 18 && <article className="market-basket" aria-label="Ngày 18: Tìm túi tài liệu của cô Thu trên xe buýt 09">
+          <h4>🚌 Ngày 18 · Túi tài liệu thất lạc trên xe 09</h4>
+          <p>Cô Thu để quên túi tài liệu buổi họp trên xe. Bạn mua vé đuổi theo chuyến xe để lấy ngay, hay nhờ điều hành tuyến giữ túi giúp? Ngày 19 khu tập thể sẽ nhớ việc này.</p>
+          {game.relationshipRewardIds.some(id => id.startsWith('bus.day18.'))
+            ? <p role="status">{game.relationshipRewardIds.includes('bus.day18.ride')
+              ? 'Đã theo xe lấy lại túi. Đơn khu tập thể Ngày 19 tăng 7.000 ₫.'
+              : 'Đã nhờ điều hành giữ túi. Đơn khu tập thể Ngày 19 tăng 3.000 ₫.'}</p>
+            : <div className="market-day-actions">
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || game.cash < 7000 || city.energy < 8 || city.minutes + 16 > Math.min(1260, CITY_PLACES.bus.hours[1])}
+                onClick={() => onAction({ type: 'busParcel', choice: 'ride' })}>Theo xe lấy túi · 7.000 ₫ · 16 phút · 8 sức</button>
+              <button type="button" disabled={!near || game.phase === 'open' || city.contract !== null || city.energy < 2 || city.minutes + 6 > Math.min(1260, CITY_PLACES.bus.hours[1])}
+                onClick={() => onAction({ type: 'busParcel', choice: 'call' })}>Nhờ điều hành giữ túi · miễn phí · 6 phút · 2 sức</button>
+            </div>}
+        </article>}
         {selected === 'bus' && <><p>Xe buýt chạy qua khu phố. Lượt về tiệm tốn 7.000 ₫ và 10 phút.</p><button disabled={!near || game.cash<7000} onClick={onRide}>Lên xe về tiệm</button></>}
       </div>
     </section>}
