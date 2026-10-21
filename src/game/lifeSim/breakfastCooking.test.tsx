@@ -59,4 +59,35 @@ describe('playable home cooking', () => {
     expect(replay.city.minutes).toBe(done.city.minutes);
   });
 
+  it('shows a clear notice and preserves gameplay state when a corrupt ledger blocks cooking', () => {
+    const game = ready();
+    const corrupt = {
+      ...game,
+      lifeSimEventLedger: ['not-an-event-key'] as unknown as string[],
+    };
+
+    const blockedStart = beginBreakfastCooking(corrupt);
+    expect(blockedStart.notice).toContain('dữ liệu lưu không hợp lệ');
+    expect(blockedStart.cash).toBe(corrupt.cash);
+    expect(blockedStart.city).toBe(corrupt.city);
+    expect(blockedStart.morning).toBe(corrupt.morning);
+    expect(blockedStart.lifeSimEventLedger).toBe(corrupt.lifeSimEventLedger);
+    expect(blockedStart.city.minutes).toBe(corrupt.city.minutes);
+    expect(blockedStart.city.energy).toBe(corrupt.city.energy);
+    expect(isCookingBreakfast(blockedStart)).toBe(false);
+
+    const prepared = beginBreakfastCooking(game);
+    const corruptPrepared = {
+      ...prepared,
+      lifeSimEventLedger: ['not-an-event-key'] as unknown as string[],
+    };
+    const blockedFinish = finishBreakfastCooking(corruptPrepared, 'gentle');
+    expect(blockedFinish.notice).toContain('dữ liệu lưu không hợp lệ');
+    expect(blockedFinish.cash).toBe(corruptPrepared.cash);
+    expect(blockedFinish.city).toBe(corruptPrepared.city);
+    expect(blockedFinish.morning).toBe(corruptPrepared.morning);
+    expect(blockedFinish.lifeSimEventLedger).toBe(corruptPrepared.lifeSimEventLedger);
+    expect(blockedFinish.city.minutes).toBe(corruptPrepared.city.minutes);
+    expect(blockedFinish.city.energy).toBe(corruptPrepared.city.energy);
+  });
 });
