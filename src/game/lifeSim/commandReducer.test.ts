@@ -114,6 +114,13 @@ describe('life-sim command reducer', () => {
     expect(invalidFutureDay.state).toBe(futureDayKey);
     expect(invalidFutureDay.state.cash).toBe(initial.cash);
 
+    const sparseLedger = new Array(1) as string[];
+    const sparseKey = { ...initial, lifeSimEventLedger: sparseLedger };
+    const invalidSparse = reduceLifeSimCommand(sparseKey, command, apply);
+    expect(invalidSparse.status).toBe('invalid');
+    expect(invalidSparse.state).toBe(sparseKey);
+    expect(invalidSparse.state.cash).toBe(initial.cash);
+
     const trailingNewlineKey = {
       ...initial,
       lifeSimEventLedger: ['day:1:home-meal:cook-breakfast\n'],

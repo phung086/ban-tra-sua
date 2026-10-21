@@ -24,6 +24,17 @@ function isValidEventId(value: string, currentDay: number): boolean {
   return Number.isSafeInteger(eventDay) && eventDay <= currentDay;
 }
 
+function isValidLedger(value: unknown, currentDay: number): value is string[] {
+  if (!Array.isArray(value)) return false;
+  // Array.prototype.some skips sparse slots; a damaged ledger must fail closed.
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+    const entry: unknown = value[index];
+    if (typeof entry !== 'string' || !isValidEventId(entry, currentDay)) return false;
+  }
+  return true;
+}
+
 export function reduceLifeSimCommand(
   state: GameState,
   command: LifeSimCommand,
@@ -46,12 +57,9 @@ export function reduceLifeSimCommand(
   const rawLedger: unknown = state.lifeSimEventLedger;
   // Missing is valid for legacy v3 saves; a present corrupt ledger must fail closed.
   // Treating corruption as an empty ledger could replay a charge or reward.
-  if (rawLedger !== undefined && (
-    !Array.isArray(rawLedger) ||
-    rawLedger.some((entry: unknown) =>
-      typeof entry !== 'string' || !isValidEventId(entry, state.day)
-    )
-  )) return { state, status: 'invalid' };
+  if (rawLedger !== undefined && !isValidLedger(rawLedger, state.day)) {
+    return { state, status: 'invalid' };
+  }
 
   if (command.day !== state.day) return { state, status: 'stale' };
 
