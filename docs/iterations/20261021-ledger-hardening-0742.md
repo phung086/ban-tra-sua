@@ -1,0 +1,21 @@
+# Iteration T3-02 ledger hardening — 2026-10-21 07:42
+
+- Baseline main SHA: `e1b3bda53dac08a0689dbbfd8fb9ff3cd01566fa`
+- Branch: `codex/life-recurring-bills-20261021`
+- Parent HEAD: `c88ddac51ebcd633fd6d96f035fb168a84c2560e`
+- Scope: make the existing household-utilities ledger tolerant of duplicated/corrupt reservation IDs and future-dated markers.
+- Runtime behavior:
+  - count a reservation once per stable ledger ID;
+  - reject reservation IDs whose global day does not belong to the encoded 30-day period;
+  - do not count reservations dated after the current in-game day;
+  - ignore paid-through markers beyond the currently due period;
+  - ignore zero/unsafe deferred amounts so they cannot erase a valid bill.
+- Files: `src/game/lifeSim/recurringBills.ts`, `src/game/lifeSim/recurringBills.test.tsx`.
+- Tests added: duplicate/cross-period/future reservation regression; future paid marker regression; zero/unsafe deferred balance regression.
+- `npm test`: PENDING until GitHub Actions reports the exact new HEAD.
+- `npm run build`: PENDING until GitHub Actions reports the exact new HEAD.
+- Browser smoke 360x800, 390x844, 844x390, desktop: PENDING; no new screenshot/console evidence collected in this iteration.
+- Sleep/save/reload end-to-end: PENDING.
+- Android/iPhone real-device checks and M1 performance gate: PENDING.
+- Backlog note: T3-02 still depends on T1-04, which remains `planned` on main. This hardening commit does not mark T3-02 accepted/playable/released.
+- Merge/release: not authorized until dependency, exact-SHA CI, build, browser and save/reload gates pass.
